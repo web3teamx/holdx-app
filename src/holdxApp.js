@@ -68,53 +68,31 @@ const TOKREG={
  SOL:{t:"SOL",name:"Solana",price:168.4,chg:3.2,mc:"92.1B",color:tokColor("SOL"),address:"So11111111111111111111111111111111111111112",chain:"solana"},
  BONK:{t:"BONK",name:"Bonk",price:0.0000231,chg:8.1,mc:"1.6B",color:tokColor("BONK"),address:"DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",chain:"solana"},
  POPCAT:{t:"POPCAT",name:"Popcat",price:0.91,chg:12.7,mc:"894M",color:tokColor("POPCAT"),address:"7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr",chain:"solana"},
- PROB:{t:"PROB",name:"probably nothing",price:0.00042,chg:34.2,mc:"26.4K",color:"#34E39A",chain:"solana"},
 };
 
 const MY_HOLDINGS={
  SOL:{amount:14.2,buyAvg:151.0},
  BONK:{amount:38000000,buyAvg:0.0000198},
  POPCAT:{amount:210,buyAvg:1.04},
- PROB:{amount:4200000,buyAvg:0.00031},
 };
 
 const S={
  connected:false, wallet:null, view:{name:"feed",token:null}, tick:0, filter:"ALL",
  feedDrop:false, feedSearch:"",
- posts:[
-  {id:1,wallet:"9fKq2m",token:"PROB",verified:true,time:"2g",text:"26K market cap. daha başlamadık bile. 'probably nothing' diyenler birazdan 'probably everything' diyecek. 🖤",likes:142,replies:23,reposts:18,liked:false},
-  {id:2,wallet:"Dk3mR7",token:"SOL",verified:true,time:"3sa",text:"solana günlük işlem sayısında yine ATH kırdı. ağ ne kadar yoğun olursa olsun ücretler hâlâ cent altı. bu yüzden buradayız.",likes:301,replies:44,reposts:67,liked:false},
-  {id:3,wallet:"Ax7pL9",token:"WIF",verified:true,time:"5sa",text:"wif holderları bugün iyi yiyor. direnç kırıldı, sıradaki durak $2.",likes:88,replies:12,reposts:9,liked:false},
-  {id:4,wallet:"3tRw8k",token:"BONK",verified:false,time:"8sn",text:"bonk yine mi koşuyor? whale'ler sessizce yükleniyor 👀",likes:5,replies:1,reposts:0,liked:false},
-  {id:5,wallet:"Mn8qW2",token:"SOL",verified:true,time:"1g",text:"sol'da 160 desteği çalıştı, hacim de teyit etti. haftalık kapanış 170 üstü gelirse yeni bir bacak başlar.",likes:156,replies:31,reposts:22,liked:false},
-  {id:6,wallet:"Qz1vN4",token:"POPCAT",verified:true,time:"1g",text:"popcat hâlâ memecoin'lerin en temiz grafiği. söylenecek söz yok.",likes:61,replies:8,reposts:14,liked:false},
-  {id:7,wallet:"Vp5tK1",token:"JUP",verified:true,time:"2g",text:"jupiter'in yeni sürümü çıktı, swap deneyimi bambaşka. solana defi'ının kalbi burası.",likes:97,replies:15,reposts:20,liked:false},
- ],
- customRooms:[{ticker:"PROB",creator:"9fKq2m",members:214,cap:500,createdAt:"3 gün önce"}],
- chat:{
-  SOL:[{wallet:"Dk3mR7",verified:true,text:"gm sol ailesi ☀️ 170 kırılıyor mu bugün?"},{wallet:"Mn8qW2",verified:true,text:"hacim güzel geliyor, bence dener"}],
-  BONK:[{wallet:"3tRw8k",verified:true,text:"bonk army neredesiniz"},{wallet:"vv91Lm",verified:true,text:"bu sabah bir bag daha aldım"}],
-  PROB:[{wallet:"9fKq2m",verified:true,creator:true,text:"gm prob ailesi 🖤 odamıza hoş geldiniz. 3k'dan beri burada olan var mı?"},{wallet:"Kp02aa",verified:true,text:"birinci günden. bir tane bile satmıyorum."},{wallet:"7xKqP9",verified:false,text:"az önce keşfettim projeyi, peluş oyuncaklar gerçekten geliyor mu?"}],
- },
+ posts:[],
+ customRooms:[],
+ chat:{},
  copied:false, modal:null, livePrices:{}, hideWhale:false, theme:"dark", entered:false,
- topSearch:"", topSearchOpen:false, topResults:[], topSearching:false, shareOpen:null,
+ topSearch:"", topSearchOpen:false, topResults:[], topProfiles:[], topSearching:false, shareOpen:null, leaderboard:[], dms:{}, dmText:"", dmThreads:[], unreadDM:0, unreadPeers:{},
  commentText:"", prevView:null, roomMenu:null, leaveConfirm:null, deleteConfirm:null, sharePostId:null, lightbox:null,
  profile:{name:"", bio:"", avatar:null, cover:null, joined:"Tem 2025"}, crop:null,
  following:{}, followers:42, editProfile:false, profileTab:"posts",
  pts:0, ptsLog:{}, ptsDay:{}, ptsDayKey:"",
  hideValue:false, hideActivity:false, privateProfile:false, docOpen:null, feedbackOpen:false,
- emojiFor:null, postMedia:null, chatMedia:null, gifQuery:"", gifFor:null, composerText:"", chatText:"",
- activity:[
-  {type:"create",wallet:"7Qm4vK",token:"ANSEM",chain:"solana",t:Date.now()-1000*60*2},
-  {type:"join",wallet:"Bx91Lp",token:"PROB",chain:"solana",t:Date.now()-1000*60*5},
-  {type:"join",wallet:"9fKq2m",token:"WIF",chain:"solana",t:Date.now()-1000*60*8},
-  {type:"create",wallet:"Kp02aa",token:"PEPE",chain:"ethereum",t:Date.now()-1000*60*14},
-  {type:"join",wallet:"3tRw8k",token:"BONK",chain:"solana",t:Date.now()-1000*60*21},
-  {type:"join",wallet:"Vp5tK1",token:"EIGEN",chain:"ethereum",t:Date.now()-1000*60*33},
-  {type:"create",wallet:"Mn8qW2",token:"MOODENG",chain:"solana",t:Date.now()-1000*60*47},
- ],
- joined:{PROB:true}, roomSearch:"",
- roomTab:"browse", createTicker:"", createDone:null, createCap:100, upgradeOpen:null,
+ emojiFor:null, postMedia:null, chatMedia:null, gifQuery:"", gifFor:null, composerText:"", chatText:"", names:{},
+ activity:[],
+ joined:{}, roomSearch:"",
+ roomTab:"browse", createTicker:"", createDone:null, createCap:100, upgradeOpen:null, createHoldError:false,
  searchResults:[], searching:false, searchErr:false, picked:null,
  feedResults:[], feedSearching:false,
  exploreSearch:"", exploreResults:[], exploreSearching:false,
@@ -139,15 +117,36 @@ function myTag(){return short(S.wallet.address).replace("…","");}
 function isMyWallet(w,mine){return mine||(S.connected&&w===myTag());}
 function displayName(w,mine){
  if(isMyWallet(w,mine)&&S.profile&&S.profile.name&&S.profile.name.trim())return S.profile.name.trim();
+ if(S.names&&S.names[w]&&S.names[w].trim())return S.names[w].trim();
  return w;
 }
-function nameCls(w,mine){return (isMyWallet(w,mine)&&S.profile&&S.profile.name&&S.profile.name.trim())?"":"mono";}
+function nameCls(w,mine){
+ if(isMyWallet(w,mine)&&S.profile&&S.profile.name&&S.profile.name.trim())return "";
+ if(S.names&&S.names[w]&&S.names[w].trim())return "";
+ return "mono";
+}
+// Baska cuzdanlarin profil isimleri (Supabase'den) burada tutulur
+window.__holdxApplyNames=function(map){
+ S.names=Object.assign(S.names||{}, map||{});
+ render();
+};
 function chart(seed){let s=0;for(let i=0;i<seed.length;i++)s+=seed.charCodeAt(i);const o=[];let v=40;for(let i=0;i<40;i++){s=(s*9301+49297)%233280;v=Math.max(12,Math.min(96,v+((s/233280)-0.42)*26));o.push(v);}return o;}
-function livePrice(t){if(!S.livePrices[t]){const tk=tokenBy(t);S.livePrices[t]={price:tk.price,dir:0};}return S.livePrices[t];}
+function livePrice(t){if(!S.livePrices[t]){const tk=tokenBy(t);S.livePrices[t]={price:(tk&&tk.price)||0,dir:0};}return S.livePrices[t];}
 function isCustomRoom(t){return S.customRooms.some(r=>r.ticker===t);}
 function isJoined(t){return !!S.joined[t];}
 function roomFull(t){const r=S.customRooms.find(x=>x.ticker===t);return r?(r.members>=(r.cap||100)):false;}
-function canJoin(t){if(!isCustomRoom(t))return holds(t);return !roomFull(t)||!!S.joined[t];}
+const MIN_HOLD_USD=10; // odaya katilmak icin o tokenden en az bu kadar $ tutma sarti
+function holdsEnough(t){
+  // zaten uyeyse tekrar kontrol etme
+  if(S.joined[t]) return true;
+  const hv=holdingUsd(t);
+  return hv.usd>=MIN_HOLD_USD;
+}
+function canJoin(t){
+  if(!isCustomRoom(t)) return holds(t);
+  if(roomFull(t) && !S.joined[t]) return false; // dolu
+  return holdsEnough(t); // holder sarti
+}
 
 /* Kullanıcının bir tokenden elindeki ANLIK dolar değeri.
    Gerçek sürümde: cüzdan bakiyesi (RPC) × canlı fiyat.
@@ -159,7 +158,9 @@ function holdingUsd(sym,priceHint){
    const amt=S.wallet.holdings[sym].amount;
    return {amount:amt, usd:amt*price, real:true};
  }
- // demo simülasyonu: 0–59$ arası deterministik (bazı token >10$, bazıları <10$ → iki durumu da görürsün)
+ // Gerçek cüzdan bağlıysa ve o token cüzdanda yoksa → 0 (demo yok)
+ if(S.connected){ return {amount:0, usd:0, real:true}; }
+ // Bağlı değilken demo simülasyonu
  let h=0;for(let i=0;i<sym.length;i++)h=(h*131+sym.charCodeAt(i))>>>0;
  const usd=h%60;
  return {amount:price>0?usd/price:0, usd, real:false};
@@ -314,7 +315,7 @@ async function dexSearch(q){
    if(!byToken[key]||liq>byToken[key]._liq){byToken[key]={
      source:"dex", address:p.baseToken.address, chain:p.chainId, symbol:p.baseToken.symbol, name:p.baseToken.name,
      price:parseFloat(p.priceUsd), chg:(p.priceChange&&p.priceChange.h24)||0,
-     mc:p.marketCap||p.fdv||0, _liq:liq };}
+     mc:p.marketCap||0, _fdv:p.fdv||0, _liq:liq };}
  }
  return Object.values(byToken);
 }
@@ -343,9 +344,23 @@ async function tokenSearch(q){
 
  // sıralama: tam sembol/isim eşleşmesi öne; sonra piyasa büyüklüğü (mcap) + likidite.
  const score=t=>{const sym=(t.symbol||"").toLowerCase(),nm=(t.name||"").toLowerCase();
-   if(sym===ql)return 4; if(nm===ql)return 3; if(sym.startsWith(ql))return 2; if(nm.startsWith(ql))return 1; return 0;};
- const weight=t=>Math.max(t.mc||0, (t._liq||0)*3); // mcap ya da likidite×3 — hangisi büyükse
- merged.sort((x,y)=>{const s=score(y)-score(x); return s!==0?s:(weight(y)-weight(x));});
+   if(sym===ql)return 2; if(sym.startsWith(ql)||nm===ql)return 1; return 0;};
+ // CoinGecko'da market_cap_rank'i olan tokenlar KÖKLÜ/GERÇEK'tir (sahteler listelenmez).
+ // Bir DEX sonucu, CoinGecko'da aynı sembolle köklü bir coin varsa, onun mcap'ini "gerçek" kabul et.
+ const cgRankBySym={};
+ for(const c of cgArr){const k=(c.symbol||"").toUpperCase(); if(c.rank && c.rank<9999 && (!cgRankBySym[k]||c.rank<cgRankBySym[k].rank)) cgRankBySym[k]={rank:c.rank,mc:c.mc||0};}
+ // Her tokene "güven puanı": CoinGecko rank'i varsa yüksek; yoksa likiditeye bak.
+ const trust=t=>{
+   const k=(t.symbol||"").toUpperCase();
+   const cg=cgRankBySym[k];
+   // CoinGecko'da köklü coin + bu tokenin mcap'i o köklüye yakınsa → gerçek (yüksek güven)
+   if(t.source==="cg" && t.rank && t.rank<9999) return 1e12 - t.rank*1e6; // rank ne düşükse o kadar üstte
+   // DEX sonucu ama CoinGecko'da köklü karşılığı var ve mcap benzer → gerçek
+   if(cg && t.mc>0 && t.mc >= cg.mc*0.5) return 1e12 - cg.rank*1e6 - 1;
+   // aksi halde likidite + gerçek mcap
+   return ((t._liq||0)*10) + (t.mc||0);
+ };
+ merged.sort((x,y)=>{const w=trust(y)-trust(x); if(w!==0)return w; return score(y)-score(x);});
  return merged.slice(0,14);
 }
 async function dexPrice(address,chain){
@@ -421,7 +436,7 @@ function postSearchResultsHtml(){
  return `<div class="resultlist">${S.postResults.map((r,i)=>`
    <button class="resultrow" data-act="pickPostToken" data-i="${i}">
      <span class="tokenmark sm" style="background:${tokColor(r.symbol)}"></span>
-     <div class="rr-body"><span class="rr-line"><span class="mono rr-tk">$${esc(r.symbol)}</span>${chainBadge(r.chain)}</span><span class="rr-name">${esc(r.name)}</span></div>
+     <div class="rr-body"><span class="rr-line"><span class="mono rr-tk">$${esc(r.symbol)}</span>${chainBadge(r.chain)}</span><span class="rr-name">${esc(r.name)}${r.mc?` · mcap ${typeof r.mc==="number"?fmtMc(r.mc):r.mc}`:""}</span></div>
      <span class="mono rr-price ${r.chg>=0?"up":"down"}">${fprice(r.price)}</span>
    </button>`).join("")}</div>`;
 }
@@ -463,7 +478,7 @@ async function refreshTokenPrices(){
  }
  if(["tokens","feed","rooms","portfolio"].includes(S.view.name))render();
 }
-const NAV=[["feed","Akış","home"],["tokens","Token ara","search"],["profile","Profil","user"],["portfolio","Portfolyo","wallet"],["rooms","Odalar","chat"],["myrooms","Odalarım","badge"],["leaderboard","Sıralama","trend"],["settings","Ayarlar","gear"]];
+const NAV=[["feed","Akış","home"],["tokens","Token ara","search"],["profile","Profil","user"],["portfolio","Portfolyo","wallet"],["rooms","Odalar","chat"],["myrooms","Odalarım","badge"],["messages","Mesajlar","send"],["leaderboard","Sıralama","trend"],["settings","Ayarlar","gear"]];
 
 // --- emoji seti (X benzeri bol seçenek, kategorili) ---
 const EMOJI={
@@ -686,7 +701,7 @@ function tokenPageView(ticker){
 function stat(l,v,c){return`<div class="stat"><span class="stat-label">${l}</span><span class="mono stat-value ${c||""}">${v}</span></div>`;}
 function portfolioView(){
  if(!S.connected)return gate("portfolyonu görmek");
- const rows=Object.entries(S.wallet.holdings).map(([tk,h])=>{const t=tokenBy(tk);const now=t.price*h.amount;const cost=h.buyAvg*h.amount;const pl=now-cost;return{tk,t,...h,now,pl,plPct:(pl/cost)*100};});
+ const rows=Object.entries(S.wallet.holdings).map(([tk,h])=>{const t=tokenBy(tk)||{price:0,name:h.name||"",color:tokColor(tk)};const price=t.price||0;const now=price*h.amount;const cost=(h.buyAvg||0)*h.amount;const pl=now-cost;return{tk,t,...h,now,pl,plPct:cost>0?(pl/cost)*100:0};});
  const total=rows.reduce((a,r)=>a+r.now,0), totalPl=rows.reduce((a,r)=>a+r.pl,0);
  const mask=v=>S.hideValue?"••••":v;
  return `<h1 class="h1">Portfolyo</h1>
@@ -796,12 +811,67 @@ function ownProfileView(){
  </div>`;
 }
 // başka bir kullanıcının profili (mock veri — gerçek kullanıcılar Supabase ile gelince gerçekleşir)
+function messagesView(){
+ if(!S.connected)return gate("mesajlarını görmek");
+ const threads=S.dmThreads||[];
+ return `<h1 class="h1">Mesajlar</h1>
+   ${threads.length?`<div class="dmlist">${threads.map(function(t){
+     const nm=S.names&&S.names[t.peer]?S.names[t.peer]:short(t.peer);
+     const unread=S.unreadPeers&&S.unreadPeers[t.peer];
+     return `<button class="dmlist-item ${unread?"unread":""}" data-act="openDM" data-wallet="${esc(t.peer)}">
+       <span class="av md" style="${avatar(t.peer)}"></span>
+       <div class="dmlist-info"><span class="dmlist-name">${esc(nm)}</span><span class="mono dmlist-addr">${short(t.peer)}</span><span class="dmlist-last">${esc((t.last||"").slice(0,50))}</span></div>
+       ${unread?`<span class="dmlist-badge">1</span>`:`<span class="dmlist-arrow">›</span>`}
+     </button>`;
+   }).join("")}</div>`:`<div class="norooms">${I.send}<h3>Henüz mesajın yok</h3><p>Bir kullanıcının profiline gidip "Mesaj" ile sohbet başlatabilirsin.</p></div>`}`;
+}
+window.__holdxApplyThreads=function(threads){ S.dmThreads=threads||[]; render(); };
+function dmView(peer){
+ if(!S.connected)return gate("mesajlaşmak");
+ const msgs=(S.dms&&S.dms[peer])||[];
+ const nm=S.names&&S.names[peer]?S.names[peer]:short(peer);
+ return `<div class="dmwrap">
+   <div class="dm-head">
+     <button class="dm-back" data-act="nav" data-view="messages">${I.back||"←"}</button>
+     <span class="av sm" style="${avatar(peer)}"></span>
+     <div class="dm-peer"><span class="dm-name">${esc(nm)}</span><span class="mono dm-addr">${short(peer)}</span></div>
+   </div>
+   <div class="dm-msgs" id="dmMsgs">
+     ${msgs.length?msgs.map(function(m){
+       const mine=S.wallet&&m.from_wallet===S.wallet.address;
+       return `<div class="dm-msg ${mine?"mine":""}"><span class="dm-bubble">${esc(m.text||"")}</span></div>`;
+     }).join(""):`<p class="dm-empty">Henüz mesaj yok. İlk mesajı sen gönder.</p>`}
+   </div>
+   <div class="dm-input"><input id="dmInput" placeholder="Mesaj yaz…" value="${esc(S.dmText||"")}" data-wallet="${esc(peer)}">
+     <button data-act="sendDM" data-wallet="${esc(peer)}">${I.send}</button></div>
+ </div>`;
+}
+// DM realtime/gecmis kopruleri
+window.__holdxApplyDMs=function(peer,rows){
+ S.dms=S.dms||{}; S.dms[peer]=rows||[]; render();
+};
+window.__holdxAddDM=function(m){
+ if(!S.wallet)return;
+ const me=S.wallet.address;
+ let peer=null;
+ if(m.from_wallet===me)peer=m.to_wallet; else if(m.to_wallet===me)peer=m.from_wallet; else return;
+ S.dms=S.dms||{}; const arr=S.dms[peer]||[];
+ if(m.id&&arr.find(function(x){return x.id===m.id;}))return;
+ arr.push(m); S.dms[peer]=arr;
+ // bana gelen mesaj + o sohbet acik degilse okunmamis say
+ const inThisDM=(S.view&&S.view.name==="dm"&&S.view.peer===peer);
+ if(m.to_wallet===me && !inThisDM){
+   S.unreadPeers=S.unreadPeers||{};
+   if(!S.unreadPeers[peer]){ S.unreadPeers[peer]=true; S.unreadDM=(S.unreadDM||0)+1; }
+ }
+ render();
+};
 function otherProfileView(wallet){
  // bu kullanıcının akıştaki paylaşımları
  const theirPosts=S.posts.filter(x=>x.wallet===wallet&&!(x.mine));
  // deterministik "sahte ama tutarlı" profil verisi (aynı cüzdan hep aynı görünür)
  let h=0;for(let i=0;i<wallet.length;i++)h=(h*131+wallet.charCodeAt(i))>>>0;
- const followers=(h%1800)+20, following=(h%400)+5;
+ const followers=0, following=0;
  const seed=wallet+"seed";
  const isFollowing=!!S.following[wallet];
  // bu kullanıcının en yüksek kademesi (paylaşımlarındaki tier'lardan tahmini)
@@ -814,6 +884,7 @@ function otherProfileView(wallet){
      <div class="pf-avatar"><span class="pf-avatar-gen" style="${avatar(seed)}"></span></div>
      <div class="pf-actions">
        <button class="pf-follow-btn ${isFollowing?"following":""}" data-act="toggleFollow" data-wallet="${esc(wallet)}">${isFollowing?"Takiptesin":"Takip et"}</button>
+       ${S.connected?`<button class="pf-follow-btn" data-act="openDM" data-wallet="${esc(wallet)}">${I.send} Mesaj</button>`:""}
      </div>
    </div>
    <div class="pf-info">
@@ -848,7 +919,34 @@ function editProfileModal(){
    </div>
  </div>`;
 }
+const ADMIN_WALLETS=["AFdRQtXzEqomxVbT21aXb8JoYpc93q6tFYnWmUkS8EQx"];
+function isAdmin(){ return S.connected && S.wallet && ADMIN_WALLETS.includes(S.wallet.address); }
 function leaderboardView(){
+ // ADMIN: gerçek sıralamayı gör
+ if(isAdmin()){
+   const rows=(S.leaderboard||[]).slice(0,100);
+   return `<div class="lbtable-wrap">
+     <div class="lbtable-head">
+       <div><h1 class="lbadmin-title">Sıralama <span class="lbadmin-tag">admin</span></h1>
+       <p class="lbadmin-sub">Gerçek puan sıralaması · sadece sana görünür · ilk 100</p></div>
+       <button class="lbadmin-export" data-act="exportLeaderboard">${I.wallet} CSV indir</button>
+     </div>
+     <table class="lbtable">
+       <thead><tr><th class="lbt-rank">#</th><th class="lbt-user">Kullanıcı</th><th class="lbt-addr">Cüzdan</th><th class="lbt-pts">Puan</th></tr></thead>
+       <tbody>
+       ${rows.length?rows.map((r,i)=>{
+         const nm=S.names&&S.names[r.wallet]?S.names[r.wallet]:short(r.wallet);
+         return `<tr>
+           <td class="lbt-rank">${i+1}</td>
+           <td class="lbt-user">${esc(nm)}</td>
+           <td class="lbt-addr mono">${short(r.wallet)}</td>
+           <td class="lbt-pts mono">${r.total.toLocaleString()}</td>
+         </tr>`;
+       }).join(""):`<tr><td colspan="4" class="lbt-empty">Henüz puan kazanan kullanıcı yok.</td></tr>`}
+       </tbody>
+     </table>
+   </div>`;
+ }
  return `<div class="lbwrap">
    <div class="lb-hero">
      <div class="lb-badge">${I.trend}</div>
@@ -949,7 +1047,7 @@ function settingsView(){
      <div class="settingcard">
        <div class="set-wallet-row">
          <span class="av" style="${avatar(S.wallet.address)}"></span>
-         <div class="set-wallet-info"><span class="mono">${short(S.wallet.address)}</span><span class="set-wallet-sub">${S.wallet.sol.toFixed(2)} SOL · bağlı</span></div>
+         <div class="set-wallet-info"><span class="mono">${short(S.wallet.address)}</span><span class="set-wallet-sub">${S.wallet.sol.toFixed(2)} ${S.wallet.solSymbol||"SOL"} · bağlı</span></div>
          <button class="set-disconnect" data-act="disconnect">Bağlantıyı kes</button>
        </div>
      </div>
@@ -1022,7 +1120,7 @@ function createResultsHtml(){
  return `<div class="resultlist">${S.searchResults.map((r,i)=>`
    <button class="resultrow" data-act="pickToken" data-i="${i}">
      <span class="tokenmark sm" style="background:${tokColor(r.symbol)}"></span>
-     <div class="rr-body"><span class="rr-line"><span class="mono rr-tk">$${esc(r.symbol)}</span>${chainBadge(r.chain)}</span><span class="rr-name">${esc(r.name)}</span></div>
+     <div class="rr-body"><span class="rr-line"><span class="mono rr-tk">$${esc(r.symbol)}</span>${chainBadge(r.chain)}</span><span class="rr-name">${esc(r.name)}${r.mc?` · mcap ${typeof r.mc==="number"?fmtMc(r.mc):r.mc}`:""}</span></div>
      <span class="mono rr-price ${r.chg>=0?"up":"down"}">${fprice(r.price)}</span>
    </button>`).join("")}</div>`;
 }
@@ -1036,13 +1134,12 @@ function createRoomView(){
      <div class="already-room">
        <div class="ar-ic">${I.badge}</div>
        <h3 class="ar-title">Zaten bir odan var</h3>
-       <p class="ar-txt">Her cüzdan yalnızca <b>bir oda</b> kurabilir. Yeni bir oda kurmak istiyorsan önce mevcut odanı silmelisin.</p>
+       <p class="ar-txt">Her cüzdan yalnızca <b>bir oda</b> kurabilir. Kurduğun oda aşağıda — istediğin zaman girebilirsin.</p>
        <div class="ar-card">
          <span class="tokenmark" style="background:${t.color}"></span>
          <div class="ar-info"><span class="mono ar-tk">$${esc(existing.ticker)}</span><span class="ar-meta">${(existing.members||0).toLocaleString()}${(existing.cap||100)===Infinity?" üye · ∞ sınırsız":"/"+capLabel(existing.cap||100)+" üye"} · kurucusu sensin</span></div>
          <button class="ar-go" data-act="openRoom" data-token="${esc(existing.ticker)}">Git →</button>
        </div>
-       <button class="ar-delete" data-act="askDeleteRoom" data-token="${esc(existing.ticker)}">${I.trash} Odamı sil</button>
      </div>
      ${S.deleteConfirm===existing.ticker?deleteConfirmModal(existing.ticker):""}
    </div>`;
@@ -1071,8 +1168,14 @@ function createRoomView(){
     <div class="cap-grid">${capOptions}</div>
     <p class="cap-hint">${S.createCap===Infinity?"Sınırsız kapasite — odan hiç dolmaz, herkes katılabilir.":"Oda "+capLabel(S.createCap)+" aboneye ulaşınca dolar. İstediğin zaman sonradan da yükseltebilirsin."}</p>
   </div>
-  <button class="createsubmit" data-act="payCreate">${sel.price===0?I.plus:I.wallet} ${btnLabel}</button>
-  <p class="create-fine">${sel.price===0?"Oda kurulunca otomatik katılırsın.":"Ödeme cüzdanından onaylanır. Oda kurulunca otomatik katılırsın."}</p>
+  ${(function(){
+    const hvc=holdingUsd(picked.symbol,picked.price);
+    if(hvc.usd<10){
+      return `<div class="room-fullbox" style="margin-top:4px">${I.lock} Oda kurmak için cüzdanında en az <b>$10</b> değerinde $${esc(picked.symbol)} tutman gerekiyor.<br>Şu an: <span class="mono">$${hvc.usd.toFixed(2)}</span></div>`;
+    }
+    return `<button class="createsubmit" data-act="payCreate">${sel.price===0?I.plus:I.wallet} ${btnLabel}</button>
+    <p class="create-fine">Cüzdanında $${hvc.usd.toFixed(2)} değerinde $${esc(picked.symbol)} var. ${sel.price===0?"Oda kurulunca otomatik katılırsın.":"Ödeme cüzdanından onaylanır."}</p>`;
+  })()}
   `:""}
  </div>`;
 }
@@ -1099,10 +1202,16 @@ function roomView(ticker){
        <div><span class="js-v mono">${(room?room.members:0).toLocaleString()}${cap===Infinity?"":"/"+capLabel(cap)}</span><span class="js-l">üye</span></div>
      </div>
      <div class="join-lockinfo">${I.globe} Herkese açık oda · kurucu ${esc(room.creator)}</div>
-     ${full
-       ? `<div class="room-fullbox">${I.lock} Bu oda dolu (${capLabel(cap)}/${capLabel(cap)}). Kurucunun kapasiteyi yükseltmesi gerekiyor.</div>`
-       : `<button class="joinbig" data-act="joinRoom" data-token="${ticker}">Odaya katıl</button>
-     <p class="join-hint">Katıldıktan sonra sohbeti görebilir ve yazabilirsin.</p>`}
+     ${(function(){
+       if(full) return `<div class="room-fullbox">${I.lock} Bu oda dolu (${capLabel(cap)}/${capLabel(cap)}). Kurucunun kapasiteyi yükseltmesi gerekiyor.</div>`;
+       const hv=holdingUsd(ticker);
+       const enough=hv.usd>=MIN_HOLD_USD;
+       if(!enough){
+         return `<div class="room-fullbox">${I.lock} Bu odaya katılmak için cüzdanında en az <b>$${MIN_HOLD_USD}</b> değerinde $${esc(ticker)} tutman gerekiyor.<br>Şu an: <span class="mono">$${hv.usd.toFixed(2)}</span></div>`;
+       }
+       return `<button class="joinbig" data-act="joinRoom" data-token="${ticker}">Odaya katıl</button>
+       <p class="join-hint">Cüzdanında $${hv.usd.toFixed(2)} değerinde $${esc(ticker)} var · katılabilirsin.</p>`;
+     })()}
    </div>`;
  }
  const msgs=S.chat[ticker]||[];
@@ -1119,10 +1228,8 @@ function roomView(ticker){
      <button class="room-share" data-act="toggleRoomMenu" title="Diğer">${I.dots}</button>
      ${S.roomMenu===ticker?`<div class="roommenu" data-emoji-pop>
        <button class="roommenu-item" data-act="shareRoom" data-token="${ticker}">${I.share} Odayı paylaş</button>
-       ${room&&room.creator===myTag()?`
-         ${nextTiers(room.cap||100).length?`<button class="roommenu-item" data-act="openUpgrade" data-token="${ticker}">${I.trend} Kapasite yükselt</button>`:""}
-         <button class="roommenu-item danger" data-act="askDeleteRoom" data-token="${ticker}">${I.trash} Odayı sil</button>
-       `:`<button class="roommenu-item danger" data-act="askLeave" data-token="${ticker}">${I.exit} Odadan ayrıl</button>`}
+       ${room&&room.creator===myTag()&&nextTiers(room.cap||100).length?`<button class="roommenu-item" data-act="openUpgrade" data-token="${ticker}">${I.trend} Kapasite yükselt</button>`:""}
+       <button class="roommenu-item danger" data-act="askLeave" data-token="${ticker}">${I.exit} Odadan ayrıl</button>
      </div>`:""}
    </div>
    </div>
@@ -1169,6 +1276,8 @@ function mainView(){
  if(v.name==="tokens")return tokensView();
  if(v.name==="token")return tokenPageView(v.token);
  if(v.name==="portfolio")return portfolioView();
+ if(v.name==="messages")return messagesView();
+ if(v.name==="dm")return dmView(v.peer);
  if(v.name==="profile")return profileView();
  if(v.name==="leaderboard")return leaderboardView();
  if(v.name==="settings")return settingsView();
@@ -1280,6 +1389,12 @@ function scheduleTopSearch(q){
  S.topSearching=true;renderTopDrop();
  _topTimer=setTimeout(async()=>{
    const my=q;
+   // profil (cüzdan/isim) araması — Supabase
+   if(window.__holdxSearchProfiles){
+     window.__holdxSearchProfiles(q).then(function(profs){
+       if(S.topSearch===my){ S.topProfiles=profs||[]; renderTopDrop(); }
+     });
+   }
    try{const res=await tokenSearch(q);
      if(S.topSearch===my){S.topResults=res;S.topSearching=false;renderTopDrop();}
    }catch(e){if(S.topSearch===my){S.topResults=[];S.topSearching=false;renderTopDrop();}}
@@ -1293,13 +1408,27 @@ function topSearchResultsHtml(){
  const q=(S.topSearch||"").trim();
  if(q.length<2)return `<div class="sd-hint">En az 2 harf yaz — token ya da cüzdan ara.</div>`;
  const ql=q.toLowerCase();
- // cüzdan eşleşmeleri (mevcut içerikteki kullanıcılar)
- const wallets=knownWallets().filter(w=>w.toLowerCase().includes(ql)).slice(0,4);
+ // gerçek profil eşleşmeleri (Supabase) + mevcut içerikteki cüzdanlar
+ const profs=(S.topProfiles||[]).slice(0,4);
+ const wallets=knownWallets().filter(w=>w.toLowerCase().includes(ql)).slice(0,3);
  const tokens=S.topResults.slice(0,8);
  let html="";
+ if(profs.length){
+   html+=`<div class="sd-cat">Kullanıcılar</div>`+profs.map(p=>{
+     const nm=(p.display_name&&p.display_name.trim())?p.display_name:short(p.wallet);
+     return `<button class="sd-row" data-act="openProfile" data-wallet="${esc(p.wallet)}">
+       ${p.avatar?`<img class="av xs" src="${p.avatar}" alt="">`:`<span class="av xs" style="${avatar(p.wallet)}"></span>`}<span class="sd-w">${esc(nm)}</span><span class="mono sd-type">${short(p.wallet)}</span></button>`;
+   }).join("");
+ }
  if(wallets.length){
    html+=`<div class="sd-cat">Cüzdanlar</div>`+wallets.map(w=>`<button class="sd-row" data-act="openProfile" data-wallet="${esc(w)}">
      <span class="av xs" style="${avatar(w+"seed")}"></span><span class="mono sd-w">${esc(w)}</span><span class="sd-type">profil</span></button>`).join("");
+ }
+ // ODA eşleşmeleri
+ const rooms=S.customRooms.filter(r=>r.ticker.toLowerCase().includes(ql)).slice(0,4);
+ if(rooms.length){
+   html+=`<div class="sd-cat">Odalar</div>`+rooms.map(r=>`<button class="sd-row" data-act="openRoom" data-token="${esc(r.ticker)}">
+     <span class="tokenmark xs" style="background:${tokColor(r.ticker)}"></span><span class="mono sd-tk">$${esc(r.ticker)}</span><span class="sd-type">${(r.members||0)} üye · oda</span></button>`).join("");
  }
  html+=`<div class="sd-cat">Tokenlar</div>`;
  if(S.topSearching)html+=`<div class="sd-hint">${I.search} aranıyor…</div>`;
@@ -1343,16 +1472,16 @@ function render(){
    </div>
    <div class="top-right">
      <button class="themebtn" data-act="toggleTheme" title="${S.theme==="dark"?"Aydınlık mod":"Karanlık mod"}">${S.theme==="dark"?I.sun:I.moon}</button>
-     ${S.connected?`<button class="idbtn" data-act="nav" data-view="portfolio"><span class="av" style="${avatar(S.wallet.address)}"></span><span class="mono">${short(S.wallet.address)}</span><span class="solbal">${S.wallet.sol.toFixed(2)} SOL</span></button>`
+     ${S.connected?`<button class="idbtn" data-act="nav" data-view="portfolio"><span class="av" style="${avatar(S.wallet.address)}"></span><span class="mono">${short(S.wallet.address)}</span><span class="solbal">${S.wallet.sol.toFixed(2)} ${S.wallet.solSymbol||"SOL"}</span></button>`
       :`<button class="connect" data-act="connect">Cüzdan bağla</button>`}
    </div></header>
   <div class="shell">
-   <nav class="rail">${NAV.map(n=>`<button class="navbtn ${navActive(n[0])?"on":""}" data-act="nav" data-view="${n[0]}"><span class="icn">${I[n[2]]}</span><span>${n[1]}</span></button>`).join("")}
+   <nav class="rail">${NAV.map(n=>`<button class="navbtn ${navActive(n[0])?"on":""}" data-act="nav" data-view="${n[0]}"><span class="icn">${I[n[2]]}</span><span>${n[1]}</span>${n[0]==="messages"&&S.unreadDM>0?`<span class="nav-badge">${S.unreadDM}</span>`:""}</button>`).join("")}
     <div class="rail-foot"><p class="tag">${TAGLINE}</p></div></nav>
    <main class="main">${mainView()}</main>
    ${activityPanel()}
   </div>
-  <nav class="bottom">${NAV.map(n=>`<button class="${navActive(n[0])?"on":""}" data-act="nav" data-view="${n[0]}">${I[n[2]]}</button>`).join("")}</nav>
+  <nav class="bottom">${NAV.map(n=>`<button class="${navActive(n[0])?"on":""}" data-act="nav" data-view="${n[0]}">${I[n[2]]}${n[0]==="messages"&&S.unreadDM>0?`<span class="nav-badge sm">${S.unreadDM}</span>`:""}</button>`).join("")}</nav>
   ${modalView()}
   ${S.lightbox?`<div class="lightbox" data-act="closeZoom"><button class="lb-close" data-act="closeZoom">${I.x}</button><img src="${S.lightbox}" alt=""></div>`:""}
   <button class="scrolltop" data-act="scrollTop" title="En üste dön">↑</button>`;
@@ -1382,7 +1511,101 @@ function render(){
  }
 }
 
-function connect(){S.wallet={address:genAddr(),holdings:MY_HOLDINGS,sol:2.40};S.connected=true;render();}
+function connect(){
+  // Zaten bagliysan tekrar login deneme (hata veriyor)
+  if(S.connected){ return; }
+  if(window.__privyLogin){ window.__privyLogin(); }
+  else { console.log("Privy henüz hazır değil"); }
+}
+// Privy giriş yapınca React bunu çağırır; gerçek cüzdan adresini HOLDX'e verir
+// Supabase'den paylasimlari yukle ve akisa ekle
+window.__holdxApplyMemberships=function(tickers){
+  if(!tickers) return;
+  tickers.forEach(function(t){ S.joined[t]=true; });
+  render();
+};
+window.__holdxApplyRooms=function(rows){
+  if(!rows) return;
+  const mapped=rows.map(function(r){
+    var cap=r.cap; if(cap>=2000000000)cap=Infinity;
+    // token registry'de yoksa temel bir kayit olustur (fiyat sonra canli gelir)
+    if(!TOKREG[r.ticker]){
+      TOKREG[r.ticker]={t:r.ticker,name:"",price:0,chg:0,mc:"—",color:tokColor(r.ticker),address:r.address||null,chain:r.chain||"solana",source:null,cgId:null};
+    } else if(r.chain && !TOKREG[r.ticker].chain){ TOKREG[r.ticker].chain=r.chain; }
+    // kendi kurdugun odaya otomatik katil
+    if(S.wallet && r.creator===S.wallet.address){ S.joined[r.ticker]=true; }
+    return {ticker:r.ticker, creator:r.creator, members:r.members||1, cap:cap, address:r.address||null, createdAt:""};
+  });
+  S.customRooms = mapped;
+  render();
+  // yeni odalarin fiyatlarini hemen cek
+  if(typeof refreshTokenPrices==="function"){ refreshTokenPrices(); }
+};
+window.__holdxApplyPosts=function(rows){
+  if(!rows || !rows.length) return;
+  const mapped=rows.map(function(r){
+    return {id:r.id, wallet:r.wallet, mine:(S.wallet&&r.wallet===S.wallet.address), token:r.token||null, verified:false, time:"", text:r.text||"", media:r.media||null, likes:r.likes||0, replies:r.replies||0, reposts:r.reposts||0, liked:false};
+  });
+  // mevcut demo postlarin ustune gercek postlari koy (en yeni ustte)
+  S.posts = mapped.concat(S.posts.filter(function(p){return !mapped.find(function(m){return m.id===p.id;});}));
+  render();
+};
+// Helius'tan gelen gercek bakiye + tokenleri uygula
+window.__holdxApplyBalances=function(data){
+  if(!S.wallet) return;
+  if(typeof data.sol==="number") S.wallet.sol=data.sol;
+  if(data.solSymbol) S.wallet.solSymbol=data.solSymbol;
+  if(data.holdings){
+    S.wallet.holdings=data.holdings;
+    // token registry'ye ekle ki fiyat/holder mantigi calissin
+    Object.keys(data.holdings).forEach(function(sym){
+      if(!TOKREG[sym] && data.holdings[sym].mint){
+        TOKREG[sym]={t:sym,name:data.holdings[sym].name||"",price:0,chg:0,mc:"—",color:tokColor(sym),address:data.holdings[sym].mint,chain:"solana",source:null,cgId:null};
+      }
+    });
+  }
+  render();
+  if(typeof refreshTokenPrices==="function"){ refreshTokenPrices(); }
+};
+window.__holdxSetWallet=function(address){
+  if(address){
+    S.wallet={address:address,holdings:{},sol:0};
+    S.connected=true;
+    S.entered=true;
+    // kendi kurdugun odalara otomatik katil
+    S.customRooms.forEach(function(r){ if(r.creator===address){ S.joined[r.ticker]=true; } });
+    // gercek bakiye + tokenleri Helius'tan cek
+    if(window.__holdxLoadBalances){ window.__holdxLoadBalances(address); }
+    // Bu cuzdanin profilini Supabase'den yukle
+    if(window.__holdxLoadProfile){
+      window.__holdxLoadProfile(address).then(function(prof){
+        if(prof){
+          S.profile.name=prof.display_name||"";
+          S.profile.bio=prof.bio||"";
+          S.profile.avatar=prof.avatar||null;
+          S.profile.cover=prof.cover||null;
+          render();
+        }
+      });
+    }
+  } else {
+    S.connected=false; S.wallet=null;
+    S.profile={name:"", bio:"", avatar:null, cover:null, joined:"Tem 2025"};
+  }
+  render();
+};
+// Profili Supabase'e kaydet (React tarafindan saglanir)
+function persistProfile(){
+  if(S.connected && S.wallet && window.__holdxSaveProfile){
+    window.__holdxSaveProfile({
+      wallet:S.wallet.address,
+      display_name:S.profile.name||"",
+      bio:S.profile.bio||"",
+      avatar:S.profile.avatar||null,
+      cover:S.profile.cover||null
+    });
+  }
+}
 document.addEventListener("click",e=>{
  // üst arama açılır menüsünü dışarı tıklayınca kapat
  if(S.topSearchOpen&&!e.target.closest(".search")){S.topSearchOpen=false;render();}
@@ -1395,6 +1618,18 @@ document.addEventListener("click",e=>{
  if(a==="connect"){S.entered=true;connect();}
  else if(a==="enterExplore"){S.entered=true;S.view={name:"feed",token:null};render();}
  else if(a==="pickTopToken"){const r=S.topResults[+el.dataset.i];if(r){upsertToken(r);S.view={name:"token",token:r.symbol};S.topSearch="";S.topSearchOpen=false;S.topResults=[];}render();}
+ else if(a==="openDM"){const w=el.dataset.wallet;S.view={name:"dm",peer:w};if(S.unreadPeers&&S.unreadPeers[w]){delete S.unreadPeers[w];S.unreadDM=Math.max(0,(S.unreadDM||0)-1);}if(window.__holdxLoadDMs){window.__holdxLoadDMs(w);}render();}
+ else if(a==="sendDM"){sendDM(el.dataset.wallet);}
+ else if(a==="exportLeaderboard"){
+   const rows=(S.leaderboard||[]).slice(0,100);
+   let csv="sira,cuzdan,isim,puan\n";
+   rows.forEach(function(r,i){ const nm=(S.names&&S.names[r.wallet]?S.names[r.wallet]:"").replace(/,/g," "); csv+=(i+1)+","+r.wallet+","+nm+","+r.total+"\n"; });
+   const blob=new Blob([csv],{type:"text/csv;charset=utf-8"});
+   const url=URL.createObjectURL(blob);
+   const a2=document.createElement("a"); a2.href=url; a2.download="holdx-siralama.csv";
+   document.body.appendChild(a2); a2.click(); document.body.removeChild(a2);
+   setTimeout(function(){URL.revokeObjectURL(url);},1000);
+ }
  else if(a==="clearTopSearch"){S.topSearch="";S.topSearchOpen=false;S.topResults=[];render();}
  else if(a==="shareRoom"){S.shareOpen=el.dataset.token;S.roomMenu=null;render();}
  else if(a==="toggleRoomMenu"){S.roomMenu=S.roomMenu?null:(S.view.token);render();}
@@ -1407,6 +1642,7 @@ document.addEventListener("click",e=>{
    if(room&&room.creator===myTag()){
      S.customRooms=S.customRooms.filter(r=>r.ticker!==t);
      delete S.joined[t]; delete S.chat[t];
+     if(window.__holdxDeleteRoom){ window.__holdxDeleteRoom(t); }
    }
    S.deleteConfirm=null;S.roomMenu=null;
    S.view={name:"rooms",token:null};S.roomTab="create";
@@ -1414,11 +1650,13 @@ document.addEventListener("click",e=>{
  else if(a==="closeUpgrade"){if((el.classList.contains("overlay")&&e.target===el)||e.target.closest(".edit-x")){S.upgradeOpen=null;render();}}
  else if(a==="doUpgrade"){const t=el.dataset.token,cap=+el.dataset.cap;
    const room=S.customRooms.find(r=>r.ticker===t); if(room)room.cap=cap;
+   if(window.__holdxUpdateRoom){ window.__holdxUpdateRoom(t,{cap:(cap===Infinity?2000000000:cap)}); }
    S.upgradeOpen=null;render();}
  else if(a==="closeLeave"){if(el.classList.contains("overlay")&&e.target===el||e.target.closest(".edit-cancel")){S.leaveConfirm=null;render();}}
  else if(a==="leaveRoom"){const t=el.dataset.token;
    delete S.joined[t];
    const room=S.customRooms.find(r=>r.ticker===t); if(room&&room.members>0)room.members-=1;
+   if(window.__holdxLeaveRoom && S.wallet){ window.__holdxLeaveRoom(t, S.wallet.address, room?room.members:0); }
    S.leaveConfirm=null;S.roomMenu=null;
    S.view={name:"rooms",token:null};S.roomTab="browse";
    render();}
@@ -1433,13 +1671,15 @@ document.addEventListener("click",e=>{
  else if(a==="nav"){const v=el.dataset.view;
    if(v==="rooms"){S.view={name:"rooms",token:null};S.roomTab="browse";}
    else S.view={name:v,token:null};
+   if(v==="messages"&&window.__holdxLoadThreads){window.__holdxLoadThreads();}
    render();}
  else if(a==="openToken"){S.view={name:"token",token:el.dataset.token};render();}
- else if(a==="openRoom"){S.view={name:"room",token:el.dataset.token};render();}
+ else if(a==="openRoom"){S.view={name:"room",token:el.dataset.token};if(window.__holdxLoadMessages){window.__holdxLoadMessages(el.dataset.token);}render();}
  else if(a==="joinRoom"){const t=el.dataset.token;
    // güvenlik: sadece katılabilecekse (holder ya da topluluk odası)
    if(canJoin(t)&&!S.joined[t]){S.joined[t]=true;
      const room=S.customRooms.find(r=>r.ticker===t); if(room)room.members+=1;
+     if(window.__holdxJoinRoom && S.wallet){ window.__holdxJoinRoom(t, S.wallet.address, room?room.members:1); }
      const tk=tokenBy(t); pushActivity("join",t,tk&&tk.chain);
      award("joinRoom",{once:"join:"+t}); // oda başına 1 kez
      // kalite: kurucuya "odana katılım" bonusu (kendi odana katılım hariç)
@@ -1494,7 +1734,12 @@ document.addEventListener("click",e=>{
   if(!txt&&!S.postMedia)return; // en az metin veya medya olmalı
   const pt=S.postToken; // opsiyonel bağlı token
   if(pt)upsertToken(pt);
-  S.posts.unshift({id:Date.now(),wallet:myTag(),mine:true,token:pt?pt.symbol:null,verified:pt?holds(pt.symbol):false,time:"şimdi",text:txt,media:S.postMedia,likes:0,replies:0,reposts:0,liked:false});
+  const newPost={id:Date.now(),wallet:myTag(),mine:true,token:pt?pt.symbol:null,verified:pt?holds(pt.symbol):false,time:"şimdi",text:txt,media:S.postMedia,likes:0,replies:0,reposts:0,liked:false};
+  S.posts.unshift(newPost);
+  // Supabase'e kaydet
+  if(window.__holdxSavePost && S.connected && S.wallet){
+    window.__holdxSavePost({ wallet:S.wallet.address, text:txt, token:pt?pt.symbol:null, media:S.postMedia||null });
+  }
   award("post",{capKey:"post"}); // günlük tavan
   S.postToken=null;S.postSearchOpen=false;S.postSearch="";S.postResults=[];S.postMedia=null;S.composerText="";S.emojiFor=null;S.gifFor=null;
   render();
@@ -1521,7 +1766,7 @@ document.addEventListener("click",e=>{
  else if(a==="toggleHideValue"){S.hideValue=!S.hideValue;render();}
  else if(a==="toggleHideActivity"){S.hideActivity=!S.hideActivity;render();}
  else if(a==="togglePrivateProfile"){S.privateProfile=!S.privateProfile;render();}
- else if(a==="disconnect"){S.connected=false;S.wallet=null;S.view={name:"feed",token:null};render();}
+ else if(a==="disconnect"){if(window.__privyLogout){window.__privyLogout();}S.connected=false;S.wallet=null;S.view={name:"feed",token:null};render();}
  else if(a==="noop"){/* placeholder link */}
  else if(a==="openDoc"){S.docOpen=el.dataset.doc;render();}
  else if(a==="closeDoc"){if((el.classList.contains("overlay")&&e.target===el)||e.target.closest(".edit-x")){S.docOpen=null;render();}}
@@ -1548,7 +1793,7 @@ document.addEventListener("click",e=>{
    const onBtn=!!e.target.closest(".edit-x,.edit-cancel");
    if(onOverlay||onBtn){const n=document.getElementById("editName"),b=document.getElementById("editBio");if(n)S.profile.name=n.value.trim();if(b)S.profile.bio=b.value.trim();S.editProfile=false;render();}
  }
- else if(a==="saveProfile"){const n=document.getElementById("editName"),b=document.getElementById("editBio");if(n)S.profile.name=n.value.trim();if(b)S.profile.bio=b.value.trim();S.editProfile=false;render();}
+ else if(a==="saveProfile"){const n=document.getElementById("editName"),b=document.getElementById("editBio");if(n)S.profile.name=n.value.trim();if(b)S.profile.bio=b.value.trim();S.editProfile=false;persistProfile();render();}
  else if(a==="pickAvatar"){pickProfileImg("avatar");}
  else if(a==="pickCover"){pickProfileImg("cover");}
  else if(a==="closeCrop"){if((el.classList.contains("overlay")&&e.target===el)||e.target.closest(".edit-x,.edit-cancel")){S.crop=null;render();}}
@@ -1566,7 +1811,7 @@ document.addEventListener("click",e=>{
    const ctx=canvas.getContext("2d");
    const im=new Image();
    im.onload=()=>{ try{ctx.drawImage(im,sx,sy,sW,sH,0,0,outW,outH);}catch(err){}
-     S.profile[c.type]=canvas.toDataURL("image/jpeg",0.9); S.crop=null; render(); };
+     S.profile[c.type]=canvas.toDataURL("image/jpeg",0.9); S.crop=null; persistProfile(); render(); };
    im.src=c.src;
  }
  else if(a==="roomTab"){S.roomTab=el.dataset.tab;if(el.dataset.tab==="create"){S.createTicker="";S.searchResults=[];S.picked=null;S.searchErr=false;}render();}
@@ -1578,16 +1823,23 @@ document.addEventListener("click",e=>{
   const p=S.picked;
   if(!p||isCustomRoom(p.symbol))return;
   if(myRoom())return; // 1 cüzdan = 1 oda güvenlik kontrolü
+  // oda kurmak icin o tokenden en az $10 tutma sarti
+  const hvc=holdingUsd(p.symbol,p.price);
+  if(hvc.usd<MIN_HOLD_USD){ S.createHoldError=true; render(); return; }
+  S.createHoldError=false;
   const tier=tierForCap(S.createCap);
   const q=p.symbol;
   upsertToken(p);
   S.livePrices[q]={price:p.price,dir:0};
   // demo başlangıç üye sayısı: kapasitenin bir kısmı dolu görünsün (canlılık)
-  const seedMembers=Math.min(tier.cap, 1+Math.floor(Math.random()*Math.min(40,tier.cap*0.3)));
+  const seedMembers=1;
   S.customRooms.unshift({ticker:q,creator:myTag(),members:seedMembers,cap:tier.cap,createdAt:"şimdi",address:p.address});
+  if(window.__holdxSaveRoom && S.connected && S.wallet){
+    window.__holdxSaveRoom({ ticker:q, creator:S.wallet.address, members:seedMembers, cap:(tier.cap===Infinity?2000000000:tier.cap), address:p.address||null, chain:p.chain||"solana" });
+  }
   S.joined[q]=true;
   pushActivity("create",q,p.chain);
-  award("createRoom",{capKey:"createRoom"});
+  award("createRoom",{capKey:"createRoom",once:"createroom:"+q});
   if(!(S.chat[q]||[]).length)S.chat[q]=[{wallet:myTag(),verified:holds(q),creator:true,mine:true,text:`$${q} odasına hoş geldiniz! 🎉`}];
   S.createTicker="";S.picked=null;S.searchResults=[];S.createDone=q;S.createCap=100;S.roomTab="browse";
   render();
@@ -1603,21 +1855,52 @@ document.addEventListener("input",e=>{
  if(e.target.id==="postSearch"){S.postSearch=e.target.value;schedulePostSearch(e.target.value);}
  if(e.target.id==="composerText"){S.composerText=e.target.value;} // sadece state, re-render yok (focus korunur)
  if(e.target.id==="chatInput"){S.chatText=e.target.value;}
+ if(e.target.id==="dmInput"){S.dmText=e.target.value;}
  if(e.target.id==="gifSearch"){S.gifQuery=e.target.value;const box=document.querySelector(".gif-grid");if(box){const tmp=document.createElement("div");tmp.innerHTML=(S.gifFor?gifPicker(S.gifFor):"");const fresh=tmp.querySelector(".gif-grid");if(fresh)box.innerHTML=fresh.innerHTML;}}
  if(e.target.id==="editName"){S.profile.name=e.target.value;}
  if(e.target.id==="editBio"){S.profile.bio=e.target.value;}
- if(e.target.id==="topSearch"){S.topSearch=e.target.value;S.topSearchOpen=true;scheduleTopSearch(e.target.value);}
+ if(e.target.id==="topSearch"){const wasOpen=S.topSearchOpen;S.topSearch=e.target.value;S.topSearchOpen=true;if(!wasOpen){render();}scheduleTopSearch(e.target.value);}
  if(e.target.id==="commentInput"){S.commentText=e.target.value;}
 });
+function sendDM(peer){
+ const inp=document.getElementById("dmInput"); const txt=(inp?inp.value:S.dmText||"").trim();
+ if(!txt||!S.wallet)return;
+ if(window.__holdxSendDM){ window.__holdxSendDM({from_wallet:S.wallet.address,to_wallet:peer,text:txt}); }
+ S.dmText=""; render();
+}
 function sendChat(ticker){
  const inp=document.getElementById("chatInput"); const txt=(inp?inp.value:S.chatText||"").trim();
  if(!txt&&!S.chatMedia)return;
  const room=S.customRooms.find(r=>r.ticker===ticker);
- S.chat[ticker]=[...(S.chat[ticker]||[]),{wallet:myTag(),verified:holds(ticker),creator:room&&room.creator===myTag(),text:txt,media:S.chatMedia,mine:true}];
- award("comment",{capKey:"comment"}); // günlük tavan
+ // Supabase'e yaz (gercek zamanli olarak herkese gider, kendimize de geri doner)
+ if(window.__holdxSendMessage && S.wallet){
+   window.__holdxSendMessage({ ticker:ticker, wallet:S.wallet.address, text:txt||null, media:S.chatMedia||null });
+ } else {
+   // baglanti yoksa yerel goster
+   S.chat[ticker]=[...(S.chat[ticker]||[]),{wallet:myTag(),verified:holds(ticker),creator:room&&room.creator===myTag(),text:txt,media:S.chatMedia,mine:true}];
+ }
+ award("comment",{capKey:"comment"});
  S.chatText="";S.chatMedia=null;S.emojiFor=null;S.gifFor=null;
  render();
 }
+// Supabase'den gelen mesaji akisa ekle (gercek zamanli veya gecmis)
+window.__holdxAddMessage=function(m){
+ const arr=S.chat[m.ticker]||[];
+ // ayni id varsa ekleme (cift onleme)
+ if(m.id && arr.find(function(x){return x.id===m.id;})) return;
+ const room=S.customRooms.find(function(r){return r.ticker===m.ticker;});
+ arr.push({ id:m.id, wallet:m.wallet, verified:false, creator:room&&room.creator===m.wallet, text:m.text||"", media:m.media||null, mine:(S.wallet&&m.wallet===S.wallet.address) });
+ S.chat[m.ticker]=arr;
+ render();
+};
+window.__holdxSetMessages=function(ticker,rows){
+ if(!rows) return;
+ const room=S.customRooms.find(function(r){return r.ticker===ticker;});
+ S.chat[ticker]=rows.map(function(m){
+   return { id:m.id, wallet:m.wallet, verified:false, creator:room&&room.creator===m.wallet, text:m.text||"", media:m.media||null, mine:(S.wallet&&m.wallet===S.wallet.address) };
+ });
+ render();
+};
 // ============ SESSİZ PUAN MOTORU (airdrop için) ============
 // Değerler GİZLİ (kullanıcı görmez), dengeli + suistimal korumalı.
 // Kurallar:
@@ -1651,7 +1934,12 @@ function award(kind,opts={}){
    S.ptsDay[opts.capKey]=used+val;
  }
  S.pts+=val; // sessizce birik
+ // Supabase'e kalici yaz (gercek siralama/airdrop icin)
+ if(window.__holdxAddPoints && S.wallet){ window.__holdxAddPoints(S.wallet.address, val); }
 }
+// Supabase'den gelen toplam puani uygula
+window.__holdxApplyLeaderboard=function(rows){ S.leaderboard=rows||[]; render(); };
+window.__holdxSetPoints=function(total){ if(typeof total==="number"){ S.pts=total; } };
 
 // profil resmi / kapak yükleme → kırpma editörüne al
 function pickProfileImg(which){
@@ -1739,6 +2027,7 @@ function triggerPhoto(target){
 }
 document.addEventListener("keydown",e=>{
  if(e.target.id==="chatInput"&&e.key==="Enter"){e.preventDefault();sendChat(e.target.dataset.token);}
+ if(e.target.id==="dmInput"&&e.key==="Enter"){e.preventDefault();sendDM(e.target.dataset.wallet);}
  if(e.target.id==="commentInput"&&e.key==="Enter"){e.preventDefault();const id=+e.target.dataset.id;
    const txt=e.target.value.trim();if(!txt)return;
    S.posts=S.posts.map(p=>{if(p.id===id){const comments=[...(p.comments||[]),{wallet:myTag(),text:txt,time:"şimdi",tier:shownTier(p.token?holdingUsd(p.token).usd:0,true)}];return{...p,comments,replies:(p.replies||0)+1};}return p;});
@@ -1792,18 +2081,17 @@ document.addEventListener("scroll",e=>{if(e.target.classList&&e.target.classList
 // DEMO: ara sıra sahte oda aktivitesi düşür (akış canlı hissi versin).
 // Gerçek sürümde bu akış Supabase'den gerçek zamanlı gelir.
 const DEMO_WALLETS=["7Qm4vK","Bx91Lp","9fKq2m","Kp02aa","3tRw8k","Vp5tK1","Mn8qW2","Ax7pL9","Qz1vN4","Dk3mR7"];
-const DEMO_TOKENS=[["ANSEM","solana"],["PROB","solana"],["WIF","solana"],["PEPE","ethereum"],["BONK","solana"],["EIGEN","ethereum"],["POPCAT","solana"],["MOODENG","solana"],["BRETT","base"],["PENGU","solana"]];
-setInterval(()=>{
- if(document.hidden)return;
- const w=DEMO_WALLETS[Math.floor(Math.random()*DEMO_WALLETS.length)];
- const tt=DEMO_TOKENS[Math.floor(Math.random()*DEMO_TOKENS.length)];
- S.activity.unshift({type:Math.random()<0.35?"create":"join",wallet:w,token:tt[0],chain:tt[1],t:Date.now()});
+const DEMO_TOKENS=[["ANSEM","solana"],["WIF","solana"],["PEPE","ethereum"],["BONK","solana"],["EIGEN","ethereum"],["POPCAT","solana"],["MOODENG","solana"],["BRETT","base"],["PENGU","solana"]];
+// Gerçek aktivite akışı: React/Supabase realtime'dan gelir (window.__holdxPushActivity)
+window.__holdxPushActivity=function(ev){
+ // ev: {type:"create"|"join", token, chain, wallet}
+ S.activity.unshift({type:ev.type, token:ev.token, chain:ev.chain||"solana", wallet:ev.wallet||"", t:Date.now()});
  if(S.activity.length>40)S.activity.length=40;
  const box=document.getElementById("actList");
- if(box){ // sadece paneli tazele (tüm sayfayı değil → odak/scroll bozulmaz)
+ if(box){
    const tmp=document.createElement("div");tmp.innerHTML=activityPanel();
    const fresh=tmp.querySelector("#actList"); if(fresh)box.innerHTML=fresh.innerHTML;
  }
-},9000);
+};
 
 }
