@@ -16,7 +16,9 @@ createRoot(document.getElementById('root')).render(
           theme: 'dark',
           accentColor: '#34E39A',
           walletChainType: 'ethereum-and-solana',
-          walletList: ['phantom', 'metamask', 'solflare', 'detected_ethereum_wallets', 'detected_solana_wallets'],
+          // Solana: phantom + solflare (acik), Ethereum: metamask + tespit edilen EVM cuzdanlari
+          // 'detected_solana_wallets' kaldirildi -> MetaMask artik Solana olarak gorunmuyor
+          walletList: ['phantom', 'solflare', 'metamask', 'coinbase_wallet', 'rainbow', 'detected_ethereum_wallets'],
         },
         externalWallets: { solana: { connectors: solanaConnectors } },
         embeddedWallets: { createOnLogin: 'off' },
