@@ -125,6 +125,49 @@ export default function App() {
       } catch (e) { console.log('holder hatasi', e) }
     }
 
+    // BİR CÜZDANIN BELİRLİ BİR TOKENDAKİ USD BAKİYESİ (holder rozeti için)
+    const balCache = {}  // key: wallet:mint -> {usd, t}
+    window.__holdxCheckHolder = async (wallet, mint, chain, priceUsd) => {
+      if (!wallet || !mint) return
+      const key = wallet + ':' + mint
+      const cached = balCache[key]
+      if (cached && Date.now() - cached.t < 300000) {  // 5 dk önbellek
+        if (window.__holdxApplyHolderBalance) window.__holdxApplyHolderBalance(wallet, mint, cached.usd)
+        return
+      }
+      let amount = 0
+      try {
+        const isEvm = /^0x[a-fA-F0-9]{40}$/.test(mint)
+        if (isEvm) {
+          // ERC-20 balanceOf
+          const data = '0x70a08231000000000000000000000000' + wallet.replace(/^0x/, '').toLowerCase().padStart(40, '0')
+          const r = await fetch(ALCHEMY_RPC, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'eth_call', params: [{ to: mint, data }, 'latest'] })
+          })
+          const j = await r.json()
+          const raw = j.result ? parseInt(j.result, 16) : 0
+          // ondalık bilgisini almak yerine 18 varsay (çoğu ERC-20), kaba ama rozet için yeterli
+          amount = raw / 1e18
+        } else {
+          // Solana SPL token bakiyesi
+          const r = await fetch(HELIUS_RPC, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'getTokenAccountsByOwner', params: [wallet, { mint }, { encoding: 'jsonParsed' }] })
+          })
+          const j = await r.json()
+          const accts = (j.result && j.result.value) || []
+          for (const a of accts) {
+            const ui = a.account?.data?.parsed?.info?.tokenAmount?.uiAmount
+            if (ui) amount += ui
+          }
+        }
+      } catch (e) { console.log('holder bakiye hatasi', e) }
+      const usd = amount * (priceUsd || 0)
+      balCache[key] = { usd, t: Date.now() }
+      if (window.__holdxApplyHolderBalance) window.__holdxApplyHolderBalance(wallet, mint, usd)
+    }
+
     // BILDIRIMLER
     window.__holdxNotify = async (n) => { await supabase.from('notifications').insert(n) }
     window.__holdxLoadNotifications = async () => {

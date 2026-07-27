@@ -179,9 +179,8 @@ function holdsEnough(t){
   return hv.usd>=MIN_HOLD_USD;
 }
 function canJoin(t){
-  if(!isCustomRoom(t)) return holds(t);
-  if(roomFull(t) && !S.joined[t]) return false; // dolu
-  return holdsEnough(t); // holder sarti
+  if(roomFull(t) && !S.joined[t]) return false; // sadece "dolu" kontrolü kaldı
+  return true; // herkese açık — holder şartı yok
 }
 
 /* Kullanıcının bir tokenden elindeki ANLIK dolar değeri.
@@ -398,7 +397,7 @@ async function tokenSearch(q){
  // KONTRAT ADRESİ ile arama → doğrudan o token
  if(looksLikeAddress(q)){
    const addr=q.trim(); const addrL=addr.toLowerCase();
-   const chains=/^0x/.test(addr)?["ethereum","base","bsc","arbitrum","polygon"]:["solana"];
+   const chains=/^0x/.test(addr)?["ethereum","base","bsc","arbitrum","polygon","robinhood"]:["solana"];
    for(const ch of chains){
      try{
        const arr=await dexFetch(`/tokens/v1/${ch}/${addr}`);
@@ -518,7 +517,7 @@ async function dexPrice(address,chain){
  const isEvm=/^0x[a-fA-F0-9]{40}$/.test(address||"");
  let ch=chain;
  if(isEvm && (!ch||ch==="solana")) ch="ethereum";
- if(!isEvm && (!ch||/^(ethereum|base|bsc|arbitrum|polygon|optimism)$/.test(ch))) ch="solana";
+ if(!isEvm && (!ch||/^(ethereum|base|bsc|arbitrum|polygon|optimism|robinhood)$/.test(ch))) ch="solana";
  const arr=await dexFetch(`/tokens/v1/${ch||"solana"}/${address}`);
  if(!arr||!arr.length)return null;
  const addrL=(address||"").toLowerCase();
@@ -690,18 +689,41 @@ function gifPicker(target){
 }
 
 function postTier(p){
- if(!p.token||!p.verified)return null;
- if(p.mine||(S.connected&&p.wallet===myTag()))return shownTier(holdingUsd(p.token).usd,true);
- // mock yazar: cüzdan+token'dan deterministik $ değer (kademe çeşitliliği için)
- let h=0;const s=p.wallet+p.token;for(let i=0;i<s.length;i++)h=(h*131+s.charCodeAt(i))>>>0;
- const buckets=[50,600,5000,45000,320000];
- return shownTier(buckets[h%buckets.length],false);
+ if(!p.token)return null;
+ if(p.mine||(S.connected&&p.wallet===myTag())){
+   const usd=holdingUsd(p.token).usd;
+   return usd>=10?shownTier(usd,true):null;
+ }
+ // başkası: gerçek zincir bakiyesini iste + göster
+ requestHolderCheck(p.wallet,p.token);
+ return realTierFor(p.wallet,p.token);
+}
+window.__holderBalances=window.__holderBalances||{}; // {wallet:{mint:usd}}
+window.__holdxApplyHolderBalance=function(wallet,mint,usd){
+ window.__holderBalances[wallet]=window.__holderBalances[wallet]||{};
+ window.__holderBalances[wallet][mint]=usd;
+ render();
+};
+function realTierFor(wallet,ticker){
+ const tk=tokenBy(ticker);
+ if(!tk||!tk.address)return undefined;
+ const b=window.__holderBalances[wallet];
+ if(!b||b[tk.address]===undefined)return undefined; // henüz sorgulanmadı
+ const usd=b[tk.address];
+ return usd>=10?shownTier(usd,false):null; // null = holder değil (rozet yok)
+}
+function requestHolderCheck(wallet,ticker){
+ const tk=tokenBy(ticker);
+ if(!tk||!tk.address||!window.__holdxCheckHolder)return;
+ const b=window.__holderBalances[wallet];
+ if(b&&b[tk.address]!==undefined)return; // zaten var
+ window.__holdxCheckHolder(wallet,tk.address,tk.chain,tk.price||0);
 }
 function msgTier(m,ticker){
  if(m.mine||(S.connected&&m.wallet===myTag()))return shownTier(holdingUsd(ticker).usd,true);
- let h=0;const s=m.wallet+ticker;for(let i=0;i<s.length;i++)h=(h*131+s.charCodeAt(i))>>>0;
- const buckets=[50,600,5000,45000,320000];
- return shownTier(buckets[h%buckets.length],false);
+ // başkası: gerçek zincir bakiyesini iste + göster
+ requestHolderCheck(m.wallet,ticker);
+ return realTierFor(m.wallet,ticker); // undefined=henüz yok, null=holder değil, tier=holder
 }
 function postCard(p){
  const tk=tokenBy(p.token)||{color:"#8A8A96"};
@@ -1458,7 +1480,7 @@ function createRoomView(){
  return `<div class="createwrap">
   <div class="createhero">
    <div class="ch-ic">${I.plus}</div>
-   <div><strong>Kendi odanı kur</strong><p>Oda kurmak <b>bedava</b> — 100 aboneye kadar. Daha büyük topluluk istiyorsan kapasiteni yükselt. Her cüzdan <b>1 oda</b> kurabilir.</p></div>
+   <div><strong>Kendi odanı kur</strong><p>Kontrat adresini yapıştır, kapasiteni seç, odanı kur. Her cüzdan <b>1 oda</b> kurabilir.</p></div>
   </div>
   <div class="mfield"><label class="mlabel">Hangi token için? <span class="mhint">kontrat adresi (CA) ile</span></label>
    <div class="roomsearch"><span id="searchIco">${I.search}</span>
@@ -1468,18 +1490,8 @@ function createRoomView(){
    <div id="searchResults" class="searchresults">${createResultsHtml()}</div>
   </div>
   ${picked&&!exists?`
-  <div class="mfield"><label class="mlabel">Kapasite seç</label>
-    <div class="cap-grid">${capOptions}</div>
-    <p class="cap-hint">${S.createCap===Infinity?"Sınırsız kapasite — odan hiç dolmaz, herkes katılabilir.":"Oda "+capLabel(S.createCap)+" aboneye ulaşınca dolar. İstediğin zaman sonradan da yükseltebilirsin."}</p>
-  </div>
-  ${(function(){
-    const hvc=holdingUsd(picked.symbol,picked.price);
-    if(hvc.usd<10){
-      return `<div class="room-fullbox" style="margin-top:4px">${I.lock} Oda kurmak için cüzdanında en az <b>$10</b> değerinde $${esc(picked.symbol)} tutman gerekiyor.<br>Şu an: <span class="mono">$${hvc.usd.toFixed(2)}</span></div>`;
-    }
-    return `<button class="createsubmit" data-act="payCreate">${sel.price===0?I.plus:I.wallet} ${btnLabel}</button>
-    <p class="create-fine">Cüzdanında $${hvc.usd.toFixed(2)} değerinde $${esc(picked.symbol)} var. ${sel.price===0?"Oda kurulunca otomatik katılırsın.":"Ödeme cüzdanından onaylanır."}</p>`;
-  })()}
+  <button class="createsubmit" data-act="payCreate">${I.plus} Odayı kur</button>
+  <p class="create-fine">Oda kurulunca otomatik katılırsın.</p>
   `:""}
  </div>`;
 }
@@ -1508,13 +1520,8 @@ function roomView(ticker){
      <div class="join-lockinfo">${I.globe} Herkese açık oda · kurucu ${esc(room.creator)}</div>
      ${(function(){
        if(full) return `<div class="room-fullbox">${I.lock} Bu oda dolu (${capLabel(cap)}/${capLabel(cap)}). Kurucunun kapasiteyi yükseltmesi gerekiyor.</div>`;
-       const hv=holdingUsd(ticker);
-       const enough=hv.usd>=MIN_HOLD_USD;
-       if(!enough){
-         return `<div class="room-fullbox">${I.lock} Bu odaya katılmak için cüzdanında en az <b>$${MIN_HOLD_USD}</b> değerinde $${esc(ticker)} tutman gerekiyor.<br>Şu an: <span class="mono">$${hv.usd.toFixed(2)}</span></div>`;
-       }
        return `<button class="joinbig" data-act="joinRoom" data-token="${ticker}">Odaya katıl</button>
-       <p class="join-hint">Cüzdanında $${hv.usd.toFixed(2)} değerinde $${esc(ticker)} var · katılabilirsin.</p>`;
+       <p class="join-hint">Herkese açık — katılabilirsin.</p>`;
      })()}
    </div>`;
  }
@@ -2262,12 +2269,9 @@ document.addEventListener("click",e=>{
  else if(a==="payCreate"){
   const p=S.picked;
   if(!p||isCustomRoom(p.symbol))return;
-  if(myRoom())return; // 1 cüzdan = 1 oda güvenlik kontrolü
-  // oda kurmak icin o tokenden en az $10 tutma sarti
-  const hvc=holdingUsd(p.symbol,p.price);
-  if(hvc.usd<MIN_HOLD_USD){ S.createHoldError=true; render(); return; }
+  if(myRoom())return; // 1 cüzdan = 1 oda kuralı (bu devam ediyor)
   S.createHoldError=false;
-  const tier=tierForCap(S.createCap);
+  const tier={cap:Infinity,price:0}; // kapasite kaldırıldı, sınırsız
   const q=p.symbol;
   upsertToken(p);
   S.livePrices[q]={price:p.price,dir:0};
@@ -2363,7 +2367,7 @@ function _resetDayIfNeeded(){const t=_today();if(S.ptsDayKey!==t){S.ptsDayKey=t;
 function award(kind,opts={}){
  if(!S.connected)return;
  // Oda ile ilgili puanlar $10 holder şartına tabi; paylaşım/yorum/beğeni herkese açık.
- const holderOnly=["createRoom","joinRoom","roomJoinedBonus"];
+ const holderOnly=[]; // artık hiçbir puan için holder şartı yok — herkes kazanır
  if(holderOnly.indexOf(kind)>=0){
    const holdsSomething=Object.keys(S.wallet.holdings||{}).some(sym=>holdingUsd(sym).usd>=10);
    if(!holdsSomething)return;
