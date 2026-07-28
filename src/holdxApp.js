@@ -1777,9 +1777,10 @@ function topSearchResultsHtml(){
 function welcomeScreen(){
  return `<div class="welcome" data-theme="${S.theme}">
    <div class="wc-bg"></div>
+   ${window.__LOGO_URL?`<div class="wc-bg-logo" style="background-image:url('${window.__LOGO_URL}')"></div>`:""}
    <button class="wc-theme" data-act="toggleTheme">${S.theme==="dark"?I.sun:I.moon}</button>
    <div class="wc-inner">
-     <div class="wc-logo"><span class="logo lg"></span></div>
+     <div class="wc-logo">${window.__LOGO_URL?`<img class="wc-logo-img" src="${window.__LOGO_URL}" alt="PODCTO">`:`<span class="logo lg"></span>`}</div>
      <h1 class="wc-brand">${BRAND}</h1>
      <p class="wc-tag">${TAGLINE}</p>
      <p class="wc-desc">Holder'ların buluştuğu yer. Cüzdanını bağla, tuttuğun coin'lerin odalarına gir, gerçek holder'larla konuş. Bot yok, sahte hesap yok — sadece cüzdanın konuşur.</p>
