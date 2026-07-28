@@ -5,6 +5,8 @@ import './holdx.css'
 import { initHoldx } from './holdxApp.js'
 import { supabase } from './supabase.js'
 import { HELIUS_RPC, ALCHEMY_RPC } from './config.js'
+import logoUrl from './logo.png'
+if (typeof window !== 'undefined') window.__LOGO_URL = logoUrl
 
 export default function App() {
   const { ready, authenticated, login, logout, user } = usePrivy()

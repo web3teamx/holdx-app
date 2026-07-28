@@ -4,7 +4,7 @@ export function initHoldx(){
   if (window.__holdx_inited) return;
   window.__holdx_inited = true;
 
-const BRAND="HOLDX", TAGLINE="cüzdanın konuşur";
+const BRAND="PODCTO", TAGLINE="cüzdanın konuşur";
 const FEEDBACK_EMAIL="feedback@holdx.app"; // ← gerçek e-posta adresinle değiştir
 // Oda kapasite kademeleri: [kapasite, toplam fiyat $]. 100 bedava.
 const CAP_TIERS=[
@@ -1812,7 +1812,7 @@ function _renderNow(){
  // ilk açılış: karşılama ekranı (bir kez, "keşfet" ya da "cüzdan bağla" seçilene kadar)
  if(!S.entered&&!S.connected){app.innerHTML=welcomeScreen();return;}
  app.innerHTML=`
-  <header class="top"><button class="brand" data-act="nav" data-view="feed"><span class="logo"></span><span class="word">${BRAND}</span><span class="betatag">beta</span></button>
+  <header class="top"><button class="brand" data-act="nav" data-view="feed">${window.__LOGO_URL?`<img class="logo-img" src="${window.__LOGO_URL}" alt="PODCTO">`:`<span class="logo"></span>`}<span class="word">${BRAND}</span><span class="betatag">beta</span></button>
    <div class="search"><span class="search-ic">${I.search}</span><input id="topSearch" placeholder="oda ya da cüzdan ara" value="${esc(S.topSearch)}" autocomplete="off">${S.topSearch?`<button class="search-clear" data-act="clearTopSearch">${I.x}</button>`:""}
      ${S.topSearchOpen?`<div class="search-dropdown" id="topSearchDrop">${topSearchResultsHtml()}</div>`:""}
    </div>
