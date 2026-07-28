@@ -125,6 +125,22 @@ export default function App() {
       } catch (e) { console.log('holder hatasi', e) }
     }
 
+    // MERKEZİ FİYAT ÖNBELLEĞİ (10 sn) — herkes DexScreener yerine buradan okur
+    window.__holdxGetCachedPrice = async (ticker) => {
+      try {
+        const { data } = await supabase.from('token_cache').select('*').eq('ticker', ticker).maybeSingle()
+        if (data && data.updated_at && (Date.now() - new Date(data.updated_at).getTime()) < 10000) {
+          return { price: data.price, chg: data.chg, mc: data.mc, fresh: true }
+        }
+        return data ? { price: data.price, chg: data.chg, mc: data.mc, fresh: false } : null
+      } catch (e) { return null }
+    }
+    window.__holdxSetCachedPrice = async (ticker, price, chg, mc, address, chain) => {
+      try {
+        await supabase.from('token_cache').upsert({ ticker, price, chg, mc, address, chain, updated_at: new Date().toISOString() }, { onConflict: 'ticker' })
+      } catch (e) {}
+    }
+
     // BİR CÜZDANIN BELİRLİ BİR TOKENDAKİ USD BAKİYESİ (holder rozeti için)
     const balCache = {}  // key: wallet:mint -> {usd, t}
     window.__holdxCheckHolder = async (wallet, mint, chain, priceUsd) => {

@@ -629,9 +629,19 @@ async function refreshTokenPrices(){
    await Promise.all(group.map(async tok=>{
      try{
        let d=null;
-       if(tok.address){ d=await dexPrice(tok.address,tok.chain); }
-       else if(tok.cgId){ try{const pr=await cgFetch(`/simple/price?ids=${encodeURIComponent(tok.cgId)}&vs_currencies=usd&include_24hr_change=true&include_market_cap=true`);const o=pr[tok.cgId];if(o&&o.usd!=null)d={price:o.usd,chg:o.usd_24h_change||0,mc:o.usd_market_cap||0};}catch(e){} }
-       else { const res=await dexSearch(tok.t); const ex=res.find(r=>r.symbol.toUpperCase()===tok.t.toUpperCase())||res[0]; if(ex)d={price:ex.price,chg:ex.chg,mc:ex.mc}; }
+       // 1) MERKEZİ ÖNBELLEK: 10 sn tazeyse doğrudan kullan (DexScreener'a gitme)
+       if(window.__holdxGetCachedPrice){
+         const c=await window.__holdxGetCachedPrice(tok.t);
+         if(c&&c.fresh&&c.price>0){ d={price:c.price,chg:c.chg,mc:c.mc}; }
+       }
+       // 2) Önbellek eski/yoksa canlı çek
+       if(!d){
+         if(tok.address){ d=await dexPrice(tok.address,tok.chain); }
+         else if(tok.cgId){ try{const pr=await cgFetch(`/simple/price?ids=${encodeURIComponent(tok.cgId)}&vs_currencies=usd&include_24hr_change=true&include_market_cap=true`);const o=pr[tok.cgId];if(o&&o.usd!=null)d={price:o.usd,chg:o.usd_24h_change||0,mc:o.usd_market_cap||0};}catch(e){} }
+         else { const res=await dexSearch(tok.t); const ex=res.find(r=>r.symbol.toUpperCase()===tok.t.toUpperCase())||res[0]; if(ex)d={price:ex.price,chg:ex.chg,mc:ex.mc}; }
+         // taze veriyi önbelleğe yaz (herkes 10 sn buradan okur)
+         if(d&&d.price>0&&window.__holdxSetCachedPrice){ window.__holdxSetCachedPrice(tok.t,d.price,+(+d.chg).toFixed(1),d.mc||0,tok.address||null,tok.chain||null); }
+       }
        if(d===null&&tok.address){ tok.price=0; tok.mc="—"; }
        if(d&&d.price>0){
          tok.price=d.price; tok.chg=+(+d.chg).toFixed(1); if(d.mc)tok.mc=fmtMc(d.mc);
@@ -725,10 +735,24 @@ function msgTier(m,ticker){
  requestHolderCheck(m.wallet,ticker);
  return realTierFor(m.wallet,ticker); // undefined=henüz yok, null=holder değil, tier=holder
 }
+function refreshPostActions(id){
+ // tüm sayfayı değil, sadece o postun aksiyon barını güncelle (hız)
+ const p=S.posts.find(function(x){return String(x.id)===String(id);});
+ if(!p)return;
+ const card=document.querySelector('.post-card[data-pid="'+id+'"]');
+ if(!card){ render(); return; }
+ const bar=card.querySelector('.post-actions');
+ if(!bar){ render(); return; }
+ // sadece sayaç ve renkleri güncelle
+ const likeBtn=bar.querySelector('[data-act="like"]');
+ if(likeBtn){ likeBtn.classList.toggle('liked',!!p.liked); likeBtn.innerHTML=(p.liked?I.heartf:I.heart)+' '+(p.likes||0); }
+ const rtBtn=bar.querySelector('[data-act="rtMenu"]');
+ if(rtBtn){ rtBtn.classList.toggle('reposted',!!p.reposted); rtBtn.innerHTML=I.repost+' '+(p.reposts||0); }
+}
 function postCard(p){
  const tk=tokenBy(p.token)||{color:"#8A8A96"};
  const tier=postTier(p);
- return `<article class="post-card"><button class="pf-link" data-act="openProfile" data-wallet="${esc(p.wallet)}">${ringAvatar(p.wallet+(p.token||""),tier,"",p.wallet)}</button>
+ return `<article class="post-card" data-pid="${p.id}"><button class="pf-link" data-act="openProfile" data-wallet="${esc(p.wallet)}">${ringAvatar(p.wallet+(p.token||""),tier,"",p.wallet)}</button>
   <div class="post-body"><div class="post-head">
    <button class="${nameCls(p.wallet,p.mine)} post-wallet pf-link" data-act="openProfile" data-wallet="${esc(p.wallet)}">${esc(displayName(p.wallet,p.mine))}</button>
    ${tier?tierBadge(tier):""}
@@ -1771,7 +1795,14 @@ function welcomeScreen(){
    </div>
  </div>`;
 }
+let _renderQueued=false;
 function render(){
+ // Art arda gelen render çağrılarını tek karede birleştir (hız)
+ if(_renderQueued)return;
+ _renderQueued=true;
+ requestAnimationFrame(function(){ _renderQueued=false; _renderNow(); });
+}
+function _renderNow(){
  var _ae=document.activeElement;
  var _aeId=(_ae&&(_ae.tagName==="INPUT"||_ae.tagName==="TEXTAREA"))?_ae.id:null;
  var _aeSel=null; try{_aeSel=_aeId?_ae.selectionStart:null;}catch(e){}
@@ -1831,6 +1862,8 @@ function render(){
  const cmi=document.getElementById("commentInput");
  if(cmi&&S.commentText){cmi.focus();cmi.setSelectionRange(cmi.value.length,cmi.value.length);}
  if(S.crop)setupCropper();
+ if(S.dmScrollBottom){ const dm=document.getElementById("dmMsgs"); if(dm)dm.scrollTop=dm.scrollHeight; S.dmScrollBottom=false; }
+ if(S.chatScrollBottom){ const cb=document.getElementById("messages"); if(cb)cb.scrollTop=cb.scrollHeight; S.chatScrollBottom=false; }
  const gsi=document.getElementById("gifSearch");
  if(gsi){gsi.focus();gsi.setSelectionRange(gsi.value.length,gsi.value.length);}
  else { // gif araması açık değilse, metin alanlarına odağı geri ver
@@ -2058,7 +2091,7 @@ document.addEventListener("click",e=>{
      if(window.__holdxLoadHolders){window.__holdxLoadHolders(tt,tk1.address);}
    }
    render();}
- else if(a==="openRoom"){const rt=el.dataset.token;S.view={name:"room",token:rt};
+ else if(a==="openRoom"){const rt=el.dataset.token;S.view={name:"room",token:rt};S.chatScrollBottom=true;
    if(window.__holdxLoadMessages){window.__holdxLoadMessages(rt);}
    if(window.__holdxSubscribeRoom){window.__holdxSubscribeRoom(rt);}
    const tk0=tokenBy(rt); if(window.__holdxLoadHolders&&tk0&&tk0.address){window.__holdxLoadHolders(rt,tk0.address);}
@@ -2098,7 +2131,7 @@ document.addEventListener("click",e=>{
    const post=S.posts.find(p=>String(p.id)===String(id));
    if(window.__holdxToggleLike && S.wallet){ window.__holdxToggleLike(id, S.wallet.address, becameLiked);
      if(becameLiked&&post&&post.wallet!==S.wallet.address&&window.__holdxNotify){ window.__holdxNotify({wallet:post.wallet,type:"like",from_wallet:S.wallet.address,post_id:id}); } }
-   render();}
+   refreshPostActions(id);}
  else if(a==="openPost"){S.replyTo=null;S.prevView=S.view;S.view={name:"post",id:el.dataset.id,token:null};S.commentText="";render();}
  else if(a==="back"){S.view=S.prevView||{name:"feed",token:null};S.prevView=null;render();}
  else if(a==="zoom"){S.lightbox=el.dataset.src;render();}
@@ -2309,8 +2342,10 @@ document.addEventListener("input",e=>{
 function sendDM(peer){
  const inp=document.getElementById("dmInput"); const txt=(inp?inp.value:S.dmText||"").trim();
  if(!txt||!S.wallet)return;
+ // yerel olarak hemen ekle (kendi mesajımı anında görürüm)
+ S.dms=S.dms||{}; S.dms[peer]=[...(S.dms[peer]||[]),{from_wallet:S.wallet.address,to_wallet:peer,text:txt,created_at:new Date().toISOString()}];
  if(window.__holdxSendDM){ window.__holdxSendDM({from_wallet:S.wallet.address,to_wallet:peer,text:txt}); }
- S.dmText=""; render();
+ S.dmText=""; S.dmScrollBottom=true; render();
 }
 function sendChat(ticker){
  const inp=document.getElementById("chatInput"); const txt=(inp?inp.value:S.chatText||"").trim();
@@ -2334,7 +2369,9 @@ window.__holdxAddMessage=function(m){
  if(m.id && arr.find(function(x){return x.id===m.id;})) return;
  const room=S.customRooms.find(function(r){return r.ticker===m.ticker;});
  arr.push({ id:m.id, wallet:m.wallet, verified:false, creator:room&&room.creator===m.wallet, text:m.text||"", media:m.media||null, mine:(S.wallet&&m.wallet===S.wallet.address) });
+
  S.chat[m.ticker]=arr;
+ if(S.view&&S.view.name==="room"&&S.view.token===m.ticker)S.chatScrollBottom=true;
  render();
 };
 window.__holdxSetMessages=function(ticker,rows){
@@ -2343,6 +2380,7 @@ window.__holdxSetMessages=function(ticker,rows){
  S.chat[ticker]=rows.map(function(m){
    return { id:m.id, wallet:m.wallet, verified:false, creator:room&&room.creator===m.wallet, text:m.text||"", media:m.media||null, mine:(S.wallet&&m.wallet===S.wallet.address) };
  });
+ S.chatScrollBottom=true;
  render();
 };
 // ============ SESSİZ PUAN MOTORU (airdrop için) ============
