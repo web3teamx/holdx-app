@@ -340,11 +340,22 @@ export default function App() {
       } catch (e) { console.log('bakiye hatasi', e) }
     }
     // MESAJLAR
-    window.__holdxSendMessage = async (m) => { await supabase.from('messages').insert(m) }
+    window.__holdxSendMessage = async (m) => {
+      if (m.media && m.media.startsWith('data:')) {
+        const url = await uploadImage(m.media, m.wallet, 'msg-' + Date.now())
+        m = { ...m, media: url }
+      }
+      await supabase.from('messages').insert(m)
+    }
     // DM
     window.__holdxSendDM = async (m) => {
+      // fotoğrafı Storage'a yükle (base64 DB'yi şişirmesin)
+      if (m.media && m.media.startsWith('data:')) {
+        const url = await uploadImage(m.media, m.from_wallet, 'dm-' + Date.now())
+        m = { ...m, media: url }
+      }
       await supabase.from('dms').insert(m)
-      await supabase.from('notifications').insert({ wallet: m.to_wallet, type: 'dm', from_wallet: m.from_wallet, text: m.text })
+      // DM bildirimi Bildirimler sekmesine düşmez; sadece Mesajlar'da unread rozeti gösterilir
     }
     window.__holdxLoadThreads = async () => {
       const me = window.__holdxMyAddress

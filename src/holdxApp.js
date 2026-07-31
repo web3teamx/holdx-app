@@ -1183,10 +1183,13 @@ function dmView(peer){
    <div class="dm-msgs" id="dmMsgs">
      ${msgs.length?msgs.map(function(m){
        const mine=S.wallet&&m.from_wallet===S.wallet.address;
-       return `<div class="dm-msg ${mine?"mine":""}"><span class="dm-bubble">${esc(m.text||"")}</span></div>`;
+       return `<div class="dm-msg ${mine?"mine":""}"><span class="dm-bubble">${m.media?`<img class="dm-media" src="${esc(m.media)}" alt="" data-act="zoom" data-src="${esc(m.media)}">`:""}${m.text?`<span class="dm-txt">${esc(m.text)}</span>`:""}</span></div>`;
      }).join(""):`<p class="dm-empty">Henüz mesaj yok. İlk mesajı sen gönder.</p>`}
    </div>
-   <div class="dm-input"><input id="dmInput" placeholder="Mesaj yaz…" value="${esc(S.dmText||"")}" data-wallet="${esc(peer)}">
+   ${S.dmMedia?`<div class="dm-media-prev"><img src="${S.dmMedia}" alt=""><button class="media-x" data-act="clearDmMedia">${I.x}</button></div>`:""}
+   <div class="dm-input">
+     <button class="dm-photo" data-act="dmPhoto" title="Fotoğraf">${I.image}</button>
+     <input id="dmInput" placeholder="Mesaj yaz…" value="${esc(S.dmText||"")}" data-wallet="${esc(peer)}">
      <button data-act="sendDM" data-wallet="${esc(peer)}">${I.send}</button></div>
  </div>`;
 }
@@ -1793,6 +1796,7 @@ function welcomeScreen(){
        <div class="wc-feat">${I.chat}<span>Token bazlı sohbet odaları</span></div>
        <div class="wc-feat">${I.globe}<span>Tüm ağlar — SOL, ETH, Base & daha fazlası</span></div>
      </div>
+     <div class="wc-soon">📱 Mobil uygulama çok yakında</div>
    </div>
  </div>`;
 }
@@ -2028,6 +2032,8 @@ document.addEventListener("click",e=>{
  else if(a==="enterExplore"){S.entered=true;S.view={name:"feed",token:null};render();}
  else if(a==="pickTopToken"){const r=S.topResults[+el.dataset.i];if(r){upsertToken(r);S.view={name:"token",token:(r.symbol||"").toUpperCase()};S.topSearch="";S.topSearchOpen=false;S.topResults=[];}render();}
  else if(a==="openDM"){const w=el.dataset.wallet;S.view={name:"dm",peer:w};if(S.unreadPeers&&S.unreadPeers[w]){delete S.unreadPeers[w];S.unreadDM=Math.max(0,(S.unreadDM||0)-1);}if(window.__holdxLoadDMs){window.__holdxLoadDMs(w);}render();}
+ else if(a==="dmPhoto"){triggerPhoto("dm");}
+ else if(a==="clearDmMedia"){S.dmMedia=null;render();}
  else if(a==="sendDM"){sendDM(el.dataset.wallet);}
  else if(a==="exportLeaderboard"){
    const rows=(S.leaderboard||[]).slice(0,100);
@@ -2342,11 +2348,11 @@ document.addEventListener("input",e=>{
 });
 function sendDM(peer){
  const inp=document.getElementById("dmInput"); const txt=(inp?inp.value:S.dmText||"").trim();
- if(!txt||!S.wallet)return;
- // yerel olarak hemen ekle (kendi mesajımı anında görürüm)
- S.dms=S.dms||{}; S.dms[peer]=[...(S.dms[peer]||[]),{from_wallet:S.wallet.address,to_wallet:peer,text:txt,created_at:new Date().toISOString()}];
- if(window.__holdxSendDM){ window.__holdxSendDM({from_wallet:S.wallet.address,to_wallet:peer,text:txt}); }
- S.dmText=""; S.dmScrollBottom=true; render();
+ const media=S.dmMedia||null;
+ if((!txt&&!media)||!S.wallet)return;
+ S.dms=S.dms||{}; S.dms[peer]=[...(S.dms[peer]||[]),{from_wallet:S.wallet.address,to_wallet:peer,text:txt,media:media,created_at:new Date().toISOString()}];
+ if(window.__holdxSendDM){ window.__holdxSendDM({from_wallet:S.wallet.address,to_wallet:peer,text:txt||null,media:media}); }
+ S.dmText=""; S.dmMedia=null; S.dmScrollBottom=true; render();
 }
 function sendChat(ticker){
  const inp=document.getElementById("chatInput"); const txt=(inp?inp.value:S.chatText||"").trim();
@@ -2507,7 +2513,7 @@ function triggerPhoto(target){
  const inp=document.createElement("input");
  inp.type="file"; inp.accept="image/*";
  inp.onchange=()=>{const f=inp.files&&inp.files[0]; if(!f)return;
-   const r=new FileReader(); r.onload=()=>{ if(target==="post")S.postMedia=r.result; else S.chatMedia=r.result; S.emojiFor=null;S.gifFor=null; render(); };
+   const r=new FileReader(); r.onload=()=>{ if(target==="post")S.postMedia=r.result; else if(target==="dm")S.dmMedia=r.result; else S.chatMedia=r.result; S.emojiFor=null;S.gifFor=null; render(); };
    r.readAsDataURL(f);};
  inp.click();
 }
