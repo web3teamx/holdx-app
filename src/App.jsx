@@ -188,6 +188,16 @@ export default function App() {
 
     // BILDIRIMLER
     window.__holdxNotify = async (n) => { await supabase.from('notifications').insert(n) }
+    // etiketlenen cüzdanlara doğrudan bildirim (en güvenilir yol)
+    window.__holdxNotifyMentionWallets = async (wallets, fromWallet, postId, text) => {
+      try {
+        for (const target of wallets) {
+          if (target && target !== fromWallet) {
+            await supabase.from('notifications').insert({ wallet: target, type: 'mention', from_wallet: fromWallet, post_id: postId, text })
+          }
+        }
+      } catch (e) { console.log('mention bildirim hatasi', e) }
+    }
     // @isim etiketlenen kişilere bildirim
     window.__holdxNotifyMentions = async (names, fromWallet, postId, text) => {
       try {

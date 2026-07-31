@@ -749,6 +749,13 @@ function refreshPostActions(id){
  const rtBtn=bar.querySelector('[data-act="rtMenu"]');
  if(rtBtn){ rtBtn.classList.toggle('reposted',!!p.reposted); rtBtn.innerHTML=I.repost+' '+(p.reposts||0); }
 }
+function fmtText(t){
+ // önce güvenli kaçış, sonra @isim ve $TOKEN vurgusu
+ let h=esc(t||"");
+ h=h.replace(/@([A-Za-z0-9_]{1,20})/g,'<span class="mention-tag">@$1</span>');
+ h=h.replace(/\$([A-Za-z0-9]{2,15})\b/g,'<span class="cashtag">$$$1</span>');
+ return h;
+}
 function postCard(p){
  const tk=tokenBy(p.token)||{color:"#8A8A96"};
  const tier=postTier(p);
@@ -765,7 +772,7 @@ function postCard(p){
        ${(S.connected&&S.wallet&&p.wallet===S.wallet.address)?`<button class="post-menu-item danger" data-act="deletePost" data-id="${p.id}">${I.trash} Sil</button>`:""}
      </div>`:""}
    </div>
-  </div><p class="post-text">${esc(p.text)}</p>
+  </div><p class="post-text">${fmtText(p.text)}</p>
   ${p.quoted?`<div class="quoted-post" data-act="openPost" data-id="${p.quoted.id}">
     <div class="qp-head">${ringAvatar(p.quoted.wallet,null,"xs",p.quoted.wallet)}<span class="qp-name">${esc(displayName(p.quoted.wallet))}</span></div>
     <div class="qp-text">${esc((p.quoted.text||"").slice(0,180))}</div>
@@ -883,7 +890,7 @@ function feedView(){
   `<div class="composer${S.quoting?" quoting":""}">${ringAvatar(S.wallet.address,null,"lg",S.wallet.address)}
    <div class="composer-body"><textarea id="composerText" rows="2" placeholder="Ne düşünüyorsun?">${esc(S.composerText||"")}</textarea>
    ${S.mentionOpen&&S.mentionResults&&S.mentionResults.length?`<div class="mention-pop">${S.mentionResults.map(function(u,i){
-     return `<button class="mention-item" data-act="pickMention" data-name="${esc(u.name)}">${ringAvatar(u.wallet,null,"sm",u.wallet)}<span class="mention-name">${esc(u.name)}</span><span class="mention-addr mono">${short(u.wallet)}</span></button>`;
+     return `<button class="mention-item" data-act="pickMention" data-name="${esc(u.name)}" data-wallet="${esc(u.wallet)}">${ringAvatar(u.wallet,null,"sm",u.wallet)}<span class="mention-name">${esc(u.name)}</span><span class="mention-addr mono">${short(u.wallet)}</span></button>`;
    }).join("")}</div>`:""}
    ${S.quoting?`<div class="quote-preview"><div class="qp-head">${ringAvatar(S.quoting.wallet,null,"xs",S.quoting.wallet)}<span class="qp-name">${esc(displayName(S.quoting.wallet))}</span><button class="qp-x" data-act="cancelQuote">✕</button></div><div class="qp-text">${esc((S.quoting.text||"").slice(0,140))}</div></div>`:""}
    ${S.postMedia?`<div class="mediaprev"><img src="${S.postMedia}" alt=""><button class="media-x" data-act="clearPostMedia">${I.x}</button></div>`:""}
@@ -2046,7 +2053,7 @@ document.addEventListener("click",e=>{
  else if(a==="pickTopToken"){const r=S.topResults[+el.dataset.i];if(r){upsertToken(r);S.view={name:"token",token:(r.symbol||"").toUpperCase()};S.topSearch="";S.topSearchOpen=false;S.topResults=[];}render();}
  else if(a==="openDM"){const w=el.dataset.wallet;S.view={name:"dm",peer:w};if(S.unreadPeers&&S.unreadPeers[w]){delete S.unreadPeers[w];S.unreadDM=Math.max(0,(S.unreadDM||0)-1);}if(window.__holdxLoadDMs){window.__holdxLoadDMs(w);}render();}
  else if(a==="dmPhoto"){triggerPhoto("dm");}
- else if(a==="pickMention"){pickMention(el.dataset.name);}
+ else if(a==="pickMention"){pickMention(el.dataset.name,el.dataset.wallet);}
  else if(a==="clearDmMedia"){S.dmMedia=null;render();}
  else if(a==="sendDM"){sendDM(el.dataset.wallet);}
  else if(a==="exportLeaderboard"){
@@ -2241,7 +2248,11 @@ document.addEventListener("click",e=>{
     window.__holdxSavePost({ wallet:S.wallet.address, text:txt, token:pt?pt.symbol:null, media:S.postMedia||null, quoted_post_id:S.quoting?S.quoting.id:null }, newPost.id);
     // @etiketlenen kişilere bildirim gönder
     const mentions=(txt.match(/@([A-Za-z0-9_]{1,20})/g)||[]).map(function(x){return x.slice(1);});
-    if(mentions.length&&window.__holdxNotifyMentions){ window.__holdxNotifyMentions(mentions, S.wallet.address, newPost.id, txt); }
+    if(mentions.length){
+      const wallets=mentions.map(function(nm){return (S.mentionedWallets||{})[nm];}).filter(Boolean);
+      if(wallets.length&&window.__holdxNotifyMentionWallets){ window.__holdxNotifyMentionWallets(wallets, S.wallet.address, newPost.id, txt); }
+      else if(window.__holdxNotifyMentions){ window.__holdxNotifyMentions(mentions, S.wallet.address, newPost.id, txt); }
+    }
   }
   award("post",{capKey:"post"}); // günlük tavan
   S.postToken=null;S.postSearchOpen=false;S.postSearch="";S.postResults=[];S.postMedia=null;S.composerText="";S.emojiFor=null;S.gifFor=null;
@@ -2383,13 +2394,15 @@ function scheduleMentionSearch(q){
    }
  },200);
 }
-function pickMention(name){
+function pickMention(name,wallet){
  const ta=document.getElementById("composerText");
  if(!ta)return;
  const val=ta.value, pos=ta.selectionStart;
  const before=val.slice(0,pos).replace(/@([A-Za-z0-9_]{1,20})$/,"@"+name+" ");
  const after=val.slice(pos);
  S.composerText=before+after;
+ // etiketlenen cüzdanı hatırla (bildirim için isim eşleştirmeye güvenme)
+ S.mentionedWallets=S.mentionedWallets||{}; if(wallet)S.mentionedWallets[name]=wallet;
  S.mentionOpen=false; S.mentionResults=[];
  render();
  setTimeout(function(){const t=document.getElementById("composerText");if(t){t.focus();const p=before.length;t.setSelectionRange(p,p);}},30);
