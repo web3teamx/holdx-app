@@ -188,6 +188,19 @@ export default function App() {
 
     // BILDIRIMLER
     window.__holdxNotify = async (n) => { await supabase.from('notifications').insert(n) }
+    // @isim etiketlenen kişilere bildirim
+    window.__holdxNotifyMentions = async (names, fromWallet, postId, text) => {
+      try {
+        for (const name of names) {
+          // isimden cüzdanı bul
+          const { data } = await supabase.from('profiles').select('wallet').ilike('display_name', name).limit(1)
+          const target = data && data[0] && data[0].wallet
+          if (target && target !== fromWallet) {
+            await supabase.from('notifications').insert({ wallet: target, type: 'mention', from_wallet: fromWallet, post_id: postId, text })
+          }
+        }
+      } catch (e) { console.log('mention bildirim hatasi', e) }
+    }
     window.__holdxLoadNotifications = async () => {
       const me = window.__holdxMyAddress
       if (!me) return
@@ -495,10 +508,30 @@ export default function App() {
     }
     // Bir kullanicinin kendi paylasimlarini cek (profil sayfasi icin)
     window.__holdxLoadUserPosts = async (wallet) => {
-      const { data } = await supabase.from('posts').select('*').eq('wallet', wallet).order('created_at', { ascending: false }).limit(50)
-      if (data && data.length && window.__holdxApplyPosts) {
-        window.__holdxApplyPosts(data)
-        loadInteractions(data.map(p => p.id))
+      // kendi yazdıkları
+      const { data: own } = await supabase.from('posts').select('*').eq('wallet', wallet).order('created_at', { ascending: false }).limit(50)
+      // RT'ledikleri
+      const { data: rts } = await supabase.from('reposts').select('post_id,created_at').eq('wallet', wallet).order('created_at', { ascending: false }).limit(50)
+      let reposted = []
+      if (rts && rts.length) {
+        const ids = rts.map(r => r.post_id)
+        const { data: rposts } = await supabase.from('posts').select('*').in('id', ids)
+        if (rposts) {
+          const byId = {}; rposts.forEach(p => byId[p.id] = p)
+          reposted = rts.map(r => byId[r.post_id] ? { ...byId[r.post_id], _repostedBy: wallet, _repostAt: r.created_at } : null).filter(Boolean)
+        }
+      }
+      if (own && own.length && window.__holdxApplyPosts) {
+        window.__holdxApplyPosts(own)
+        loadInteractions(own.map(p => p.id))
+      }
+      // RT'lenen postları ayrı ver (profil için)
+      if (window.__holdxSetUserReposts) window.__holdxSetUserReposts(wallet, reposted)
+      const all = [...(own || []), ...reposted]
+      if (all.length) {
+        loadInteractions(all.map(p => p.id))
+        const ws = [...new Set(all.map(p => p.wallet))]
+        loadNamesFor(ws); loadAvatarsFor(ws)
       }
     }
     let postOffset = 0

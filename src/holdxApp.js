@@ -752,7 +752,7 @@ function refreshPostActions(id){
 function postCard(p){
  const tk=tokenBy(p.token)||{color:"#8A8A96"};
  const tier=postTier(p);
- return `<article class="post-card" data-pid="${p.id}"><button class="pf-link" data-act="openProfile" data-wallet="${esc(p.wallet)}">${ringAvatar(p.wallet+(p.token||""),tier,"",p.wallet)}</button>
+ return `<article class="post-card" data-pid="${p.id}">${p._repostedBy?`<div class="rt-label">${I.repost} ${(S.wallet&&p._repostedBy===S.wallet.address)?"Yeniden paylaştın":esc(displayName(p._repostedBy))+" yeniden paylaştı"}</div>`:""}<button class="pf-link" data-act="openProfile" data-wallet="${esc(p.wallet)}">${ringAvatar(p.wallet+(p.token||""),tier,"",p.wallet)}</button>
   <div class="post-body"><div class="post-head">
    <button class="${nameCls(p.wallet,p.mine)} post-wallet pf-link" data-act="openProfile" data-wallet="${esc(p.wallet)}">${esc(displayName(p.wallet,p.mine))}</button>
    ${tier?tierBadge(tier):""}
@@ -882,6 +882,9 @@ function feedView(){
  const composer=S.connected?
   `<div class="composer${S.quoting?" quoting":""}">${ringAvatar(S.wallet.address,null,"lg",S.wallet.address)}
    <div class="composer-body"><textarea id="composerText" rows="2" placeholder="Ne düşünüyorsun?">${esc(S.composerText||"")}</textarea>
+   ${S.mentionOpen&&S.mentionResults&&S.mentionResults.length?`<div class="mention-pop">${S.mentionResults.map(function(u,i){
+     return `<button class="mention-item" data-act="pickMention" data-name="${esc(u.name)}">${ringAvatar(u.wallet,null,"sm",u.wallet)}<span class="mention-name">${esc(u.name)}</span><span class="mention-addr mono">${short(u.wallet)}</span></button>`;
+   }).join("")}</div>`:""}
    ${S.quoting?`<div class="quote-preview"><div class="qp-head">${ringAvatar(S.quoting.wallet,null,"xs",S.quoting.wallet)}<span class="qp-name">${esc(displayName(S.quoting.wallet))}</span><button class="qp-x" data-act="cancelQuote">✕</button></div><div class="qp-text">${esc((S.quoting.text||"").slice(0,140))}</div></div>`:""}
    ${S.postMedia?`<div class="mediaprev"><img src="${S.postMedia}" alt=""><button class="media-x" data-act="clearPostMedia">${I.x}</button></div>`:""}
    ${S.postSearchOpen?`<div class="postsearchwrap">
@@ -1032,7 +1035,9 @@ function profileView(){
 function ownProfileView(){
  const p=S.profile;
  const name=p.name||myTag();
- const myPosts=S.posts.filter(x=>x.mine||x.wallet===myTag());
+ const _myRts=(S.wallet&&window.__userReposts&&window.__userReposts[S.wallet.address])||[];
+ const _myOwn=S.posts.filter(x=>x.mine||x.wallet===myTag());
+ const myPosts=[..._myOwn,..._myRts].sort((a,b)=>new Date(b._repostAt||b.created_at||0)-new Date(a._repostAt||a.created_at||0));
  const myRooms=Object.keys(S.joined).filter(k=>S.joined[k]);
  const createdCount=S.customRooms.filter(r=>r.creator===myTag()).length;
  const followingCount=Object.keys(S.following).filter(k=>S.following[k]).length;
@@ -1123,6 +1128,7 @@ function notificationsView(){
    if(n.type==="comment")return "paylaşımına yorum yaptı";
    if(n.type==="repost")return "paylaşımını yeniden paylaştı";
    if(n.type==="follow")return "seni takip etti";
+   if(n.type==="mention")return "bir paylaşımda senden bahsetti";
    if(n.type==="dm")return "sana mesaj gönderdi";
    return "";
  };
@@ -1215,7 +1221,9 @@ window.__holdxAddDM=function(m){
 };
 function otherProfileView(wallet){
  // bu kullanıcının akıştaki paylaşımları
- const theirPosts=S.posts.filter(x=>x.wallet===wallet&&!(x.mine));
+ const _theirRts=(window.__userReposts&&window.__userReposts[wallet])||[];
+ const _theirOwn=S.posts.filter(x=>x.wallet===wallet&&!(x.mine));
+ const theirPosts=[..._theirOwn,..._theirRts].sort((a,b)=>new Date(b._repostAt||b.created_at||0)-new Date(a._repostAt||a.created_at||0));
  // deterministik "sahte ama tutarlı" profil verisi (aynı cüzdan hep aynı görünür)
  let h=0;for(let i=0;i<wallet.length;i++)h=(h*131+wallet.charCodeAt(i))>>>0;
  const followers=(S.followerCounts&&S.followerCounts[wallet])||0;
@@ -1817,7 +1825,7 @@ function _renderNow(){
  // ilk açılış: karşılama ekranı (bir kez, "keşfet" ya da "cüzdan bağla" seçilene kadar)
  if(!S.entered&&!S.connected){app.innerHTML=welcomeScreen();return;}
  app.innerHTML=`
-  <header class="top"><button class="brand" data-act="nav" data-view="feed">${window.__LOGO_URL?`<img class="logo-img" src="${window.__LOGO_URL}" alt="PODCTO">`:`<span class="logo"></span>`}<span class="word">${BRAND}</span><span class="betatag">beta</span></button>
+  <header class="top"><button class="brand" data-act="nav" data-view="feed">${window.__LOGO_URL?`<img class="logo-img" src="${window.__LOGO_URL}" alt="PODCTO">`:`<span class="logo"></span><span class="word">${BRAND}</span>`}</button>
    <div class="search"><span class="search-ic">${I.search}</span><input id="topSearch" placeholder="oda ya da cüzdan ara" value="${esc(S.topSearch)}" autocomplete="off">${S.topSearch?`<button class="search-clear" data-act="clearTopSearch">${I.x}</button>`:""}
      ${S.topSearchOpen?`<div class="search-dropdown" id="topSearchDrop">${topSearchResultsHtml()}</div>`:""}
    </div>
@@ -1937,6 +1945,11 @@ window.__holdxFixPostId=function(tempId,realId,createdAt){
  if(p){ p.id=realId; if(createdAt)p.created_at=createdAt; render(); }
 };
 window.__holdxSetMoreState=function(has){ S.hasMorePosts=!!has; render(); };
+window.__userReposts={}; // {wallet:[post,...]}
+window.__holdxSetUserReposts=function(wallet,posts){
+ window.__userReposts[wallet]=posts||[];
+ render();
+};
 window.__holdxApplyPosts=function(rows){
   if(!rows || !rows.length) return;
   const mapped=rows.map(function(r){
@@ -1944,7 +1957,7 @@ window.__holdxApplyPosts=function(rows){
     const prev=S.posts.find(function(x){return String(x.id)===String(r.id);})||{};
     return {id:r.id, wallet:r.wallet, mine:(S.wallet&&r.wallet===S.wallet.address), token:r.token||null, verified:false, time:timeAgo(r.created_at), text:r.text||"", media:r.media||null,
       likes:prev.likes!==undefined?prev.likes:0, replies:prev.replies!==undefined?prev.replies:0, reposts:prev.reposts!==undefined?prev.reposts:0,
-      liked:prev.liked||false, reposted:prev.reposted||false, comments:prev.comments||[], quotedId:r.quoted_post_id||null};
+      liked:prev.liked||false, reposted:prev.reposted||false, comments:prev.comments||[], quotedId:r.quoted_post_id||null, _repostedBy:r._repostedBy||null, _repostAt:r._repostAt||null};
   });
   // Supabase'ten gelmeyen ama listede olan kendi taze postlarımı koru (üstte kalsın)
   const keep=S.posts.filter(function(p){return !mapped.find(function(m){return String(m.id)===String(p.id);});});
@@ -2033,6 +2046,7 @@ document.addEventListener("click",e=>{
  else if(a==="pickTopToken"){const r=S.topResults[+el.dataset.i];if(r){upsertToken(r);S.view={name:"token",token:(r.symbol||"").toUpperCase()};S.topSearch="";S.topSearchOpen=false;S.topResults=[];}render();}
  else if(a==="openDM"){const w=el.dataset.wallet;S.view={name:"dm",peer:w};if(S.unreadPeers&&S.unreadPeers[w]){delete S.unreadPeers[w];S.unreadDM=Math.max(0,(S.unreadDM||0)-1);}if(window.__holdxLoadDMs){window.__holdxLoadDMs(w);}render();}
  else if(a==="dmPhoto"){triggerPhoto("dm");}
+ else if(a==="pickMention"){pickMention(el.dataset.name);}
  else if(a==="clearDmMedia"){S.dmMedia=null;render();}
  else if(a==="sendDM"){sendDM(el.dataset.wallet);}
  else if(a==="exportLeaderboard"){
@@ -2225,6 +2239,9 @@ document.addEventListener("click",e=>{
   // Supabase'e kaydet
   if(window.__holdxSavePost && S.connected && S.wallet){
     window.__holdxSavePost({ wallet:S.wallet.address, text:txt, token:pt?pt.symbol:null, media:S.postMedia||null, quoted_post_id:S.quoting?S.quoting.id:null }, newPost.id);
+    // @etiketlenen kişilere bildirim gönder
+    const mentions=(txt.match(/@([A-Za-z0-9_]{1,20})/g)||[]).map(function(x){return x.slice(1);});
+    if(mentions.length&&window.__holdxNotifyMentions){ window.__holdxNotifyMentions(mentions, S.wallet.address, newPost.id, txt); }
   }
   award("post",{capKey:"post"}); // günlük tavan
   S.postToken=null;S.postSearchOpen=false;S.postSearch="";S.postResults=[];S.postMedia=null;S.composerText="";S.emojiFor=null;S.gifFor=null;
@@ -2337,7 +2354,15 @@ document.addEventListener("input",e=>{
  if(e.target.id==="feedSearch"){S.feedSearch=e.target.value;scheduleFeedSearch(e.target.value);}
  if(e.target.id==="exploreSearch"){S.exploreSearch=e.target.value;scheduleExploreSearch(e.target.value);}
  if(e.target.id==="postSearch"){S.postSearch=e.target.value;schedulePostSearch(e.target.value);}
- if(e.target.id==="composerText"){S.composerText=e.target.value;} // sadece state, re-render yok (focus korunur)
+ if(e.target.id==="composerText"){
+   S.composerText=e.target.value;
+   // @ mention tespiti: imleçten geriye doğru @kelime yakala
+   const val=e.target.value, pos=e.target.selectionStart;
+   const before=val.slice(0,pos);
+   const m=before.match(/@([A-Za-z0-9_]{1,20})$/);
+   if(m){ S.mentionQuery=m[1]; S.mentionOpen=true; scheduleMentionSearch(m[1]); }
+   else if(S.mentionOpen){ S.mentionOpen=false; S.mentionResults=[]; render(); }
+ }
  if(e.target.id==="chatInput"){S.chatText=e.target.value;}
  if(e.target.id==="dmInput"){S.dmText=e.target.value;}
  if(e.target.id==="gifSearch"){S.gifQuery=e.target.value;scheduleGifSearch(e.target.value);}
@@ -2346,6 +2371,29 @@ document.addEventListener("input",e=>{
  if(e.target.id==="topSearch"){const wasOpen=S.topSearchOpen;S.topSearch=e.target.value;S.topSearchOpen=true;if(!wasOpen){render();}scheduleTopSearch(e.target.value);}
  if(e.target.id==="commentInput"){S.commentText=e.target.value;}
 });
+let _mentionTimer=null;
+function scheduleMentionSearch(q){
+ clearTimeout(_mentionTimer);
+ _mentionTimer=setTimeout(function(){
+   if(window.__holdxSearchProfiles){
+     window.__holdxSearchProfiles(q).then(function(profs){
+       S.mentionResults=(profs||[]).slice(0,5).map(function(p){return {name:p.display_name||short(p.wallet),wallet:p.wallet};});
+       render();
+     });
+   }
+ },200);
+}
+function pickMention(name){
+ const ta=document.getElementById("composerText");
+ if(!ta)return;
+ const val=ta.value, pos=ta.selectionStart;
+ const before=val.slice(0,pos).replace(/@([A-Za-z0-9_]{1,20})$/,"@"+name+" ");
+ const after=val.slice(pos);
+ S.composerText=before+after;
+ S.mentionOpen=false; S.mentionResults=[];
+ render();
+ setTimeout(function(){const t=document.getElementById("composerText");if(t){t.focus();const p=before.length;t.setSelectionRange(p,p);}},30);
+}
 function sendDM(peer){
  const inp=document.getElementById("dmInput"); const txt=(inp?inp.value:S.dmText||"").trim();
  const media=S.dmMedia||null;
