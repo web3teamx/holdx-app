@@ -211,7 +211,11 @@ export default function App() {
       try {
         for (const target of wallets) {
           if (target && target !== fromWallet) {
-            await supabase.from('notifications').insert({ wallet: target, type: 'mention', from_wallet: fromWallet, post_id: postId, text })
+            const ins = { wallet: target, type: 'mention', from_wallet: fromWallet, text }
+            // post_id yalnızca gerçek uuid ise ekle (geçici sayı id 400 hatası veriyor)
+            if (postId && String(postId).includes('-')) ins.post_id = postId
+            const { error } = await supabase.from('notifications').insert(ins)
+            if (error) console.log('mention insert 400:', error)
           }
         }
       } catch (e) { console.log('mention bildirim hatasi', e) }
