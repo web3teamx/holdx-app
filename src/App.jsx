@@ -89,6 +89,16 @@ export default function App() {
       if (data && tempId != null && window.__holdxFixPostId) window.__holdxFixPostId(tempId, data.id, data.created_at)
     }
     window.__holdxDeletePost = async (id) => { await supabase.from('posts').delete().eq('id', id) }
+    // alıntılanan (quoted) postları id ile çek
+    window.__holdxFetchQuoted = async (ids) => {
+      if (!ids || !ids.length) return
+      const { data } = await supabase.from('posts').select('*').in('id', ids)
+      if (data && data.length) {
+        if (window.__holdxApplyQuoted) window.__holdxApplyQuoted(data)
+        const ws = [...new Set(data.map(p => p.wallet))]
+        loadNamesFor(ws); loadAvatarsFor(ws)
+      }
+    }
     // ETKILESIMLER
     window.__holdxToggleLike = async (postId, wallet, on) => {
       if (on) await supabase.from('likes').upsert({ post_id: postId, wallet }, { onConflict: 'post_id,wallet' })
@@ -131,7 +141,7 @@ export default function App() {
     window.__holdxGetCachedPrice = async (ticker) => {
       try {
         const { data } = await supabase.from('token_cache').select('*').eq('ticker', ticker).maybeSingle()
-        if (data && data.updated_at && (Date.now() - new Date(data.updated_at).getTime()) < 10000) {
+        if (data && data.updated_at && (Date.now() - new Date(data.updated_at).getTime()) < 20000) {
           return { price: data.price, chg: data.chg, mc: data.mc, fresh: true }
         }
         return data ? { price: data.price, chg: data.chg, mc: data.mc, fresh: false } : null
@@ -188,6 +198,14 @@ export default function App() {
 
     // BILDIRIMLER
     window.__holdxNotify = async (n) => { await supabase.from('notifications').insert(n) }
+    // @isim'e tıklayınca ismin cüzdanını bulup profili aç
+    window.__holdxOpenByName = async (name) => {
+      try {
+        const { data } = await supabase.from('profiles').select('wallet').ilike('display_name', name).limit(1)
+        const w = data && data[0] && data[0].wallet
+        if (w && window.__holdxGotoProfile) window.__holdxGotoProfile(w)
+      } catch (e) {}
+    }
     // etiketlenen cüzdanlara doğrudan bildirim (en güvenilir yol)
     window.__holdxNotifyMentionWallets = async (wallets, fromWallet, postId, text) => {
       try {
@@ -199,14 +217,21 @@ export default function App() {
       } catch (e) { console.log('mention bildirim hatasi', e) }
     }
     // @isim etiketlenen kişilere bildirim
-    window.__holdxNotifyMentions = async (names, fromWallet, postId, text) => {
+    window.__holdxNotifyMentions = async (names, fromWallet, postId, text, remembered) => {
       try {
         for (const name of names) {
-          // isimden cüzdanı bul
-          const { data } = await supabase.from('profiles').select('wallet').ilike('display_name', name).limit(1)
-          const target = data && data[0] && data[0].wallet
+          let target = remembered && remembered[name]
+          if (!target) {
+            const { data } = await supabase.from('profiles').select('wallet').ilike('display_name', name).limit(1)
+            target = data && data[0] && data[0].wallet
+          }
+          console.log('mention hedef:', name, '->', target)
           if (target && target !== fromWallet) {
-            await supabase.from('notifications').insert({ wallet: target, type: 'mention', from_wallet: fromWallet, post_id: postId, text })
+            const ins = { wallet: target, type: 'mention', from_wallet: fromWallet, text }
+            // postId geçici (sayı) ise null bırak, gerçek uuid ise ekle
+            if (postId && String(postId).includes('-')) ins.post_id = postId
+            const { error } = await supabase.from('notifications').insert(ins)
+            if (error) console.log('mention insert hatasi:', error)
           }
         }
       } catch (e) { console.log('mention bildirim hatasi', e) }
@@ -518,9 +543,7 @@ export default function App() {
     }
     // Bir kullanicinin kendi paylasimlarini cek (profil sayfasi icin)
     window.__holdxLoadUserPosts = async (wallet) => {
-      // kendi yazdıkları
       const { data: own } = await supabase.from('posts').select('*').eq('wallet', wallet).order('created_at', { ascending: false }).limit(50)
-      // RT'ledikleri
       const { data: rts } = await supabase.from('reposts').select('post_id,created_at').eq('wallet', wallet).order('created_at', { ascending: false }).limit(50)
       let reposted = []
       if (rts && rts.length) {
@@ -528,19 +551,22 @@ export default function App() {
         const { data: rposts } = await supabase.from('posts').select('*').in('id', ids)
         if (rposts) {
           const byId = {}; rposts.forEach(p => byId[p.id] = p)
-          reposted = rts.map(r => byId[r.post_id] ? { ...byId[r.post_id], _repostedBy: wallet, _repostAt: r.created_at } : null).filter(Boolean)
+          reposted = rts.map(r => byId[r.post_id] ? { ...byId[r.post_id], quotedId: byId[r.post_id].quoted_post_id || null, _repostedBy: wallet, _repostAt: r.created_at, _isRepost: true } : null).filter(Boolean)
         }
       }
-      if (own && own.length && window.__holdxApplyPosts) {
-        window.__holdxApplyPosts(own)
-        loadInteractions(own.map(p => p.id))
+      // own + RT postlarının alıntıladığı postları TOPLU çek ve cache'e yaz (kaybolmasın)
+      const qids = [...(own || []), ...reposted].map(p => p.quoted_post_id || p.quotedId).filter(Boolean)
+      if (qids.length) {
+        const { data: qposts } = await supabase.from('posts').select('*').in('id', [...new Set(qids)])
+        if (qposts && qposts.length && window.__holdxApplyQuoted) window.__holdxApplyQuoted(qposts)
       }
-      // RT'lenen postları ayrı ver (profil için)
+      // önce RT deposunu doldur, SONRA own postları uygula (tek render sırası)
       if (window.__holdxSetUserReposts) window.__holdxSetUserReposts(wallet, reposted)
+      if (own && own.length && window.__holdxApplyPosts) window.__holdxApplyPosts(own)
       const all = [...(own || []), ...reposted]
       if (all.length) {
         loadInteractions(all.map(p => p.id))
-        const ws = [...new Set(all.map(p => p.wallet))]
+        const ws = [...new Set([...all.map(p => p.wallet), wallet])]
         loadNamesFor(ws); loadAvatarsFor(ws)
       }
     }

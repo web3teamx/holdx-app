@@ -129,6 +129,7 @@ function timeAgo(iso){
  return Math.floor(ay/12)+"y";
 }
 function displayName(w,mine){
+ if(!w)return "";
  if(isMyWallet(w,mine)&&S.profile&&S.profile.name&&S.profile.name.trim())return S.profile.name.trim();
  if(S.names&&S.names[w]&&S.names[w].trim())return S.names[w].trim();
  return short(w);
@@ -170,7 +171,7 @@ function chart(seed){let s=0;for(let i=0;i<seed.length;i++)s+=seed.charCodeAt(i)
 function livePrice(t){if(!S.livePrices[t]){const tk=tokenBy(t);S.livePrices[t]={price:(tk&&tk.price)||0,dir:0};}return S.livePrices[t];}
 function isCustomRoom(t){return S.customRooms.some(r=>r.ticker===t);}
 function isJoined(t){return !!S.joined[t];}
-function roomFull(t){const r=S.customRooms.find(x=>x.ticker===t);return r?(r.members>=(r.cap||100)):false;}
+function roomFull(t){return false;} // odalar sınırsız, hiç dolmaz
 const MIN_HOLD_USD=10; // odaya katilmak icin o tokenden en az bu kadar $ tutma sarti
 function holdsEnough(t){
   // zaten uyeyse tekrar kontrol etme
@@ -752,19 +753,19 @@ function refreshPostActions(id){
 function fmtText(t){
  // önce güvenli kaçış, sonra @isim ve $TOKEN vurgusu
  let h=esc(t||"");
- h=h.replace(/@([A-Za-z0-9_]{1,20})/g,'<span class="mention-tag">@$1</span>');
+ h=h.replace(/@([A-Za-z0-9_]{1,20})/g,'<span class="mention-tag" data-act="openMentionProfile" data-name="$1">@$1</span>');
  h=h.replace(/\$([A-Za-z0-9]{2,15})\b/g,'<span class="cashtag">$$$1</span>');
  return h;
 }
 function postCard(p){
  const tk=tokenBy(p.token)||{color:"#8A8A96"};
  const tier=postTier(p);
- return `<article class="post-card" data-pid="${p.id}">${p._repostedBy?`<div class="rt-label">${I.repost} ${(S.wallet&&p._repostedBy===S.wallet.address)?"Yeniden paylaştın":esc(displayName(p._repostedBy))+" yeniden paylaştı"}</div>`:""}<button class="pf-link" data-act="openProfile" data-wallet="${esc(p.wallet)}">${ringAvatar(p.wallet+(p.token||""),tier,"",p.wallet)}</button>
+ return `${p._isRepost?`<div class="rt-head">${I.repost}<span>${(S.wallet&&p._repostedBy===S.wallet.address)?"Yeniden paylaştın":esc(displayName(p._repostedBy))+" yeniden paylaştı"}</span></div>`:""}<article class="post-card${p._isRepost?" is-rt":""}" data-pid="${p.id}"><button class="pf-link" data-act="openProfile" data-wallet="${esc(p.wallet)}">${ringAvatar(p.wallet+(p.token||""),tier,"",p.wallet)}</button>
   <div class="post-body"><div class="post-head">
    <button class="${nameCls(p.wallet,p.mine)} post-wallet pf-link" data-act="openProfile" data-wallet="${esc(p.wallet)}">${esc(displayName(p.wallet,p.mine))}</button>
    ${tier?tierBadge(tier):""}
    ${p.token?`<button class="post-token" style="color:${tk.color}" data-act="filterToken" data-token="${p.token}">$${p.token}</button>`:""}
-   <span class="post-time">· ${p.time}</span>
+   <span class="post-time">· ${p.time||timeAgo(p.created_at)||""}</span>
    <div class="pa-more-wrap">
      <button class="pa-more" data-act="postMenu" data-id="${p.id}">···</button>
      ${String(S.postMenu)===String(p.id)?`<div class="post-menu" data-emoji-pop>
@@ -805,7 +806,7 @@ function postDetailView(id){
      <button class="${nameCls(p.wallet,p.mine)} post-wallet pf-link" data-act="openProfile" data-wallet="${esc(p.wallet)}">${esc(displayName(p.wallet,p.mine))}</button>
      ${tier?tierBadge(tier):""}
      ${p.token?`<button class="post-token" style="color:${tk.color}" data-act="filterToken" data-token="${p.token}">$${p.token}</button>`:""}
-     <span class="post-time">· ${p.time}</span>
+     <span class="post-time">· ${p.time||timeAgo(p.created_at)||""}</span>
    </div><p class="post-text big">${esc(p.text)}</p>
    ${p.media?`<img class="post-media zoomable" src="${p.media}" alt="" data-act="zoom" data-src="${p.media}">`:""}
    <div class="post-actions">
@@ -1042,9 +1043,13 @@ function profileView(){
 function ownProfileView(){
  const p=S.profile;
  const name=p.name||myTag();
- const _myRts=(S.wallet&&window.__userReposts&&window.__userReposts[S.wallet.address])||[];
- const _myOwn=S.posts.filter(x=>x.mine||x.wallet===myTag());
- const myPosts=[..._myOwn,..._myRts].sort((a,b)=>new Date(b._repostAt||b.created_at||0)-new Date(a._repostAt||a.created_at||0));
+ window.__quotedCache=window.__quotedCache||{};
+ const _rawRts=(S.wallet&&window.__userReposts&&window.__userReposts[S.wallet.address])||[];
+ // RT'leri kopyala (own postlarla aynı nesneyi paylaşmasın); alıntı bağını uygula
+ const _myRts=_rawRts.map(function(r){ const c=Object.assign({},r); if(c.quotedId)c.quoted=window.__quotedCache[c.quotedId]||c.quoted; return c; });
+ const _myOwn=S.posts.filter(x=>x.mine||x.wallet===myTag()).map(function(o){ const c=Object.assign({},o); if(c.quotedId)c.quoted=window.__quotedCache[c.quotedId]||c.quoted; return c; });
+ function _sortTime(p){ const t=new Date(p._repostAt||p.created_at||0).getTime(); return isNaN(t)?0:t; }
+ const myPosts=[..._myOwn,..._myRts].sort(function(a,b){ const d=_sortTime(b)-_sortTime(a); return d!==0?d:0; });
  const myRooms=Object.keys(S.joined).filter(k=>S.joined[k]);
  const createdCount=S.customRooms.filter(r=>r.creator===myTag()).length;
  const followingCount=Object.keys(S.following).filter(k=>S.following[k]).length;
@@ -1063,7 +1068,7 @@ function ownProfileView(){
      <div class="pf-nameline"><h1 class="pf-name">${esc(name)}</h1>${top&&top.tier?tierBadge(top.tier):""}</div>
      <div class="pf-addr mono">${short(S.wallet.address)} <button class="pf-copy" data-act="copy">${S.copied?I.check:I.copy}</button></div>
      ${p.bio?`<p class="pf-bio">${esc(p.bio)}</p>`:`<p class="pf-bio muted">Henüz bio yok. "Profili düzenle" ile ekle.</p>`}
-     <div class="pf-meta">${I.badge}<span>${p.joined} tarihinde katıldı</span>${top?`<span class="pf-dot">·</span><span class="mono">${top.tier?top.tier.label:""} $${top.sym}</span>`:""}</div>
+     <div class="pf-meta">${I.badge}<span>${p.joined} tarihinde katıldı</span></div>
      <div class="pf-follows">
        <button class="pf-follow-stat"><b class="mono">${followingCount}</b> Takip</button>
        <button class="pf-follow-stat"><b class="mono">${S.followers}</b> Takipçi</button>
@@ -1934,16 +1939,32 @@ window.__holdxApplyRooms=function(rows){
 };
 window.__holdxApplyInteractions=function(data){
  // data: {likes:{postId:count}, myLikes:[postId], reposts:{postId:count}, myReposts:[postId], comments:{postId:[{wallet,text}]}}
- S.posts=S.posts.map(function(p){
+ function _applyOne(p){
    const pid=String(p.id);
    const likes=(data.likes&&data.likes[pid])||0;
    const reposts=(data.reposts&&data.reposts[pid])||0;
    const cms=(data.comments&&data.comments[pid])||[];
-   return Object.assign({},p,{
+   const merged=Object.assign({},p,{
      likes:likes, liked:(data.myLikes||[]).indexOf(pid)>=0,
      reposts:reposts, reposted:(data.myReposts||[]).indexOf(pid)>=0,
      comments:cms, replies:cms.length
    });
+   if(p.quotedId&&!merged.quoted&&window.__quotedCache&&window.__quotedCache[p.quotedId])merged.quoted=window.__quotedCache[p.quotedId];
+   return merged;
+ }
+ // RT deposundaki postların sayılarını da güncelle (0 kalmasın)
+ if(window.__userReposts){
+   Object.keys(window.__userReposts).forEach(function(w){
+     window.__userReposts[w]=(window.__userReposts[w]||[]).map(function(rp){
+       if(data.likes&&(data.likes[String(rp.id)]!==undefined||data.reposts[String(rp.id)]!==undefined||data.comments[String(rp.id)]!==undefined)){
+         const u=_applyOne(rp); u._repostedBy=rp._repostedBy; u._repostAt=rp._repostAt; u._isRepost=true; return u;
+       }
+       return rp;
+     });
+   });
+ }
+ S.posts=S.posts.map(function(p){
+   return _applyOne(p);
  });
  render();
 };
@@ -1954,7 +1975,21 @@ window.__holdxFixPostId=function(tempId,realId,createdAt){
 window.__holdxSetMoreState=function(has){ S.hasMorePosts=!!has; render(); };
 window.__userReposts={}; // {wallet:[post,...]}
 window.__holdxSetUserReposts=function(wallet,posts){
- window.__userReposts[wallet]=posts||[];
+ // boş liste eskiyi ezmesin (art arda gelen yüklemelerde RT kaybolmasın)
+ if((posts&&posts.length)|| !window.__userReposts[wallet]){
+   window.__userReposts[wallet]=posts||[];
+ }
+ render();
+};
+window.__holdxGotoProfile=function(wallet){
+ if(window.__holdxLoadUserPosts)window.__holdxLoadUserPosts(wallet);
+ S.view={name:"profile",token:null,wallet:wallet}; S.profileTab="posts"; render();
+};
+window.__holdxApplyQuoted=function(posts){
+ window.__quotedCache=window.__quotedCache||{};
+ (posts||[]).forEach(function(q){ window.__quotedCache[q.id]={id:q.id,wallet:q.wallet,text:q.text,media:q.media}; });
+ // mevcut postlara bağla
+ S.posts.forEach(function(p){ if(p.quotedId&&window.__quotedCache[p.quotedId])p.quoted=window.__quotedCache[p.quotedId]; });
  render();
 };
 window.__holdxApplyPosts=function(rows){
@@ -1962,17 +1997,27 @@ window.__holdxApplyPosts=function(rows){
   const mapped=rows.map(function(r){
     // mevcut etkilesim verisi varsa koru (sayilar yanip sonmesin)
     const prev=S.posts.find(function(x){return String(x.id)===String(r.id);})||{};
-    return {id:r.id, wallet:r.wallet, mine:(S.wallet&&r.wallet===S.wallet.address), token:r.token||null, verified:false, time:timeAgo(r.created_at), text:r.text||"", media:r.media||null,
+    return {id:r.id, wallet:r.wallet, mine:(S.wallet&&r.wallet===S.wallet.address), token:r.token||null, verified:false, created_at:r.created_at, time:timeAgo(r.created_at), text:r.text||"", media:r.media||null,
       likes:prev.likes!==undefined?prev.likes:0, replies:prev.replies!==undefined?prev.replies:0, reposts:prev.reposts!==undefined?prev.reposts:0,
       liked:prev.liked||false, reposted:prev.reposted||false, comments:prev.comments||[], quotedId:r.quoted_post_id||null, _repostedBy:r._repostedBy||null, _repostAt:r._repostAt||null};
   });
-  // Supabase'ten gelmeyen ama listede olan kendi taze postlarımı koru (üstte kalsın)
-  const keep=S.posts.filter(function(p){return !mapped.find(function(m){return String(m.id)===String(p.id);});});
+  // RT kartları (_isRepost) ayrı depoda; S.posts'a girmesinler
+  const keep=S.posts.filter(function(p){return !p._isRepost && !mapped.find(function(m){return String(m.id)===String(p.id);});});
   S.posts = keep.concat(mapped);
   // en yeni üstte olacak şekilde created_at'e göre sırala
   S.posts.sort(function(a,b){ return (new Date(b.created_at||0))-(new Date(a.created_at||0)); });
   // alintilanan postlari bagla
-  S.posts.forEach(function(p){ if(p.quotedId){ const q=S.posts.find(function(x){return String(x.id)===String(p.quotedId);}); if(q)p.quoted={id:q.id,wallet:q.wallet,text:q.text,media:q.media}; } });
+  window.__quotedCache=window.__quotedCache||{};
+  const missingQ=[];
+  S.posts.forEach(function(p){
+    if(!p.quotedId)return;
+    const q=S.posts.find(function(x){return String(x.id)===String(p.quotedId);});
+    if(q){ p.quoted={id:q.id,wallet:q.wallet,text:q.text,media:q.media}; window.__quotedCache[p.quotedId]=p.quoted; }
+    else if(window.__quotedCache[p.quotedId]){ p.quoted=window.__quotedCache[p.quotedId]; }
+    else { missingQ.push(p.quotedId); }
+  });
+  // eksik alıntılanan postları DB'den çek
+  if(missingQ.length&&window.__holdxFetchQuoted){ window.__holdxFetchQuoted([...new Set(missingQ)]); }
   render();
 };
 // Helius'tan gelen gercek bakiye + tokenleri uygula
@@ -2053,6 +2098,7 @@ document.addEventListener("click",e=>{
  else if(a==="pickTopToken"){const r=S.topResults[+el.dataset.i];if(r){upsertToken(r);S.view={name:"token",token:(r.symbol||"").toUpperCase()};S.topSearch="";S.topSearchOpen=false;S.topResults=[];}render();}
  else if(a==="openDM"){const w=el.dataset.wallet;S.view={name:"dm",peer:w};if(S.unreadPeers&&S.unreadPeers[w]){delete S.unreadPeers[w];S.unreadDM=Math.max(0,(S.unreadDM||0)-1);}if(window.__holdxLoadDMs){window.__holdxLoadDMs(w);}render();}
  else if(a==="dmPhoto"){triggerPhoto("dm");}
+ else if(a==="openMentionProfile"){const nm=el.dataset.name; if(nm&&window.__holdxOpenByName){window.__holdxOpenByName(nm);}}
  else if(a==="pickMention"){pickMention(el.dataset.name,el.dataset.wallet);}
  else if(a==="clearDmMedia"){S.dmMedia=null;render();}
  else if(a==="sendDM"){sendDM(el.dataset.wallet);}
@@ -2111,6 +2157,7 @@ document.addEventListener("click",e=>{
    if(v==="messages"&&window.__holdxLoadThreads){window.__holdxLoadThreads();}
    if(v==="notifications"){ if(window.__holdxLoadNotifications){window.__holdxLoadNotifications();} if(window.__holdxMarkNotifRead){window.__holdxMarkNotifRead();} S.unreadNotif=0; }
    if(v==="leaderboard"&&window.__holdxLoadLeaderboard){window.__holdxLoadLeaderboard();}
+   if(v==="profile"&&S.wallet&&window.__holdxLoadUserPosts){window.__holdxLoadUserPosts(S.wallet.address);}
    render();}
  else if(a==="openToken"){const tt=el.dataset.token;S.view={name:"token",token:tt};
    const tk1=tokenBy(tt);
@@ -2248,10 +2295,9 @@ document.addEventListener("click",e=>{
     window.__holdxSavePost({ wallet:S.wallet.address, text:txt, token:pt?pt.symbol:null, media:S.postMedia||null, quoted_post_id:S.quoting?S.quoting.id:null }, newPost.id);
     // @etiketlenen kişilere bildirim gönder
     const mentions=(txt.match(/@([A-Za-z0-9_]{1,20})/g)||[]).map(function(x){return x.slice(1);});
-    if(mentions.length){
-      const wallets=mentions.map(function(nm){return (S.mentionedWallets||{})[nm];}).filter(Boolean);
-      if(wallets.length&&window.__holdxNotifyMentionWallets){ window.__holdxNotifyMentionWallets(wallets, S.wallet.address, newPost.id, txt); }
-      else if(window.__holdxNotifyMentions){ window.__holdxNotifyMentions(mentions, S.wallet.address, newPost.id, txt); }
+    console.log("MENTION DEBUG:",{mentions:mentions,hatirlanan:S.mentionedWallets});
+    if(mentions.length&&window.__holdxNotifyMentions){
+      window.__holdxNotifyMentions(mentions, S.wallet.address, newPost.id, txt, S.mentionedWallets||{});
     }
   }
   award("post",{capKey:"post"}); // günlük tavan
