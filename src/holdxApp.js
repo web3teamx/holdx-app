@@ -1249,14 +1249,14 @@ function otherProfileView(wallet){
  return `<div class="profilewrap">
    <div class="pf-cover"><!-- diğer kullanıcı, kapak yok --></div>
    <div class="pf-top">
-     <div class="pf-avatar"><span class="pf-avatar-gen" style="${avatar(seed)}"></span></div>
+     <div class="pf-avatar">${(window.__avatarCache&&window.__avatarCache[wallet])?`<img class="pf-avatar-img" src="${window.__avatarCache[wallet]}" alt="">`:`<span class="pf-avatar-gen" style="${avatar(seed)}"></span>`}</div>
      <div class="pf-actions">
        <button class="pf-follow-btn ${isFollowing?"following":""}" data-act="toggleFollow" data-wallet="${esc(wallet)}">${isFollowing?"Takiptesin":"Takip et"}</button>
        ${S.connected?`<button class="pf-follow-btn" data-act="openDM" data-wallet="${esc(wallet)}">${I.send} Mesaj</button>`:""}
      </div>
    </div>
    <div class="pf-info">
-     <div class="pf-nameline"><h1 class="pf-name">${esc(wallet)}</h1>${anyTier?tierBadge(anyTier):""}</div>
+     <div class="pf-nameline"><h1 class="pf-name">${esc(displayName(wallet))}</h1>${anyTier?tierBadge(anyTier):""}</div>
      <div class="pf-addr mono">${short(wallet)} <button class="pf-copy" data-act="copyAddr" data-wallet="${esc(wallet)}">${S.copiedAddr===wallet?I.check:I.copy}</button></div>
      ${bio?`<p class="pf-bio">${esc(bio)}</p>`:`<p class="pf-bio muted">Bu kullanıcı henüz bio eklememiş.</p>`}
      <div class="pf-meta">${I.badge}<span>HOLDX üyesi</span></div>
