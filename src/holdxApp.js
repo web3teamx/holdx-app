@@ -794,8 +794,11 @@ function postCard(p){
 }
 // tek bir postun detay + yorumlar görünümü
 function postDetailView(id){
- const p=S.posts.find(x=>x.id===id);
- if(!p)return `<button class="back" data-act="nav" data-view="feed">← Akış</button><p class="empty">Paylaşım bulunamadı.</p>`;
+ const p=S.posts.find(x=>String(x.id)===String(id));
+ if(!p){
+   if(window.__holdxFetchSinglePost){ window.__holdxFetchSinglePost(id); }
+   return `<button class="back" data-act="nav" data-view="feed">← Akış</button><p class="empty">Yükleniyor…</p>`;
+ }
  const tk=tokenBy(p.token)||{color:"#8A8A96"};
  const tier=postTier(p);
  const comments=p.comments||[];
