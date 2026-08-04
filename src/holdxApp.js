@@ -753,7 +753,7 @@ function refreshPostActions(id){
 function fmtText(t){
  // önce güvenli kaçış, sonra @isim ve $TOKEN vurgusu
  let h=esc(t||"");
- h=h.replace(/@([A-Za-z0-9_]{1,20})/g,'<span class="mention-tag" data-act="openMentionProfile" data-name="$1">@$1</span>');
+ h=h.replace(/@([^\s@]{1,24})/g,'<span class="mention-tag" data-act="openMentionProfile" data-name="$1">@$1</span>');
  h=h.replace(/\$([A-Za-z0-9]{2,15})\b/g,'<span class="cashtag">$$$1</span>');
  return h;
 }
@@ -2294,10 +2294,20 @@ document.addEventListener("click",e=>{
   if(window.__holdxSavePost && S.connected && S.wallet){
     window.__holdxSavePost({ wallet:S.wallet.address, text:txt, token:pt?pt.symbol:null, media:S.postMedia||null, quoted_post_id:S.quoting?S.quoting.id:null }, newPost.id);
     // @etiketlenen kişilere bildirim gönder
-    const mentions=(txt.match(/@([A-Za-z0-9_]{1,20})/g)||[]).map(function(x){return x.slice(1);});
-    console.log("MENTION DEBUG:",{mentions:mentions,hatirlanan:S.mentionedWallets});
-    if(mentions.length&&window.__holdxNotifyMentions){
-      window.__holdxNotifyMentions(mentions, S.wallet.address, newPost.id, txt, S.mentionedWallets||{});
+    // metinde @ ile başlayan isimleri yakala (özel karakterler dahil)
+    const mentions=(txt.match(/@([^\s@]{1,24})/g)||[]).map(function(x){return x.slice(1);});
+    // hatırlanan (menüden seçilen) cüzdanlar — en güvenilir
+    const remembered=S.mentionedWallets||{};
+    // metinde geçen adlardan hatırlananları eşleştir (isim sonundaki noktalama toleranslı)
+    const targets={};
+    Object.keys(remembered).forEach(function(nm){
+      if(txt.indexOf("@"+nm)>=0) targets[nm]=remembered[nm];
+    });
+    const rememberedWallets=Object.values(targets);
+    if(rememberedWallets.length&&window.__holdxNotifyMentionWallets){
+      window.__holdxNotifyMentionWallets(rememberedWallets, S.wallet.address, newPost.id, txt);
+    } else if(mentions.length&&window.__holdxNotifyMentions){
+      window.__holdxNotifyMentions(mentions, S.wallet.address, newPost.id, txt, remembered);
     }
   }
   award("post",{capKey:"post"}); // günlük tavan
