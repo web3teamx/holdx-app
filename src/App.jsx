@@ -85,8 +85,18 @@ export default function App() {
     }
     window.__holdxSavePost = async (p, tempId) => {
       const { data } = await supabase.from('posts').insert(p).select().single()
-      // geçici id'yi gerçek uuid ile değiştir (yorum/beğeni hemen çalışsın)
       if (data && tempId != null && window.__holdxFixPostId) window.__holdxFixPostId(tempId, data.id, data.created_at)
+      // @mention bildirimleri: artık gerçek post id var, tıklayınca paylaşıma gider
+      if (data && window.__pendingMentions && window.__pendingMentions.wallets && window.__pendingMentions.wallets.length) {
+        const { wallets, text } = window.__pendingMentions
+        window.__pendingMentions = null
+        for (const target of wallets) {
+          if (target && target !== p.wallet) {
+            const { error } = await supabase.from('notifications').insert({ wallet: target, type: 'mention', from_wallet: p.wallet, post_id: data.id, text })
+            if (error) console.log('mention insert hatasi:', error)
+          }
+        }
+      }
     }
     window.__holdxDeletePost = async (id) => { await supabase.from('posts').delete().eq('id', id) }
     // alıntılanan (quoted) postları id ile çek

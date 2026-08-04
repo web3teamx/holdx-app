@@ -2292,23 +2292,14 @@ document.addEventListener("click",e=>{
   S.posts.unshift(newPost);
   // Supabase'e kaydet
   if(window.__holdxSavePost && S.connected && S.wallet){
-    window.__holdxSavePost({ wallet:S.wallet.address, text:txt, token:pt?pt.symbol:null, media:S.postMedia||null, quoted_post_id:S.quoting?S.quoting.id:null }, newPost.id);
-    // @etiketlenen kişilere bildirim gönder
-    // metinde @ ile başlayan isimleri yakala (özel karakterler dahil)
-    const mentions=(txt.match(/@([^\s@]{1,24})/g)||[]).map(function(x){return x.slice(1);});
-    // hatırlanan (menüden seçilen) cüzdanlar — en güvenilir
+    // @etiketlenen cüzdanları hazırla (menüden seçilenler en güvenilir)
     const remembered=S.mentionedWallets||{};
-    // metinde geçen adlardan hatırlananları eşleştir (isim sonundaki noktalama toleranslı)
     const targets={};
-    Object.keys(remembered).forEach(function(nm){
-      if(txt.indexOf("@"+nm)>=0) targets[nm]=remembered[nm];
-    });
-    const rememberedWallets=Object.values(targets);
-    if(rememberedWallets.length&&window.__holdxNotifyMentionWallets){
-      window.__holdxNotifyMentionWallets(rememberedWallets, S.wallet.address, newPost.id, txt);
-    } else if(mentions.length&&window.__holdxNotifyMentions){
-      window.__holdxNotifyMentions(mentions, S.wallet.address, newPost.id, txt, remembered);
-    }
+    Object.keys(remembered).forEach(function(nm){ if(txt.indexOf("@"+nm)>=0) targets[nm]=remembered[nm]; });
+    const mentionWallets=Object.values(targets);
+    // bildirim, post kaydolup GERÇEK id alınca gönderilecek (post_id dolu olsun, tıklayınca gitsin)
+    window.__pendingMentions={ wallets:mentionWallets, text:txt };
+    window.__holdxSavePost({ wallet:S.wallet.address, text:txt, token:pt?pt.symbol:null, media:S.postMedia||null, quoted_post_id:S.quoting?S.quoting.id:null }, newPost.id);
   }
   award("post",{capKey:"post"}); // günlük tavan
   S.postToken=null;S.postSearchOpen=false;S.postSearch="";S.postResults=[];S.postMedia=null;S.composerText="";S.emojiFor=null;S.gifFor=null;
