@@ -100,6 +100,16 @@ export default function App() {
     }
     window.__holdxDeletePost = async (id) => { await supabase.from('posts').delete().eq('id', id) }
     // alıntılanan (quoted) postları id ile çek
+    // tek postu id ile çek (bildirimden gelince akışta yoksa)
+    window.__holdxFetchSinglePost = async (id) => {
+      const { data } = await supabase.from('posts').select('*').eq('id', id).maybeSingle()
+      if (data && window.__holdxApplyPosts) {
+        window.__holdxApplyPosts([data])
+        loadInteractions([data.id])
+        loadNamesFor([data.wallet]); loadAvatarsFor([data.wallet])
+        if (data.quoted_post_id && window.__holdxFetchQuoted) window.__holdxFetchQuoted([data.quoted_post_id])
+      }
+    }
     window.__holdxFetchQuoted = async (ids) => {
       if (!ids || !ids.length) return
       const { data } = await supabase.from('posts').select('*').in('id', ids)
