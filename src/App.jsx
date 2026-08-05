@@ -37,6 +37,15 @@ export default function App() {
         return data.publicUrl + '?v=' + Date.now()
       } catch (e) { console.log('gorsel hatasi', e); return dataUrl }
     }
+    // isim başkası tarafından alınmış mı? (kendi cüzdanım hariç)
+    window.__holdxCheckNameAvailable = async (name, myWallet) => {
+      try {
+        const { data } = await supabase.from('profiles').select('wallet').ilike('display_name', name).limit(5)
+        if (!data || !data.length) return true
+        // sadece benim kaydım varsa müsait
+        return data.every(r => r.wallet === myWallet)
+      } catch (e) { return true }
+    }
     window.__holdxSaveProfile = async (p) => {
       const out = { ...p }
       if (p.avatar) out.avatar = await uploadImage(p.avatar, p.wallet, 'avatar')
@@ -638,6 +647,18 @@ export default function App() {
     }
     loadPosts()
     loadRooms()
+    // son 20 aktiviteyi yükle (kalıcı görünsün — yenileyince kaybolmasın)
+    ;(async () => {
+      try {
+        const { data: recentRooms } = await supabase.from('rooms').select('ticker,creator,chain,created_at').order('created_at', { ascending: false }).limit(12)
+        const { data: recentJoins } = await supabase.from('room_members').select('ticker,wallet,created_at').order('created_at', { ascending: false }).limit(12)
+        const acts = []
+        ;(recentRooms || []).forEach(r => acts.push({ type: 'create', token: r.ticker, chain: r.chain || 'solana', wallet: (r.creator || '').slice(0, 6), t: new Date(r.created_at).getTime() }))
+        ;(recentJoins || []).forEach(m => acts.push({ type: 'join', token: m.ticker, chain: 'solana', wallet: (m.wallet || '').slice(0, 6), t: m.created_at ? new Date(m.created_at).getTime() : Date.now() }))
+        acts.sort((a, b) => b.t - a.t)
+        if (window.__holdxSetActivity) window.__holdxSetActivity(acts.slice(0, 20))
+      } catch (e) {}
+    })()
 
     return () => { if (roomMsgChannel) supabase.removeChannel(roomMsgChannel); if (dmChannel) supabase.removeChannel(dmChannel); if (notifChannel) supabase.removeChannel(notifChannel); supabase.removeChannel(roomChannel); supabase.removeChannel(memberChannel); supabase.removeChannel(interChannel) }
   }, [login, logout])
