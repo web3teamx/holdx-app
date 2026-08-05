@@ -12,6 +12,7 @@ createRoot(document.getElementById('root')).render(
     <PrivyProvider
       appId="cmrl6tfiv003k0cjw7ljyd1l1"
       config={{
+        loginMethods: ['wallet'],
         appearance: {
           theme: 'dark',
           accentColor: '#34E39A',

@@ -63,7 +63,7 @@ const I={
 function tokColor(t){let h=0;for(let i=0;i<t.length;i++)h=(h*37+t.charCodeAt(i))%360;return`hsl(${h} 72% 58%)`;}
 
 /* Artık statik "top 50" listesi YOK. Tokenlar uygulamaya ancak arayıp seçilince/oda kurulunca girer.
-   Her kayıt live veri kaynağından gelir → gerçek fiyat + kontrat adresi taşır (adresle fiyat %100 doğru çekilir).
+   Her kayıt live veri kaynağından gelir → gerçek fiyat + contract address taşır (adresle fiyat %100 doğru çekilir).
    Aşağısı sadece DEMO cüzdan bakiyesinin gösterilebilmesi için ekilmiş birkaç örnek token. */
 const TOKREG={
  SOL:{t:"SOL",name:"Solana",price:168.4,chg:3.2,mc:"92.1B",color:tokColor("SOL"),address:"So11111111111111111111111111111111111111112",chain:"solana"},
@@ -87,7 +87,7 @@ const S={
  copied:false, modal:null, livePrices:{}, hideWhale:false, theme:"dark", entered:false,
  topSearch:"", topSearchOpen:false, topResults:[], topProfiles:[], topSearching:false, shareOpen:null, postMenu:null, leaderboard:[], dms:{}, dmText:"", dmThreads:[], unreadDM:0, unreadPeers:{}, notifications:[], unreadNotif:0, copiedAddr:null, rtMenu:null, quoting:null, replyTo:null, holderCounts:{}, walletMenu:false, hasMorePosts:false, loadingMore:false, chainFilter:"all",
  commentText:"", prevView:null, roomMenu:null, leaveConfirm:null, deleteConfirm:null, sharePostId:null, lightbox:null,
- profile:{name:"", bio:"", avatar:null, cover:null, joined:"Tem 2025"}, crop:null,
+ profile:{name:"", bio:"", avatar:null, cover:null, joined:new Date().toLocaleString("en-US",{month:"short",year:"numeric"})}, crop:null,
  following:{}, followers:0, followerCounts:{}, followingCounts:{}, editProfile:false, profileTab:"posts",
  pts:0, ptsLog:{}, ptsDay:{}, ptsDayKey:"",
  hideValue:false, hideActivity:false, privateProfile:false, docOpen:null, feedbackOpen:false,
@@ -215,7 +215,7 @@ function tierFor(usd){for(const t of TIERS){if(usd>=t.min)return t;}return null;
 // başkalarına görünen kademe (kendi hide badgemişse en alta indirilir)
 function shownTier(usd,isMe){
  const t=tierFor(usd); if(!t)return null;
- if(isMe&&S.hideWhale) return TIERS[TIERS.length-1]; // gizli → sadece "holder"
+ if(isMe&&S.hideWhale) return TIERS[TIERS.length-1]; // hidden → sadece "holder"
  return t;
 }
 // kademe etiketi (renk noktası + isim)
@@ -246,8 +246,8 @@ function activityPanel(){
    return `<button class="act-row ${mine?"mine":""}" data-act="openRoom" data-token="${esc(a.token)}">
      <span class="av xs" style="${avatar(a.wallet+a.token)}"></span>
      <div class="act-body">
-       <div class="act-line"><span class="mono act-w">${esc(a.wallet)}</span> ${isCreate?"oda kurdu":"joined"}</div>
-       <div class="act-sub"><span class="act-verb ${isCreate?"create":"join"}">${isCreate?I.plus:I.check}${isCreate?"kurdu":"joined"}</span>
+       <div class="act-line"><span class="mono act-w">${esc(a.wallet)}</span> ${isCreate?"created a room":"joined"}</div>
+       <div class="act-sub"><span class="act-verb ${isCreate?"create":"join"}">${isCreate?I.plus:I.check}${isCreate?"created":"joined"}</span>
          <span class="mono act-tk">$${esc(a.token)}</span>${chainBadge(a.chain)}
          <span class="act-time">· ${ago(a.t)}</span></div>
      </div></button>`;
@@ -262,7 +262,7 @@ function activityPanel(){
 // aktivite ekle (kendi işlemin feedn başına)
 function pushActivity(type,token,chain){
  S.activity.unshift({type,token,chain:chain||"solana",wallet:myTag(),t:Date.now(),mine:true});
- if(S.hideActivity)S.activity.shift(); // gizliyse kendi aktiviteni akışa koyma
+ if(S.hideActivity)S.activity.shift(); // hiddenyse kendi aktiviteni akışa koyma
  if(S.activity.length>40)S.activity.length=40;
 }
 
@@ -443,7 +443,7 @@ async function tokenSearch(q){
    return true;
  });
 
- // birleştir; aynı sembol iki kaynakta varsa DEX olanı tut (kontrat adresi → holder mantığına uygun)
+ // birleştir; aynı sembol iki kaynakta varsa DEX olanı tut (contract address → holder mantığına uygun)
  const seen=new Set(dexArr.map(t=>(t.symbol||"").toUpperCase()));
  let merged=[...dexArr];
  for(const c of cgArr){ if(!seen.has((c.symbol||"").toUpperCase())){merged.push(c);seen.add((c.symbol||"").toUpperCase());} }
@@ -600,7 +600,7 @@ function postSearchResultsHtml(){
  return `<div class="resultlist">${S.postResults.map((r,i)=>`
    <button class="resultrow" data-act="pickPostToken" data-i="${i}">
      <span class="tokenmark sm" style="background:${tokColor(r.symbol)}"></span>
-     <div class="rr-body"><span class="rr-line"><span class="mono rr-tk">$${esc(r.symbol)}</span>${chainBadge(r.chain)}${S.customRooms.find(x=>x.ticker.toUpperCase()===(r.symbol||"").toUpperCase())?`<span class="rr-hasroom">● oda var</span>`:""}</span><span class="rr-name">${esc(r.name)}${r.mc?` · mcap ${typeof r.mc==="number"?fmtMc(r.mc):r.mc}`:""}${r._liq?` · likidite ${fmtMc(r._liq)}`:""}${r.address?` · <span class="mono rr-ca">${r.address.slice(0,5)}…${r.address.slice(-4)}</span>`:""}</span></div>
+     <div class="rr-body"><span class="rr-line"><span class="mono rr-tk">$${esc(r.symbol)}</span>${chainBadge(r.chain)}${S.customRooms.find(x=>x.ticker.toUpperCase()===(r.symbol||"").toUpperCase())?`<span class="rr-hasroom">● has room</span>`:""}</span><span class="rr-name">${esc(r.name)}${r.mc?` · mcap ${typeof r.mc==="number"?fmtMc(r.mc):r.mc}`:""}${r._liq?` · likidite ${fmtMc(r._liq)}`:""}${r.address?` · <span class="mono rr-ca">${r.address.slice(0,5)}…${r.address.slice(-4)}</span>`:""}</span></div>
      <span class="mono rr-price ${r.chg>=0?"up":"down"}">${fprice(r.price)}</span>
    </button>`).join("")}</div>`;
 }
@@ -879,7 +879,7 @@ function feedView(){
  const filterBar=`<div class="feedfilter">
    <button class="ff-btn ${sel?"active":""}" data-act="toggleFeedDrop">
      ${sel?`<span class="dot" style="background:${sel.color}"></span><span class="mono ff-btn-tk">$${sel.t}</span>${sel.chain?chainBadge(sel.chain):""}<span class="ff-btn-name">${sel.name}</span>`
-          :`<span class="ff-btn-ico">${I.search}</span><span>Coin'e filter</span>`}
+          :`<span class="ff-btn-ico">${I.search}</span><span>Filter by coin</span>`}
      <span class="ff-caret ${S.feedDrop?"up":""}">▾</span>
    </button>
    ${sel?`<span class="ff-count mono">${filtered.length} post</span><button class="ff-clear" data-act="setFilter" data-token="ALL">✕</button>`:""}
@@ -984,7 +984,7 @@ function portfolioView(){
    <button class="copy" data-act="copy">${S.copied?I.check:I.copy}${S.copied?"copied":"copy"}</button></div>
   <div class="total"><span class="total-label">total value</span>
    <span class="mono total-value">${S.hideValue?"••••••":"$"+Math.round(total).toLocaleString()}</span>
-   <span class="mono total-pl ${totalPl>=0?"up":"down"}">${S.hideValue?"gizli":`${totalPl>=0?"+":""}$${totalPl.toFixed(0)} toplam K/Z`}</span></div>
+   <span class="mono total-pl ${totalPl>=0?"up":"down"}">${S.hideValue?"hidden":`${totalPl>=0?"+":""}$${totalPl.toFixed(0)}  total P/L`}</span></div>
   <div class="holdings">${rows.map(r=>{const tier=tierFor(r.now);return `<div class="holding"><span class="dot" style="background:${r.t.color}"></span>
    <span class="hld-name"><span class="mono tk">$${r.tk}</span>${tier?`<span class="holdtier" style="color:${tier.color}" title="${tier.label}">${tier.label}${tier.emoji?" "+tier.emoji:""}</span>`:""}</span><span class="mono hamt">${S.hideValue?"••••":r.amount.toLocaleString()}</span>
    <span class="mono hval">${S.hideValue?"••••":"$"+r.now.toFixed(0)}</span>
@@ -1006,7 +1006,7 @@ function roomsView(){
 }
 function myRoomsView(){
  const mine=Object.keys(S.joined).filter(k=>S.joined[k]);
- if(!mine.length)return `<div class="norooms">${I.chat}<h3>You haven't joined any room yet</h3><p>Rooms'dan join a room to access it quickly here.</p><button class="norooms-btn" data-act="nav" data-view="rooms">Explore rooms →</button></div>`;
+ if(!mine.length)return `<div class="norooms">${I.chat}<h3>You haven't joined any room yet</h3><p>Join a room to access it quickly here.</p><button class="norooms-btn" data-act="nav" data-view="rooms">Explore rooms →</button></div>`;
  const cards=mine.map(tk=>{
   const t=tokenBy(tk)||{name:"",color:tokColor(tk)}; const lp=livePrice(tk);
   const custom=isCustomRoom(tk); const room=S.customRooms.find(r=>r.ticker===tk);
@@ -1016,7 +1016,7 @@ function myRoomsView(){
       <span class="tokenmark" style="background:${t.color}"></span>
       <div class="rc-body">
         <div class="rc-top"><span class="mono rc-tk">$${esc(tk)}</span>
-          ${mineCreator?`<span class="creatorbadge">${I.badge} kurucun</span>`:custom?`<span class="pubbadge">${I.globe} public</span>`:`<span class="openbadge">${I.badge} holder</span>`}</div>
+          ${mineCreator?`<span class="creatorbadge">${I.badge} your room</span>`:custom?`<span class="pubbadge">${I.globe} public</span>`:`<span class="openbadge">${I.badge} holder</span>`}</div>
         <div class="rc-name">${t.name||""}</div>
         <div class="rc-meta"><span class="mono ${lp.dir>=0?"up":"down"}">${fprice(lp.price)}</span>${room?` · <span class="mono">${(room.members||0).toLocaleString()}${(room.cap||100)===Infinity?" members · ∞":"/"+capLabel(room.cap||100)+" members"}</span>`:""}</div>
       </div>
@@ -1071,12 +1071,12 @@ function ownProfileView(){
      <div class="pf-nameline"><h1 class="pf-name">${esc(name)}</h1>${top&&top.tier?tierBadge(top.tier):""}</div>
      <div class="pf-addr mono">${short(S.wallet.address)} <button class="pf-copy" data-act="copy">${S.copied?I.check:I.copy}</button></div>
      ${p.bio?`<p class="pf-bio">${esc(p.bio)}</p>`:`<p class="pf-bio muted">No bio yet. Add one via "Edit profile".</p>`}
-     <div class="pf-meta">${I.badge}<span>${p.joined} joined</span></div>
+     <div class="pf-meta">${I.badge}<span>Joined ${p.joined}</span></div>
      <div class="pf-follows">
-       <button class="pf-follow-stat"><b class="mono">${followingCount}</b> Follow</button>
+       <button class="pf-follow-stat"><b class="mono">${followingCount}</b> Following</button>
        <button class="pf-follow-stat"><b class="mono">${S.followers}</b> Followers</button>
-       <span class="pf-follow-stat"><b class="mono">${myRooms.length}</b> Oda</span>
-       ${createdCount?`<span class="pf-follow-stat"><b class="mono">${createdCount}</b> Kurdu</span>`:""}
+       <span class="pf-follow-stat"><b class="mono">${myRooms.length}</b> Rooms</span>
+       ${createdCount?`<span class="pf-follow-stat"><b class="mono">${createdCount}</b> Created</span>`:""}
      </div>
    </div>
    <div class="subtabs pf-tabs">
@@ -1085,7 +1085,7 @@ function ownProfileView(){
    </div>
    ${tab==="posts"
      ? `<div class="posts">${myPosts.length?myPosts.map(postCard).join(""):`<p class="empty">No posts yet. Make your first post from the Feed.</p>`}</div>`
-     : `<div class="roomgrid">${myRooms.length?myRooms.map(tk=>{const t=tokenBy(tk)||{name:"",color:tokColor(tk)};const lp=livePrice(tk);const room=S.customRooms.find(r=>r.ticker===tk);const mineCreator=room&&room.creator===myTag();return`<div class="roomcard" data-act="openRoom" data-token="${tk}"><span class="tokenmark" style="background:${t.color}"></span><div class="rc-body"><div class="rc-top"><span class="mono rc-tk">$${esc(tk)}</span>${mineCreator?`<span class="creatorbadge">${I.badge} kurucun</span>`:`<span class="pubbadge">${I.globe} members</span>`}</div><div class="rc-name">${t.name||""}</div><div class="rc-meta"><span class="mono ${lp.dir>=0?"up":"down"}">${fprice(lp.price)}</span></div></div><span class="rc-go">Gir →</span></div>`;}).join(""):`<p class="empty">You're not in any room yet.</p>`}</div>`}
+     : `<div class="roomgrid">${myRooms.length?myRooms.map(tk=>{const t=tokenBy(tk)||{name:"",color:tokColor(tk)};const lp=livePrice(tk);const room=S.customRooms.find(r=>r.ticker===tk);const mineCreator=room&&room.creator===myTag();return`<div class="roomcard" data-act="openRoom" data-token="${tk}"><span class="tokenmark" style="background:${t.color}"></span><div class="rc-body"><div class="rc-top"><span class="mono rc-tk">$${esc(tk)}</span>${mineCreator?`<span class="creatorbadge">${I.badge} your room</span>`:`<span class="pubbadge">${I.globe} members</span>`}</div><div class="rc-name">${t.name||""}</div><div class="rc-meta"><span class="mono ${lp.dir>=0?"up":"down"}">${fprice(lp.price)}</span></div></div><span class="rc-go">Enter →</span></div>`;}).join(""):`<p class="empty">You're not in any room yet.</p>`}</div>`}
    ${S.editProfile?editProfileModal():""}
    ${S.crop?cropModal():""}
  </div>`;
@@ -1255,16 +1255,16 @@ function otherProfileView(wallet){
      <div class="pf-avatar">${(window.__avatarCache&&window.__avatarCache[wallet])?`<img class="pf-avatar-img" src="${window.__avatarCache[wallet]}" alt="">`:`<span class="pf-avatar-gen" style="${avatar(seed)}"></span>`}</div>
      <div class="pf-actions">
        <button class="pf-follow-btn ${isFollowing?"following":""}" data-act="toggleFollow" data-wallet="${esc(wallet)}">${isFollowing?"Following":"Follow"}</button>
-       ${S.connected?`<button class="pf-follow-btn" data-act="openDM" data-wallet="${esc(wallet)}">${I.send} Mesaj</button>`:""}
+       ${S.connected?`<button class="pf-follow-btn" data-act="openDM" data-wallet="${esc(wallet)}">${I.send} Message</button>`:""}
      </div>
    </div>
    <div class="pf-info">
      <div class="pf-nameline"><h1 class="pf-name">${esc(displayName(wallet))}</h1>${anyTier?tierBadge(anyTier):""}</div>
      <div class="pf-addr mono">${short(wallet)} <button class="pf-copy" data-act="copyAddr" data-wallet="${esc(wallet)}">${S.copiedAddr===wallet?I.check:I.copy}</button></div>
      ${bio?`<p class="pf-bio">${esc(bio)}</p>`:`<p class="pf-bio muted">This user hasn't added a bio yet.</p>`}
-     <div class="pf-meta">${I.badge}<span>PODCTO memberssi</span></div>
+     <div class="pf-meta">${I.badge}<span>PODCTO member</span></div>
      <div class="pf-follows">
-       <button class="pf-follow-stat"><b class="mono">${following}</b> Follow</button>
+       <button class="pf-follow-stat"><b class="mono">${following}</b> Following</button>
        <button class="pf-follow-stat"><b class="mono">${followers+(isFollowing?1:0)}</b> Followers</button>
      </div>
    </div>
@@ -1343,8 +1343,8 @@ function toggleRow(title,desc,on,act){
 }
 // TASLAK hukuki metinler — yayından önce bir avukata kontrol ettirilmeli.
 const DOCS={
- terms:{title:"Terms of Use",updated:"Last updated: July 2025",body:[
-  ["1. Kabul","PODCTO'i (\"Platform\") you accept these Terms of Use. If you do not accept the Terms, do not use the Platform."],
+ terms:{title:"Terms of Use",updated:"Last updated: July 2026",body:[
+  ["1. Acceptance","By using PODCTO (the \"Platform\") you accept these Terms of Use. If you do not accept the Terms, do not use the Platform."],
   ["2. Nature of the Platform","PODCTO is a decentralized social platform that brings crypto asset holders together. The Platform is NOT an exchange, wallet provider, or investment advisor. Price and market data shown on the Platform come from third-party sources and accuracy is not guaranteed."],
   ["3. Not investment advice","No content, post, room chat, or data on the Platform constitutes investment advice. Crypto assets are high-risk and can lose value. You are solely responsible for all your decisions. Do your own research before making investment decisions."],
   ["4. Wallet ve hesap","You connect to the Platform with your wallet. You are solely responsible for the security of your wallet, private keys, and transactions. PODCTO can never access or store your private keys."],
@@ -1354,7 +1354,7 @@ const DOCS={
   ["8. Disclaimer","Platform is provided \"as is\". PODCTO does not guarantee uninterrupted or error-free operation. PODCTO cannot be held liable for any direct or indirect damages arising from use of the Platform."],
   ["9. Changes","These terms may be updated from time to time. Significant changes are announced through the Platform. Continuing to use the Platform after an update means you accept the new terms."],
  ]},
- privacy:{title:"Privacy Policy",updated:"Last updated: July 2025",body:[
+ privacy:{title:"Privacy Policy",updated:"Last updated: July 2026",body:[
   ["1. General","This Privacy Policy explains what data PODCTO processes."],
   ["2. Data we collect","PODCTO works primarily wallet-based. Data that may be processed: your public wallet address, your on-chain transaction/holding data (from the public blockchain), content you create on the Platform (posts, rooms, messages), and your profile info (name, bio, image). We do not require personal information like email, phone, or ID."],
   ["3. Use of data","Your data is used to operate the Platform, verify holders, display badges/tiers, and provide community features. We do not sell your data to third parties without your consent."],
@@ -1382,13 +1382,13 @@ function feedbackModal(){
    <div class="editcard">
      <div class="edit-h"><strong>Send feedback</strong><button class="edit-x" data-act="closeFeedback">${I.x}</button></div>
      <p class="fb-intro">Have an idea, bug report or suggestion? Write it, it reaches us directly.</p>
-     <label class="edit-label">Konu</label>
+     <label class="edit-label">Subject</label>
      <input class="edit-input" id="fbSubject" placeholder="e.g. Room creation error" maxlength="80">
-     <label class="edit-label">Your messages</label>
-     <textarea class="edit-input" id="fbBody" rows="4" placeholder="Write details here…" maxlength="1000"></textarea>
+     <label class="edit-label">Your message</label>
+     <textarea class="edit-input" id="fbBody" rows="4" placeholder="Write details here…" maxlength="1000"></textarea>${S.feedbackError?`<div class="name-error">${esc(S.feedbackError)}</div>`:""}
      <div class="edit-actions">
        <button class="edit-cancel" data-act="closeFeedback">Cancel</button>
-       <button class="edit-save" data-act="sendFeedback">Send</button>
+       <button class="edit-save" data-act="sendFeedback">${S.feedbackSending?"Sending…":"Send"}</button>
      </div>
    </div>
  </div>`;
@@ -1435,7 +1435,7 @@ function settingsView(){
      </div>
    </div>
    ${S.docOpen?docModal(S.docOpen):""}
-   ${S.feedbackOpen?feedbackModal():""}`;
+   ${S.feedbackOpen?feedbackModal():""}${S.feedbackSent?`<div class="fb-toast">✓ Feedback sent, thank you!</div>`:""}`;
 }
 function browseRoomsView(){
  const qq=S.roomSearch.trim().toLowerCase();
@@ -1473,7 +1473,7 @@ function browseRoomsView(){
 function createResultsHtml(){
  const _q=(S.createTicker||"").trim();
  if(_q.length>=2&&!looksLikeAddress(_q)&&!S.picked){
-   return `<p class="searchhint">Gecerli bir kontrat adresi yapistir (0x... ya da Solana adresi).</p>`;
+   return `<p class="searchhint">Gecerli bir contract address yapistir (0x... ya da Solana adresi).</p>`;
  }
  const q=(S.createTicker||"").trim();
  if(S.picked){
@@ -1496,7 +1496,7 @@ function createResultsHtml(){
  return `<div class="resultlist">${S.searchResults.map((r,i)=>`
    <button class="resultrow" data-act="pickToken" data-i="${i}">
      <span class="tokenmark sm" style="background:${tokColor(r.symbol)}"></span>
-     <div class="rr-body"><span class="rr-line"><span class="mono rr-tk">$${esc(r.symbol)}</span>${chainBadge(r.chain)}${S.customRooms.find(x=>x.ticker.toUpperCase()===(r.symbol||"").toUpperCase())?`<span class="rr-hasroom">● oda var</span>`:""}</span><span class="rr-name">${esc(r.name)}${r.mc?` · mcap ${typeof r.mc==="number"?fmtMc(r.mc):r.mc}`:""}${r._liq?` · likidite ${fmtMc(r._liq)}`:""}${r.address?` · <span class="mono rr-ca">${r.address.slice(0,5)}…${r.address.slice(-4)}</span>`:""}</span></div>
+     <div class="rr-body"><span class="rr-line"><span class="mono rr-tk">$${esc(r.symbol)}</span>${chainBadge(r.chain)}${S.customRooms.find(x=>x.ticker.toUpperCase()===(r.symbol||"").toUpperCase())?`<span class="rr-hasroom">● has room</span>`:""}</span><span class="rr-name">${esc(r.name)}${r.mc?` · mcap ${typeof r.mc==="number"?fmtMc(r.mc):r.mc}`:""}${r._liq?` · likidite ${fmtMc(r._liq)}`:""}${r.address?` · <span class="mono rr-ca">${r.address.slice(0,5)}…${r.address.slice(-4)}</span>`:""}</span></div>
      <span class="mono rr-price ${r.chg>=0?"up":"down"}">${fprice(r.price)}</span>
    </button>`).join("")}</div>`;
 }
@@ -1510,7 +1510,7 @@ function createRoomView(){
      <div class="already-room">
        <div class="ar-ic">${I.badge}</div>
        <h3 class="ar-title">Zaten bir odan var</h3>
-       <p class="ar-txt">Each wallet can only <b>bir oda</b> can create. Your room is below — enter anytime.</p>
+       <p class="ar-txt">Each wallet can only You already have <b>a room</b>. It's below — enter anytime.</p>
        <div class="ar-card">
          <span class="tokenmark" style="background:${t.color}"></span>
          <div class="ar-info"><span class="mono ar-tk">$${esc(existing.ticker)}</span><span class="ar-meta">${(existing.members||0).toLocaleString()}${(existing.cap||100)===Infinity?" members · ∞ unlimited":"/"+capLabel(existing.cap||100)+" members"} · you are the creator</span></div>
@@ -1527,17 +1527,17 @@ function createRoomView(){
     ${t.cap===Infinity?`<span class="cap-num">∞</span><span class="cap-lbl">unlimited</span>`:`<span class="cap-num">${capLabel(t.cap)}</span><span class="cap-lbl">abone</span>`}
     <span class="cap-price ${t.price===0?"free":""}">${t.price===0?"Bedava":"$"+t.price}</span></button>`).join("");
  const canCreate=picked&&!exists;
- const btnLabel=sel.price===0?`Create room — bedava`:`Öde ve kur — $${sel.price}`;
+ const btnLabel=sel.price===0?`Create room — bedava`:`Pay and create — $${sel.price}`;
  return `<div class="createwrap">
   <div class="createhero">
    <div class="ch-ic">${I.plus}</div>
-   <div><strong>Create your own room</strong><p>Paste the contract address, create your room. Each wallet <b>1 oda</b> kurabilir.</p></div>
+   <div><strong>Create your own room</strong><p>Paste the contract address, create your room. Each wallet can create <b>1 room</b>.</p></div>
   </div>
-  <div class="mfield"><label class="mlabel">Which token? <span class="mhint">kontrat adresi (CA) ile</span></label>
+  <div class="mfield"><label class="mlabel">Which token? <span class="mhint">by contract address (CA)</span></label>
    <div class="roomsearch"><span id="searchIco">${I.search}</span>
      <input class="searchinput" id="createTicker" placeholder="paste contract address (CA)" value="${esc(S.createTicker||"")}" maxlength="64" autocomplete="off" ${picked?"disabled":""}>
    </div>
-   <p class="ca-note">Sadece kontrat adresi (CA) ile ara.</p>
+   <p class="ca-note">Search by contract address (CA) only.</p>
    <div id="searchResults" class="searchresults">${createResultsHtml()}</div>
   </div>
   ${picked&&!exists?`
@@ -1624,7 +1624,7 @@ function modalView(){
  const tk=S.createDone;
  return`<div class="toast"><span class="toast-ic">${I.check}</span>
    <div class="toast-txt"><strong>$${tk} room created</strong><span>creator badge ready · auto joined</span></div>
-   <button class="toast-go" data-act="goNewRoom" data-token="${tk}">Odaya git →</button></div>`;
+   <button class="toast-go" data-act="goNewRoom" data-token="${tk}">Go to room →</button></div>`;
 }
 
 function navActive(key){
@@ -1662,7 +1662,7 @@ function postShareModal(){
  const link=`https://holdx.app/post/${p.id}`;
  const who=displayName(p.wallet,p.mine);
  const snippet=(p.text||"").slice(0,80)+((p.text||"").length>80?"…":"");
- const tweet=`${snippet ? '"'+snippet+'" ':""}PODCTO'te gör 👉 ${link}`;
+ const tweet=`${snippet ? '"'+snippet+'" ':""}See it on PODCTO 👉 ${link}`;
  const xUrl=`https://twitter.com/intent/tweet?text=${encodeURIComponent(tweet)}`;
  return `<div class="overlay" data-act="closePostShare">
    <div class="editcard">
@@ -1721,7 +1721,7 @@ function upgradeModal(ticker){
 function shareModal(ticker){
  const t=tokenBy(ticker)||{name:""};
  const link=roomLink(ticker);
- const tweet=`$${ticker} odasına PODCTO'te katıl 👉 ${link}`;
+ const tweet=`Join the $${ticker} room on PODCTO 👉 ${link}`;
  const xUrl=`https://twitter.com/intent/tweet?text=${encodeURIComponent(tweet)}`;
  return `<div class="overlay" data-act="closeShare">
    <div class="editcard">
@@ -2058,6 +2058,7 @@ window.__holdxSetWallet=function(address){
           S.profile.bio=prof.bio||"";
           S.profile.avatar=prof.avatar||null;
           S.profile.cover=prof.cover||null;
+          if(prof.created_at){ const d=new Date(prof.created_at); S.profile.joined=d.toLocaleString("en-US",{month:"short",year:"numeric"}); }
           // kendi avatarimi cache'e ekle (paylasimlarimda gorunsun)
           if(prof.avatar){ window.__avatarCache=window.__avatarCache||{}; window.__avatarCache[address]=prof.avatar; }
           render();
@@ -2066,7 +2067,7 @@ window.__holdxSetWallet=function(address){
     }
   } else {
     S.connected=false; S.wallet=null;
-    S.profile={name:"", bio:"", avatar:null, cover:null, joined:"Tem 2025"};
+    S.profile={name:"", bio:"", avatar:null, cover:null, joined:new Date().toLocaleString("en-US",{month:"short",year:"numeric"})};
   }
   render();
 };
@@ -2152,7 +2153,7 @@ document.addEventListener("click",e=>{
  else if(a==="shareToFeed"){const tk=el.dataset.token;
    if(!S.connected){S.shareOpen=null;S.view={name:"feed",token:null};render();return;}
    upsertToken(tokenBy(tk)||{symbol:tk,name:"",price:0,chg:0});
-   S.posts.unshift({id:Date.now(),wallet:myTag(),mine:true,token:tk,verified:holds(tk),time:"now",text:`$${tk} odasına katılın! 👇 ${roomLink(tk)}`,media:null,likes:0,replies:0,reposts:0,liked:false});
+   S.posts.unshift({id:Date.now(),wallet:myTag(),mine:true,token:tk,verified:holds(tk),time:"now",text:`Join the $${tk} room! 👇 ${roomLink(tk)}`,media:null,likes:0,replies:0,reposts:0,liked:false});
    S.shareOpen=null;S.view={name:"feed",token:null};render();}
  else if(a==="nav"){const v=el.dataset.view;
    if(v==="rooms"){S.view={name:"rooms",token:null};S.roomTab="browse";}
@@ -2339,11 +2340,22 @@ document.addEventListener("click",e=>{
    const sub=(document.getElementById("fbSubject")||{}).value||"";
    const body=(document.getElementById("fbBody")||{}).value||"";
    if(!body.trim()){return;}
-   const subject=encodeURIComponent("[PODCTO geri bildirim] "+sub);
-   const cuzdan=S.connected?myTag():"not connected";
-   const mailBody=encodeURIComponent(body+"\n\n— — —\nWallet: "+cuzdan+"\nPODCTO beta");
-   window.location.href=`mailto:${FEEDBACK_EMAIL}?subject=${subject}&body=${mailBody}`;
-   S.feedbackOpen=false;render();
+   const wallet=S.connected?myTag():"not connected";
+   S.feedbackSending=true; render();
+   fetch("https://api.web3forms.com/submit",{
+     method:"POST",
+     headers:{"Content-Type":"application/json","Accept":"application/json"},
+     body:JSON.stringify({
+       access_key:"839e8f0f-f26f-403c-8494-71b5e0c13dd5",
+       subject:"[PODCTO] "+(sub||"No subject"),
+       from_name:"PODCTO Feedback",
+       message:"Subject: "+(sub||"(none)")+"\n\n"+body+"\n\n———\nWallet: "+wallet
+     })
+   }).then(function(r){return r.json();}).then(function(res){
+     S.feedbackSending=false;
+     if(res.success){ S.feedbackOpen=false; S.feedbackSent=true; render(); setTimeout(function(){S.feedbackSent=false;render();},3000); }
+     else { S.feedbackError="Could not send. Please try again."; render(); }
+   }).catch(function(){ S.feedbackSending=false; S.feedbackError="Could not send. Please try again."; render(); });
  }
  else if(a==="toggleTheme"){S.theme=S.theme==="dark"?"light":"dark";render();}
  else if(a==="profileTab"){S.profileTab=el.dataset.tab;render();}
@@ -2421,7 +2433,7 @@ document.addEventListener("click",e=>{
   S.joined[q]=true;
   pushActivity("create",q,p.chain);
   award("createRoom",{capKey:"createRoom",once:"createroom:"+q});
-  if(!(S.chat[q]||[]).length)S.chat[q]=[{wallet:myTag(),verified:holds(q),creator:true,mine:true,text:`$${q} odasına hoş geldiniz! 🎉`}];
+  if(!(S.chat[q]||[]).length)S.chat[q]=[{wallet:myTag(),verified:holds(q),creator:true,mine:true,text:`Welcome to the $${q} room! 🎉`}];
   S.createTicker="";S.picked=null;S.searchResults=[];S.createDone=q;S.createCap=100;S.roomTab="browse";
   render();
   setTimeout(()=>{S.createDone=null;render();},4200);
@@ -2638,7 +2650,7 @@ function gifDataUrl(emoji){
  const svg=`<svg xmlns='http://www.w3.org/2000/svg' width='220' height='160'><rect width='100%' height='100%' rx='14' fill='%231A1A21'/><text x='50%' y='54%' font-size='84' text-anchor='middle' dominant-baseline='middle'>${emoji}</text></svg>`;
  return "data:image/svg+xml;utf8,"+svg;
 }
-// gizli dosya seçici ile cihazdan fotoğraf al → dataURL (önizleme)
+// hidden dosya seçici ile cihazdan fotoğraf al → dataURL (önizleme)
 function triggerPhoto(target){
  const inp=document.createElement("input");
  inp.type="file"; inp.accept="image/*";
@@ -2659,7 +2671,7 @@ document.addEventListener("keydown",e=>{
 // live fiyat: oda açıkken token fiyatını güncelle
 
 // odadaki live fiyat:
-//  - kontrat adresi olan (kullanıcı odaları) → DexScreener'dan GERÇEK fiyat
+//  - contract address olan (kullanıcı odaları) → DexScreener'dan GERÇEK fiyat
 //  - demo/top50 tokenlar → hafif simülasyon (bu tokenlar örnek veri)
 let _lastReal=0;
 setInterval(async()=>{

@@ -1027,3 +1027,4 @@ html,body{margin:0;overflow-x:hidden;width:100%;}
 .rt-head svg{width:15px;height:15px;}
 .post-card.is-rt{padding-top:6px;}
 .name-error{color:#ff5c5c;font-size:12.5px;margin:4px 0 2px;font-weight:500;}
+.fb-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green);color:#04120b;padding:12px 22px;border-radius:12px;font-weight:700;font-size:14px;z-index:9999;box-shadow:0 8px 30px rgba(0,0,0,.4);}
