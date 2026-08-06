@@ -769,8 +769,8 @@ function postCard(p){
    <div class="pa-more-wrap">
      <button class="pa-more" data-act="postMenu" data-id="${p.id}">···</button>
      ${String(S.postMenu)===String(p.id)?`<div class="post-menu" data-emoji-pop>
-       <button class="post-menu-item" data-act="sharePost" data-id="${p.id}">${I.share} Post</button>
-       ${(S.connected&&S.wallet&&p.wallet===S.wallet.address)?`<button class="post-menu-item danger" data-act="deletePost" data-id="${p.id}">${I.trash} Sil</button>`:""}
+       <button class="post-menu-item" data-act="sharePost" data-id="${p.id}">${I.share} Share</button>
+       ${(S.connected&&S.wallet&&p.wallet===S.wallet.address)?`<button class="post-menu-item danger" data-act="deletePost" data-id="${p.id}">${I.trash} Delete</button>`:""}
      </div>`:""}
    </div>
   </div><p class="post-text">${fmtText(p.text)}</p>
@@ -785,7 +785,7 @@ function postCard(p){
    <div class="rt-wrap">
      <button class="${p.reposted?"reposted":""}" data-act="rtMenu" data-id="${p.id}">${I.repost} ${p.reposts||0}</button>
      ${String(S.rtMenu)===String(p.id)?`<div class="rt-menu" data-emoji-pop>
-       <button class="rt-item" data-act="repost" data-id="${p.id}">${I.repost} ${p.reposted?"Geri al":"Repost"}</button>
+       <button class="rt-item" data-act="repost" data-id="${p.id}">${I.repost} ${p.reposted?"Undo repost":"Repost"}</button>
        <button class="rt-item" data-act="quotePost" data-id="${p.id}">${I.reply} Quote</button>
      </div>`:""}
    </div>
@@ -817,7 +817,7 @@ function postDetailView(id){
      <div class="rt-wrap">
      <button class="${p.reposted?"reposted":""}" data-act="rtMenu" data-id="${p.id}">${I.repost} ${p.reposts||0}</button>
      ${String(S.rtMenu)===String(p.id)?`<div class="rt-menu" data-emoji-pop>
-       <button class="rt-item" data-act="repost" data-id="${p.id}">${I.repost} ${p.reposted?"Geri al":"Repost"}</button>
+       <button class="rt-item" data-act="repost" data-id="${p.id}">${I.repost} ${p.reposted?"Undo repost":"Repost"}</button>
        <button class="rt-item" data-act="quotePost" data-id="${p.id}">${I.reply} Quote</button>
      </div>`:""}
    </div>
@@ -828,7 +828,9 @@ function postDetailView(id){
   ${S.connected?`<div class="commentbox">
     ${ringAvatar(S.wallet.address,null,"",S.wallet.address)}
     <input id="commentInput" class="comment-input" placeholder="Write your comment…" value="${esc(S.commentText||"")}" data-id="${p.id}">
+    <button class="tool-b ${S.emojiFor==="comment"?"on":""}" data-act="toggleEmoji" data-target="comment" title="Emoji">${I.smile}</button>
     <button class="comment-send" data-act="sendComment" data-id="${p.id}">${I.send}</button>
+    ${S.emojiFor==="comment"?`<div class="tool-pop comment-emoji">${emojiPicker("comment")}</div>`:""}
   </div>`:`<div class="commentbox locked"><button class="connect" data-act="connect">Connect wallet to comment</button></div>`}
   <div class="section-label">${comments.length} ${comments.length===1?"comment":"comments"}</div>
   <div class="comments">${(function(){
@@ -875,7 +877,7 @@ function feedDropdown(){
 }
 function feedView(){
  const sel=S.filter==="ALL"?null:(tokenBy(S.filter)||{t:S.filter,name:"",color:tokColor(S.filter)});
- const filtered=S.filter==="ALL"?S.posts:S.posts.filter(p=>p.token===S.filter);
+ const filtered=(S.filter==="ALL"?S.posts:S.posts.filter(p=>p.token===S.filter)).slice().sort(function(a,b){ return (new Date(b._repostAt||b.created_at||0))-(new Date(a._repostAt||a.created_at||0)); });
  const filterBar=`<div class="feedfilter">
    <button class="ff-btn ${sel?"active":""}" data-act="toggleFeedDrop">
      ${sel?`<span class="dot" style="background:${sel.color}"></span><span class="mono ff-btn-tk">$${sel.t}</span>${sel.chain?chainBadge(sel.chain):""}<span class="ff-btn-name">${sel.name}</span>`
@@ -892,7 +894,7 @@ function feedView(){
    : `<button class="attachbtn" data-act="openPostSearch">${I.plus} Add token</button>`;
  const composer=S.connected?
   `<div class="composer${S.quoting?" quoting":""}">${ringAvatar(S.wallet.address,null,"lg",S.wallet.address)}
-   <div class="composer-body"><textarea id="composerText" rows="2" placeholder="What's on your mind?">${esc(S.composerText||"")}</textarea>
+   <div class="composer-body"><textarea id="composerText" rows="2" maxlength="280" placeholder="What's on your mind?">${esc(S.composerText||"")}</textarea>
    ${S.mentionOpen&&S.mentionResults&&S.mentionResults.length?`<div class="mention-pop">${S.mentionResults.map(function(u,i){
      return `<button class="mention-item" data-act="pickMention" data-name="${esc(u.name)}" data-wallet="${esc(u.wallet)}">${ringAvatar(u.wallet,null,"sm",u.wallet)}<span class="mention-name">${esc(u.name)}</span><span class="mention-addr mono">${short(u.wallet)}</span></button>`;
    }).join("")}</div>`:""}
@@ -901,15 +903,16 @@ function feedView(){
    ${S.postSearchOpen?`<div class="postsearchwrap">
      <div class="roomsearch"><span>${I.search}</span><input class="searchinput" id="postSearch" placeholder="search a token to mention (all chains)" value="${esc(S.postSearch)}" autocomplete="off"></div>
      <div id="postSearchResults" class="searchresults">${postSearchResultsHtml()}</div></div>`:""}
-   <div class="composer-tools">
-     <button class="tool-b ${S.emojiFor==="post"?"on":""}" data-act="toggleEmoji" data-target="post" title="Emoji">${I.smile}</button>
-     <button class="tool-b ${S.gifFor==="post"?"on":""}" data-act="toggleGif" data-target="post" title="GIF">${I.gif}</button>
-     <button class="tool-b" data-act="pickPhoto" data-target="post" title="Photo">${I.image}</button>
-     <div class="tool-pop">${S.emojiFor==="post"?emojiPicker("post"):""}${S.gifFor==="post"?gifPicker("post"):""}</div>
-   </div>
-   <div class="composer-foot">
-    ${attachBtn}
-    <button class="post" data-act="publish">Post</button>
+   <div class="composer-bar">
+     <div class="composer-tools">
+       <button class="tool-b ${S.emojiFor==="post"?"on":""}" data-act="toggleEmoji" data-target="post" title="Emoji">${I.smile}</button>
+       <button class="tool-b ${S.gifFor==="post"?"on":""}" data-act="toggleGif" data-target="post" title="GIF">${I.gif}</button>
+       <button class="tool-b" data-act="pickPhoto" data-target="post" title="Photo">${I.image}</button>
+       ${attachBtn}
+       <div class="tool-pop">${S.emojiFor==="post"?emojiPicker("post"):""}${S.gifFor==="post"?gifPicker("post"):""}</div>
+     </div>
+     <span class="char-count ${(S.composerText||"").length>260?"warn":""}">${280-(S.composerText||"").length}</span>
+     <button class="post" data-act="publish">Post</button>
    </div></div></div>`
   :`<div class="connectbanner"><div><strong>Connect your wallet, make your voice real.</strong>
     <p>On the token you hold <span class="vinline">${I.badge} verified holder</span> badge. No bots, no fake accounts.</p></div>
@@ -959,7 +962,7 @@ function tokenPageView(ticker){
  return `<button class="back" data-act="nav" data-view="tokens">← Token ara</button>
   <div class="token-hero"><div class="token-ids"><span class="tokenmark" style="background:${t.color}"></span>
    <div><h1 class="mono tokenticker">$${t.t} ${chain?chainBadge(chain):""}</h1><p class="token-full">${t.name||""}</p></div></div>
-   <div class="token-livewrap"><span class="lp-live"><span class="pulse"></span>CANLI</span></div></div>
+   <div class="token-livewrap"><span class="lp-live"><span class="pulse"></span>LIVE</span></div></div>
   ${addr?`<button class="token-addr" data-act="copyAddr" data-addr="${esc(addr)}">${I.copy}<span class="mono">${addr.slice(0,8)}…${addr.slice(-8)}</span><span class="ta-copy">${S.copied?"copied":"copy"}</span></button>`:""}
   <div class="token-stats">
     ${stat("fiyat",fprice(lp.price))}${stat("24s",(t.chg>=0?"+":"")+t.chg+"%",t.chg>=0?"up":"down")}
@@ -990,7 +993,7 @@ function portfolioView(){
    <span class="mono hval">${S.hideValue?"••••":"$"+r.now.toFixed(0)}</span>
    <span class="mono chg ${r.pl>=0?"up":"down"}">${S.hideValue?"••":`${r.pl>=0?"+":""}${r.plPct.toFixed(0)}%`}</span></div>`;}).join("")}</div>
   <div class="tierlegend">
-    <span class="tl-title">Kademeler</span>
+    <span class="tl-title">Tiers</span>
     ${TIERS.slice().reverse().map(t=>`<span class="tl-item"><span class="tl-dot" style="background:${t.color}"></span>${t.label}${t.emoji?" "+t.emoji:""} <span class="tl-range">${t.min>=100000?"$100K+":t.min>=10000?"$10K–100K":t.min>=1000?"$1K–10K":"$10–1K"}</span></span>`).join("")}
   </div>
   <p class="pf-settings-hint">For privacy and badge settings ${I.gear} <button class="inline-link" data-act="nav" data-view="settings">Settings</button></p>`;
@@ -1050,7 +1053,7 @@ function ownProfileView(){
  const _rawRts=(S.wallet&&window.__userReposts&&window.__userReposts[S.wallet.address])||[];
  // RT'leri copy (own postlarla aynı nesneyi paylaşmasın); alıntı bağını uygula
  const _myRts=_rawRts.map(function(r){ const c=Object.assign({},r); if(c.quotedId)c.quoted=window.__quotedCache[c.quotedId]||c.quoted; return c; });
- const _myOwn=S.posts.filter(x=>x.mine||x.wallet===myTag()).map(function(o){ const c=Object.assign({},o); if(c.quotedId)c.quoted=window.__quotedCache[c.quotedId]||c.quoted; return c; });
+ const _myOwn=S.posts.filter(x=>!x._isRepost&&(x.mine||x.wallet===myTag())).map(function(o){ const c=Object.assign({},o); if(c.quotedId)c.quoted=window.__quotedCache[c.quotedId]||c.quoted; return c; });
  function _sortTime(p){ const t=new Date(p._repostAt||p.created_at||0).getTime(); return isNaN(t)?0:t; }
  const myPosts=[..._myOwn,..._myRts].sort(function(a,b){ const d=_sortTime(b)-_sortTime(a); return d!==0?d:0; });
  const myRooms=Object.keys(S.joined).filter(k=>S.joined[k]);
@@ -1119,6 +1122,7 @@ function commentDetailView(cid,postId){
    ${S.connected?`<div class="commentbox">
      ${ringAvatar(S.wallet.address,null,"",S.wallet.address)}
      <input id="commentInput" class="comment-input" placeholder="Write your reply…" value="${esc(S.commentText||"")}" data-id="${p.id}">
+     <button class="tool-b ${S.emojiFor==="comment"?"on":""}" data-act="toggleEmoji" data-target="comment" title="Emoji">${I.smile}</button>
      <button class="comment-send" data-act="sendComment" data-id="${p.id}">${I.send}</button>
    </div>`:`<div class="commentbox locked"><button class="connect" data-act="connect">Connect wallet to reply</button></div>`}
    <div class="section-label">${kids.length} ${kids.length===1?"reply":"replies"}</div>
@@ -1347,7 +1351,7 @@ const DOCS={
   ["1. Acceptance","By using PODCTO (the \"Platform\") you accept these Terms of Use. If you do not accept the Terms, do not use the Platform."],
   ["2. Nature of the Platform","PODCTO is a decentralized social platform that brings crypto asset holders together. The Platform is NOT an exchange, wallet provider, or investment advisor. Price and market data shown on the Platform come from third-party sources and accuracy is not guaranteed."],
   ["3. Not investment advice","No content, post, room chat, or data on the Platform constitutes investment advice. Crypto assets are high-risk and can lose value. You are solely responsible for all your decisions. Do your own research before making investment decisions."],
-  ["4. Wallet ve hesap","You connect to the Platform with your wallet. You are solely responsible for the security of your wallet, private keys, and transactions. PODCTO can never access or store your private keys."],
+  ["4. Wallet and account","You connect to the Platform with your wallet. You are solely responsible for the security of your wallet, private keys, and transactions. PODCTO can never access or store your private keys."],
   ["5. User content","You are fully responsible for the content you share (text, image, message). Sharing illegal, fraudulent, hate-speech, harassing, or rights-violating content is prohibited. PODCTO reserves the right to remove such content."],
   ["6. Room creation and fees","Creating a room is free and open to everyone."],
   ["7. Points and rewards","Points/reward systems tied to Platform activity are promotional; they carry no guarantee of monetary value. Reward criteria may change without prior notice. Points of accounts found abusing the system can be revoked."],
@@ -1564,7 +1568,7 @@ function roomView(ticker){
      <h2 class="mono join-tk">$${ticker}</h2>
      <p class="join-name">${t.name||""}</p>
      <div class="join-stats">
-       <div><span class="js-v mono">${fprice(lp.price)}</span><span class="js-l">fiyat</span></div>
+       <div><span class="js-v mono">${fprice(lp.price)}</span><span class="js-l">price</span></div>
        <div><span class="js-v mono ${t.chg>=0?"up":"down"}">${t.chg>=0?"+":""}${t.chg}%</span><span class="js-l">24s</span></div>
        <div><span class="js-v mono">${(room?room.members:0).toLocaleString()}${cap===Infinity?"":"/"+capLabel(cap)}</span><span class="js-l">members</span></div>
      </div>
@@ -1582,7 +1586,7 @@ function roomView(ticker){
    <span class="tokenmark sm" style="background:${t.color}"></span><span class="mono tk">$${ticker}</span>
    <span class="roommeta">${I.globe} ${(room?room.members:0).toLocaleString()}${(room?room.cap:100)===Infinity?" members · ∞":"/"+capLabel(room?room.cap||100:100)+" members"}</span>
    <div class="livepricebox">
-     <span class="lp-live"><span class="pulse"></span>CANLI</span>
+     <span class="lp-live"><span class="pulse"></span>LIVE</span>
      <span class="lp-price mono" id="lpPrice">${fprice(lp.price)}</span>
      <span class="lp-chg mono ${t.chg>=0?"up":"down"}" id="lpChg">${t.chg>=0?"+":""}${t.chg}%</span>
    </div>
@@ -1611,7 +1615,7 @@ function roomView(ticker){
     <button class="tool-b" data-act="pickPhoto" data-target="chat" title="Photo">${I.image}</button>
     <div class="tool-pop up">${S.emojiFor==="chat"?emojiPicker("chat"):""}${S.gifFor==="chat"?gifPicker("chat"):""}</div>
   </div>
-  <div class="chatinput"><input id="chatInput" placeholder="$${ticker} room…" data-token="${ticker}" value="${esc(S.chatText||"")}">
+  <div class="chatinput"><input id="chatInput" maxlength="280" placeholder="$${ticker} room…" data-token="${ticker}" value="${esc(S.chatText||"")}">
    <button data-act="sendChat" data-token="${ticker}">${I.send}</button></div>
   ${S.shareOpen===ticker?shareModal(ticker):""}</div>`;
 }
@@ -1659,7 +1663,7 @@ function myRoomsPage(){
 // postı paylaşma penceresi
 function postShareModal(){
  const p=S.posts.find(x=>x.id===S.sharePostId); if(!p)return "";
- const link=`https://holdx.app/post/${p.id}`;
+ const link=`https://melodic-wisp-7c1829.netlify.app/post/${p.id}`;
  const who=displayName(p.wallet,p.mine);
  const snippet=(p.text||"").slice(0,80)+((p.text||"").length>80?"…":"");
  const tweet=`${snippet ? '"'+snippet+'" ':""}See it on PODCTO 👉 ${link}`;
@@ -1667,16 +1671,17 @@ function postShareModal(){
  return `<div class="overlay" data-act="closePostShare">
    <div class="editcard">
      <div class="edit-h"><strong>Share post</strong><button class="edit-x" data-act="closePostShare">${I.x}</button></div>
-     <div class="sharepreview"><span class="mono sp-who">${esc(who)}</span><p class="sp-txt">${esc(snippet||"(medya)")}</p></div>
+     <div class="sharepreview"><span class="mono sp-who">${esc(who)}</span><p class="sp-txt">${esc(snippet||"(media)")}</p></div>
      <div class="share-linkbox"><span class="mono share-link">${link}</span><button class="share-copy" data-act="copyPostLink" data-id="${p.id}">${S.copied?I.check:I.copy}${S.copied?" copied":" copy"}</button></div>
      <div class="share-opts">
+       <button class="share-opt feed" data-act="repostFromShare" data-id="${p.id}">${I.repost}<span>${p.reposted?"Undo repost":"Repost to feed"}</span></button>
        <a class="share-opt x" href="${xUrl}" target="_blank" rel="noopener">${I.twitter}<span>Share on X</span></a>
      </div>
    </div>
  </div>`;
 }
 // oda paylaşma penceresi: link copy + Share on X + akışta paylaş
-function roomLink(ticker){return `https://holdx.app/room/${encodeURIComponent(ticker)}`;}
+function roomLink(ticker){return `https://melodic-wisp-7c1829.netlify.app/room/${encodeURIComponent(ticker)}`;}
 function leaveConfirmModal(ticker){
  return `<div class="overlay" data-act="closeLeave">
    <div class="editcard confirm">
@@ -1972,6 +1977,27 @@ window.__holdxApplyInteractions=function(data){
  });
  render();
 };
+window.__holdxSetFeedReposts=function(rows){
+  window.__feedReposts=window.__feedReposts||{};
+  (rows||[]).forEach(function(r){ window.__feedReposts[r.post_id]={id:r.post_id,_repostAt:r.created_at}; });
+  applyFeedReposts();
+  render();
+};
+function applyFeedReposts(){
+  window.__feedReposts=window.__feedReposts||{};
+  const myAddr=S.wallet?S.wallet.address:null;
+  if(!myAddr)return;
+  // mevcut RT kartlarini temizle, depodan yeniden kur
+  S.posts=S.posts.filter(function(p){return !p._isRepost;});
+  Object.keys(window.__feedReposts).forEach(function(id){
+    const orig=S.posts.find(function(x){return String(x.id)===String(id)&&!x._isRepost;});
+    if(orig){
+      const rt=Object.assign({},orig,{_isRepost:true,_repostedBy:myAddr,_repostAt:window.__feedReposts[id]._repostAt});
+      S.posts.unshift(rt);
+    }
+  });
+  S.posts.sort(function(a,b){ return (new Date(b._repostAt||b.created_at||0))-(new Date(a._repostAt||a.created_at||0)); });
+}
 window.__holdxFixPostId=function(tempId,realId,createdAt){
  const p=S.posts.find(function(x){return String(x.id)===String(tempId);});
  if(p){ p.id=realId; if(createdAt)p.created_at=createdAt; render(); }
@@ -2005,11 +2031,12 @@ window.__holdxApplyPosts=function(rows){
       likes:prev.likes!==undefined?prev.likes:0, replies:prev.replies!==undefined?prev.replies:0, reposts:prev.reposts!==undefined?prev.reposts:0,
       liked:prev.liked||false, reposted:prev.reposted||false, comments:prev.comments||[], quotedId:r.quoted_post_id||null, _repostedBy:r._repostedBy||null, _repostAt:r._repostAt||null};
   });
-  // RT kartları (_isRepost) ayrı depoda; S.posts'a girmesinler
+  // akıştaki kendi RT kartlarımı koru (_isRepost), diğer eski postları değiştir
   const keep=S.posts.filter(function(p){return !p._isRepost && !mapped.find(function(m){return String(m.id)===String(p.id);});});
   S.posts = keep.concat(mapped);
-  // en yeni üstte olacak şekilde created_at'e göre sırala
   S.posts.sort(function(a,b){ return (new Date(b.created_at||0))-(new Date(a.created_at||0)); });
+  // RT kartlarini depodan yeniden ekle (kaybolmasin)
+  applyFeedReposts();
   // alintilanan postlari bagla
   window.__quotedCache=window.__quotedCache||{};
   const missingQ=[];
@@ -2113,7 +2140,7 @@ document.addEventListener("click",e=>{
    rows.forEach(function(r,i){ const nm=(S.names&&S.names[r.wallet]?S.names[r.wallet]:"").replace(/,/g," "); csv+=(i+1)+","+r.wallet+","+nm+","+r.total+"\n"; });
    const blob=new Blob([csv],{type:"text/csv;charset=utf-8"});
    const url=URL.createObjectURL(blob);
-   const a2=document.createElement("a"); a2.href=url; a2.download="holdx-siralama.csv";
+   const a2=document.createElement("a"); a2.href=url; a2.download="podcto-leaderboard.csv";
    document.body.appendChild(a2); a2.click(); document.body.removeChild(a2);
    setTimeout(function(){URL.revokeObjectURL(url);},1000);
  }
@@ -2262,17 +2289,43 @@ document.addEventListener("click",e=>{
    }
  }
  else if(a==="sharePost"){S.sharePostId=el.dataset.id;render();}
+ else if(a==="repostFromShare"){const id=el.dataset.id;
+   let on2=false;
+   S.posts=S.posts.map(p=>{if(String(p.id)===String(id)){on2=!p.reposted;return{...p,reposted:on2,reposts:(p.reposts||0)+(on2?1:-1)};}return p;});
+   if(S.wallet){
+     const myAddr=S.wallet.address;
+     window.__feedReposts=window.__feedReposts||{};
+     if(on2){ window.__feedReposts[id]={id:id,_repostAt:new Date().toISOString()}; } else { delete window.__feedReposts[id]; }
+     applyFeedReposts();
+   }
+   if(window.__holdxToggleRepost && S.wallet){ window.__holdxToggleRepost(id, S.wallet.address, on2);
+     const rp=S.posts.find(function(x){return String(x.id)===String(id);});
+     if(on2&&rp&&rp.wallet!==S.wallet.address&&window.__holdxNotify){ window.__holdxNotify({wallet:rp.wallet,type:"repost",from_wallet:S.wallet.address,post_id:id}); } }
+   S.sharePostId=null; render();}
  else if(a==="copyAddr"){const addr=el.dataset.addr;
    (navigator.clipboard?navigator.clipboard.writeText(addr):Promise.reject()).then(()=>{S.copied=true;render();setTimeout(()=>{S.copied=false;render();},1400);}).catch(()=>{S.copied=true;render();setTimeout(()=>{S.copied=false;render();},1400);});}
  else if(a==="closePostShare"){if((el.classList.contains("overlay")&&e.target===el)||e.target.closest(".edit-x")){S.sharePostId=null;render();}}
- else if(a==="copyPostLink"){const link="https://holdx.app/post/"+el.dataset.id;
+ else if(a==="copyPostLink"){const link="https://melodic-wisp-7c1829.netlify.app/post/"+el.dataset.id;
    (navigator.clipboard?navigator.clipboard.writeText(link):Promise.reject()).then(()=>{S.copied=true;render();setTimeout(()=>{S.copied=false;render();},1400);}).catch(()=>{S.copied=true;render();setTimeout(()=>{S.copied=false;render();},1400);});}
  else if(a==="repost"){const id=el.dataset.id;
    let on2=false;
    S.posts=S.posts.map(p=>{if(String(p.id)===String(id)){on2=!p.reposted;return{...p,reposted:on2,reposts:(p.reposts||0)+(on2?1:-1)};}return p;});
+   // akışa RT kartı ekle/çıkar (kendi feed'inde "You reposted" görünsün)
+   if(S.wallet){
+     const myAddr=S.wallet.address;
+     window.__feedReposts=window.__feedReposts||{};
+     if(on2){
+       const orig=S.posts.find(function(x){return String(x.id)===String(id)&&!x._isRepost;});
+       if(orig){ window.__feedReposts[id]={id:id,_repostAt:new Date().toISOString()}; }
+     } else {
+       delete window.__feedReposts[id];
+     }
+     applyFeedReposts();
+   }
    if(window.__holdxToggleRepost && S.wallet){ window.__holdxToggleRepost(id, S.wallet.address, on2);
      const rp=S.posts.find(function(x){return String(x.id)===String(id);});
      if(on2&&rp&&rp.wallet!==S.wallet.address&&window.__holdxNotify){ window.__holdxNotify({wallet:rp.wallet,type:"repost",from_wallet:S.wallet.address,post_id:id}); } }
+   S.rtMenu=null;
    render();}
  else if(a==="sendComment"){const id=el.dataset.id;
    const inp=document.getElementById("commentInput");
@@ -2313,7 +2366,7 @@ document.addEventListener("click",e=>{
  else if(a==="toggleEmoji"){const t=el.dataset.target;S.emojiFor=S.emojiFor===t?null:t;S.gifFor=null;render();}
  else if(a==="toggleGif"){const t=el.dataset.target;S.gifFor=S.gifFor===t?null:t;S.emojiFor=null;S.gifQuery="";S.gifResults=[];render();if(S.gifFor){searchGifs("");}}
  else if(a==="pickEmoji"){const e2=el.dataset.emoji,t=el.dataset.target;
-   if(t==="post")S.composerText=(S.composerText||"")+e2; else S.chatText=(S.chatText||"")+e2;
+   if(t==="post")S.composerText=(S.composerText||"")+e2; else if(t==="comment"){S.commentText=(S.commentText||"")+e2;S.emojiFor=null;} else S.chatText=(S.chatText||"")+e2;
    render();}
  else if(a==="pickGif"){const t=el.dataset.target,g=el.dataset.gif;
    if(t==="post"){S.postMedia=g;S.gifFor=null;} else {S.chatMedia=g;S.gifFor=null;}

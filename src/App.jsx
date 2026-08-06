@@ -679,6 +679,10 @@ export default function App() {
       supabase.from('room_members').select('ticker').eq('wallet', address).then(({ data }) => {
         if (data && window.__holdxApplyMemberships) window.__holdxApplyMemberships(data.map(r => r.ticker))
       })
+      // kendi RT'lerimi yükle (akışta "You reposted" olarak görünsün, yenileyince kaybolmasın)
+      supabase.from('reposts').select('post_id,created_at').eq('wallet', address).order('created_at', { ascending: false }).limit(50).then(({ data }) => {
+        if (data && window.__holdxSetFeedReposts) window.__holdxSetFeedReposts(data)
+      })
       if (window.__holdxLoadPoints) window.__holdxLoadPoints(address)
       if (window.__holdxLoadFollows) window.__holdxLoadFollows(address)
       if (window.__holdxLoadNotifications) window.__holdxLoadNotifications()

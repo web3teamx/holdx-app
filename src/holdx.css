@@ -1028,3 +1028,15 @@ html,body{margin:0;overflow-x:hidden;width:100%;}
 .post-card.is-rt{padding-top:6px;}
 .name-error{color:#ff5c5c;font-size:12.5px;margin:4px 0 2px;font-weight:500;}
 .fb-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green);color:#04120b;padding:12px 22px;border-radius:12px;font-weight:700;font-size:14px;z-index:9999;box-shadow:0 8px 30px rgba(0,0,0,.4);}
+
+/* composer tek satir: araclar solda (emoji/gif/foto + add token), Post sagda */
+.composer-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:8px;}
+.composer-bar .composer-tools{flex:0 1 auto;gap:4px;flex-wrap:wrap;}
+.composer-bar .attachbtn{padding:6px 11px;font-size:12px;height:32px;}
+.composer-bar .post{flex:0 0 auto;}
+.char-count{font-size:12px;color:var(--tx3);font-weight:600;margin-right:2px;min-width:28px;text-align:right;}
+.char-count.warn{color:#ff9b3d;}
+.commentbox{position:relative;}
+.comment-emoji{position:absolute;bottom:calc(100% + 6px);right:0;z-index:60;}
+.share-opt.feed{display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);color:var(--tx);font-weight:600;padding:11px 14px;border-radius:12px;cursor:pointer;width:100%;justify-content:center;font-size:14px;}
+.share-opt.feed:hover{border-color:var(--green);color:var(--green);}
