@@ -1188,7 +1188,7 @@ function messagesView(){
      const nm=S.names&&S.names[t.peer]?S.names[t.peer]:short(t.peer);
      const unread=S.unreadPeers&&S.unreadPeers[t.peer];
      return `<button class="dmlist-item ${unread?"unread":""}" data-act="openDM" data-wallet="${esc(t.peer)}">
-       <span class="av md" style="${avatar(t.peer)}"></span>
+       ${(window.__avatarCache&&window.__avatarCache[t.peer])?`<img class="av md" src="${window.__avatarCache[t.peer]}" alt="">`:`<span class="av md" style="${avatar(t.peer)}"></span>`}
        <div class="dmlist-info"><span class="dmlist-name">${esc(nm)}</span><span class="mono dmlist-addr">${short(t.peer)}</span><span class="dmlist-last">${esc((t.last||"").slice(0,50))}</span></div>
        ${unread?`<span class="dmlist-badge">1</span>`:`<span class="dmlist-arrow">›</span>`}
      </button>`;
@@ -1202,7 +1202,7 @@ function dmView(peer){
  return `<div class="dmwrap">
    <div class="dm-head">
      <button class="dm-back" data-act="nav" data-view="messages">${I.back||"←"}</button>
-     <span class="av sm" style="${avatar(peer)}"></span>
+     ${(window.__avatarCache&&window.__avatarCache[peer])?`<img class="av sm" src="${window.__avatarCache[peer]}" alt="">`:`<span class="av sm" style="${avatar(peer)}"></span>`}
      <div class="dm-peer"><span class="dm-name">${esc(nm)}</span><span class="mono dm-addr">${short(peer)}</span></div>
    </div>
    <div class="dm-msgs" id="dmMsgs">
@@ -1604,10 +1604,19 @@ function roomView(ticker){
   ${S.upgradeOpen===ticker?upgradeModal(ticker):""}
   <div class="messages" id="messages">${msgs.map(m=>{
     const tier=msgTier(m,ticker);
-    return `<div class="msg ${m.mine?"mine":""}">
-   ${ringAvatar(m.wallet+ticker,tier,"sm")}
-   <div><button class="${nameCls(m.wallet,m.mine)} msgwallet pf-link" data-act="openProfile" data-wallet="${esc(m.wallet)}">${esc(displayName(m.wallet,m.mine))}${tier?tierBadge(tier):""}${m.creator?`<span class="msgcreator">kurucu</span>`:""}</button>
-   ${m.text?`<p>${esc(m.text)}</p>`:""}${m.media?`<img class="msg-media zoomable" src="${m.media}" alt="" data-act="zoom" data-src="${m.media}">`:""}</div></div>`;}).join("")}</div>
+    const rt=m.replyTo;
+    return `<div class="msg ${m.mine?"mine":""}" data-mid="${esc(String(m.id||""))}">
+   ${ringAvatar(m.wallet+ticker,tier,"sm",m.wallet)}
+   <div class="msg-inner"><button class="${nameCls(m.wallet,m.mine)} msgwallet pf-link" data-act="openProfile" data-wallet="${esc(m.wallet)}">${esc(displayName(m.wallet,m.mine))}${tier?tierBadge(tier):""}${m.creator?`<span class="msgcreator">creator</span>`:""}</button>
+   ${rt?`<div class="msg-reply-quote" data-act="gotoMsg" data-goto="${esc(String(rt.id||""))}"><span class="mrq-name">${esc(rt.name||displayName(rt.wallet)||"")}</span><span class="mrq-text">${esc((rt.text||"").slice(0,80))}</span></div>`:""}
+   ${m.text?`<p>${esc(m.text)}</p>`:""}${m.media?`<img class="msg-media zoomable" src="${m.media}" alt="" data-act="zoom" data-src="${m.media}">`:""}
+   ${m.reactions&&m.reactions.length?`<div class="msg-reactions">${m.reactions.map(function(rx){return `<span class="msg-rx">${rx}</span>`;}).join("")}</div>`:""}
+   <button class="msg-actbtn" data-act="msgMenu" data-mid="${esc(String(m.id||""))}" title="React or reply">${I.dots}</button>
+   ${String(S.msgMenu)===String(m.id)?`<div class="msg-menu" data-emoji-pop>
+     <div class="msg-menu-emojis">${["👍","❤️","😂","🔥","🎉","😮"].map(function(e){return `<button class="mm-emoji" data-act="reactMsg" data-mid="${esc(String(m.id))}" data-emoji="${e}">${e}</button>`;}).join("")}</div>
+     <button class="msg-menu-item" data-act="replyMsg" data-mid="${esc(String(m.id))}">${I.reply||""} Reply</button>
+   </div>`:""}
+   </div></div>`;}).join("")}</div>
   ${S.chatMedia?`<div class="chatmediaprev"><img src="${S.chatMedia}" alt=""><button class="media-x" data-act="clearChatMedia">${I.x}</button></div>`:""}
   <div class="chat-tools">
     <button class="tool-b ${S.emojiFor==="chat"?"on":""}" data-act="toggleEmoji" data-target="chat" title="Emoji">${I.smile}</button>
@@ -1615,6 +1624,7 @@ function roomView(ticker){
     <button class="tool-b" data-act="pickPhoto" data-target="chat" title="Photo">${I.image}</button>
     <div class="tool-pop up">${S.emojiFor==="chat"?emojiPicker("chat"):""}${S.gifFor==="chat"?gifPicker("chat"):""}</div>
   </div>
+  ${S.replyingTo?`<div class="reply-banner"><span class="rb-label">Replying to <b>${esc(S.replyingTo.name||displayName(S.replyingTo.wallet)||"")}</b></span><span class="rb-text">${esc((S.replyingTo.text||"").slice(0,60))}</span><button class="rb-x" data-act="cancelReply">${I.x}</button></div>`:""}
   <div class="chatinput"><input id="chatInput" maxlength="280" placeholder="$${ticker} room…" data-token="${ticker}" value="${esc(S.chatText||"")}">
    <button data-act="sendChat" data-token="${ticker}">${I.send}</button></div>
   ${S.shareOpen===ticker?shareModal(ticker):""}</div>`;
@@ -1897,7 +1907,7 @@ function _renderNow(){
  if(cmi&&S.commentText){cmi.focus();cmi.setSelectionRange(cmi.value.length,cmi.value.length);}
  if(S.crop)setupCropper();
  if(S.dmScrollBottom){ const dm=document.getElementById("dmMsgs"); if(dm)dm.scrollTop=dm.scrollHeight; S.dmScrollBottom=false; }
- if(S.chatScrollBottom){ const cb=document.getElementById("messages"); if(cb)cb.scrollTop=cb.scrollHeight; S.chatScrollBottom=false; }
+ if(S.chatScrollBottom&&!S._keepScroll){ const cb=document.getElementById("messages"); if(cb)cb.scrollTop=cb.scrollHeight; S.chatScrollBottom=false; }
  const gsi=document.getElementById("gifSearch");
  if(gsi){gsi.focus();gsi.setSelectionRange(gsi.value.length,gsi.value.length);}
  else { // gif araması açık değilse, metin alanlarına odağı geri ver
@@ -2119,6 +2129,7 @@ document.addEventListener("click",e=>{
  if(S.rtMenu&&!e.target.closest(".rt-wrap")){S.rtMenu=null;_closed=true;}
  if(S.walletMenu&&!e.target.closest(".idwrap")){S.walletMenu=false;_closed=true;}
  if(S.roomMenu&&!e.target.closest(".roommenu-wrap")){S.roomMenu=null;_closed=true;}
+ if(S.msgMenu&&!e.target.closest(".msg-inner")){S.msgMenu=null;_closed=true;}
  if(_closed&&!e.target.closest("[data-act]")){render();}
  // emoji/gif popover'ı dışarı tıklayınca kapat (araç butonları ve popover içi hariç)
  if((S.emojiFor||S.gifFor)&&!e.target.closest("[data-emoji-pop]")&&!e.target.closest('[data-act="toggleEmoji"]')&&!e.target.closest('[data-act="toggleGif"]')&&!e.target.closest('[data-act="pickEmoji"]')&&!e.target.closest('[data-act="pickGif"]')){S.emojiFor=null;S.gifFor=null;render();}
@@ -2128,7 +2139,7 @@ document.addEventListener("click",e=>{
  if(a==="connect"){S.entered=true;connect();}
  else if(a==="enterExplore"){S.entered=true;S.view={name:"feed",token:null};render();}
  else if(a==="pickTopToken"){const r=S.topResults[+el.dataset.i];if(r){upsertToken(r);S.view={name:"token",token:(r.symbol||"").toUpperCase()};S.topSearch="";S.topSearchOpen=false;S.topResults=[];}render();}
- else if(a==="openDM"){const w=el.dataset.wallet;S.view={name:"dm",peer:w};if(S.unreadPeers&&S.unreadPeers[w]){delete S.unreadPeers[w];S.unreadDM=Math.max(0,(S.unreadDM||0)-1);}if(window.__holdxLoadDMs){window.__holdxLoadDMs(w);}render();}
+ else if(a==="openDM"){const w=el.dataset.wallet;S.view={name:"dm",peer:w};if(S.unreadPeers&&S.unreadPeers[w]){delete S.unreadPeers[w];S.unreadDM=Math.max(0,(S.unreadDM||0)-1);}if(window.__holdxLoadDMs){window.__holdxLoadDMs(w);}if(window.__holdxLoadPeerInfo){window.__holdxLoadPeerInfo(w);}render();}
  else if(a==="dmPhoto"){triggerPhoto("dm");}
  else if(a==="openMentionProfile"){const nm=el.dataset.name; if(nm&&window.__holdxOpenByName){window.__holdxOpenByName(nm);}}
  else if(a==="pickMention"){pickMention(el.dataset.name,el.dataset.wallet);}
@@ -2146,6 +2157,11 @@ document.addEventListener("click",e=>{
  }
  else if(a==="clearTopSearch"){S.topSearch="";S.topSearchOpen=false;S.topResults=[];render();}
  else if(a==="shareRoom"){S.shareOpen=el.dataset.token;S.roomMenu=null;render();}
+ else if(a==="gotoMsg"){const gid=el.dataset.goto;if(gid){const target=document.querySelector('.msg[data-mid="'+gid+'"]');if(target){target.scrollIntoView({behavior:"smooth",block:"center"});target.classList.add("msg-highlight");setTimeout(function(){target.classList.remove("msg-highlight");},1600);}}}
+ else if(a==="msgMenu"){const mid=el.dataset.mid;const _mc=document.getElementById("messages");const _sp=_mc?_mc.scrollTop:0;S._keepScroll=true;S.msgMenu=String(S.msgMenu)===String(mid)?null:mid;render();requestAnimationFrame(function(){const _m=document.getElementById("messages");if(_m)_m.scrollTop=_sp;S._keepScroll=false;});}
+ else if(a==="replyMsg"){const mid=el.dataset.mid;const _tk=S.view.token;const _mc=document.getElementById("messages");const _sp=_mc?_mc.scrollTop:0;S._keepScroll=true;const m=((S.chat&&S.chat[_tk])||[]).find(function(x){return String(x.id)===String(mid);});if(m){S.replyingTo={id:m.id,wallet:m.wallet,name:displayName(m.wallet),text:m.text||""};}S.msgMenu=null;render();requestAnimationFrame(function(){const _m=document.getElementById("messages");if(_m)_m.scrollTop=_sp;const ci=document.getElementById("chatInput");if(ci)ci.focus({preventScroll:true});S._keepScroll=false;});}
+ else if(a==="cancelReply"){S.replyingTo=null;render();}
+ else if(a==="reactMsg"){const mid=el.dataset.mid,emoji=el.dataset.emoji;const _tk2=S.view.token;const _mc=document.getElementById("messages");const _sp=_mc?_mc.scrollTop:0;S._keepScroll=true;const m=((S.chat&&S.chat[_tk2])||[]).find(function(x){return String(x.id)===String(mid);});if(m){m.reactions=m.reactions||[];if(m.reactions.indexOf(emoji)<0)m.reactions.push(emoji);}S.msgMenu=null;render();requestAnimationFrame(function(){const _m=document.getElementById("messages");if(_m)_m.scrollTop=_sp;S._keepScroll=false;});}
  else if(a==="toggleRoomMenu"){S.roomMenu=S.roomMenu?null:(S.view.token);render();}
  else if(a==="askLeave"){S.leaveConfirm=el.dataset.token;S.roomMenu=null;render();}
  else if(a==="openUpgrade"){S.upgradeOpen=el.dataset.token;S.roomMenu=null;render();}
@@ -2554,14 +2570,15 @@ function sendChat(ticker){
  if(!txt&&!S.chatMedia)return;
  const room=S.customRooms.find(r=>r.ticker===ticker);
  // Supabase'e yaz (gercek zamanli olarak herkese gider, kendimize de geri doner)
+ const replyInfo=S.replyingTo?{id:S.replyingTo.id,wallet:S.replyingTo.wallet,name:S.replyingTo.name,text:S.replyingTo.text}:null;
  if(window.__holdxSendMessage && S.wallet){
-   window.__holdxSendMessage({ ticker:ticker, wallet:S.wallet.address, text:txt||null, media:S.chatMedia||null });
+   window.__holdxSendMessage({ ticker:ticker, wallet:S.wallet.address, text:txt||null, media:S.chatMedia||null, replyTo:replyInfo });
  } else {
    // baglanti yoksa yerel goster
    S.chat[ticker]=[...(S.chat[ticker]||[]),{wallet:myTag(),verified:holds(ticker),creator:room&&room.creator===myTag(),text:txt,media:S.chatMedia,mine:true}];
  }
  award("comment",{capKey:"comment"});
- S.chatText="";S.chatMedia=null;S.emojiFor=null;S.gifFor=null;
+ S.chatText="";S.chatMedia=null;S.emojiFor=null;S.gifFor=null;S.replyingTo=null;
  render();
 }
 // Supabase'den gelen mesaji akisa ekle (gercek zamanli veya gecmis)
@@ -2570,7 +2587,7 @@ window.__holdxAddMessage=function(m){
  // ayni id varsa ekleme (cift onleme)
  if(m.id && arr.find(function(x){return x.id===m.id;})) return;
  const room=S.customRooms.find(function(r){return r.ticker===m.ticker;});
- arr.push({ id:m.id, wallet:m.wallet, verified:false, creator:room&&room.creator===m.wallet, text:m.text||"", media:m.media||null, mine:(S.wallet&&m.wallet===S.wallet.address) });
+ arr.push({ id:m.id, wallet:m.wallet, verified:false, creator:room&&room.creator===m.wallet, text:m.text||"", media:m.media||null, mine:(S.wallet&&m.wallet===S.wallet.address), replyTo:m.replyTo||null, reactions:m.reactions||[] });
 
  S.chat[m.ticker]=arr;
  if(S.view&&S.view.name==="room"&&S.view.token===m.ticker)S.chatScrollBottom=true;
@@ -2580,7 +2597,7 @@ window.__holdxSetMessages=function(ticker,rows){
  if(!rows) return;
  const room=S.customRooms.find(function(r){return r.ticker===ticker;});
  S.chat[ticker]=rows.map(function(m){
-   return { id:m.id, wallet:m.wallet, verified:false, creator:room&&room.creator===m.wallet, text:m.text||"", media:m.media||null, mine:(S.wallet&&m.wallet===S.wallet.address) };
+   return { id:m.id, wallet:m.wallet, verified:false, creator:room&&room.creator===m.wallet, text:m.text||"", media:m.media||null, mine:(S.wallet&&m.wallet===S.wallet.address), replyTo:m.reply_to||m.replyTo||null, reactions:m.reactions||[] };
  });
  S.chatScrollBottom=true;
  render();

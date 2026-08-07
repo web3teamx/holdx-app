@@ -430,7 +430,11 @@ export default function App() {
         const url = await uploadImage(m.media, m.wallet, 'msg-' + Date.now())
         m = { ...m, media: url }
       }
-      await supabase.from('messages').insert(m)
+      const base = { ticker: m.ticker, wallet: m.wallet, text: m.text, media: m.media }
+      const row = m.replyTo ? { ...base, reply_to: m.replyTo } : base
+      let { error } = await supabase.from('messages').insert(row)
+      // reply_to kolonu yoksa (henüz eklenmediyse) reply_to'suz tekrar dene
+      if (error && m.replyTo) { await supabase.from('messages').insert(base) }
     }
     // DM
     window.__holdxSendDM = async (m) => {
@@ -478,6 +482,7 @@ export default function App() {
       const { data } = await supabase.from('messages').select('*').eq('ticker', ticker).order('created_at', { ascending: false }).limit(50)
       if (data) data.reverse()
       if (data && window.__holdxSetMessages) window.__holdxSetMessages(ticker, data)
+      if (data && data.length) { const ws = [...new Set(data.map(m => m.wallet))]; loadNamesFor(ws); loadAvatarsFor(ws) }
     }
 
     // GERCEK ZAMANLI (DAR): sadece ACIK olan odanin mesajlari
@@ -488,7 +493,7 @@ export default function App() {
       roomMsgChannel = supabase
         .channel('room-msg-' + ticker)
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: 'ticker=eq.' + ticker }, (payload) => {
-          if (window.__holdxAddMessage) window.__holdxAddMessage(payload.new)
+          if (window.__holdxAddMessage) window.__holdxAddMessage({ ...payload.new, replyTo: payload.new.reply_to || null }); if (payload.new && payload.new.wallet) { loadNamesFor([payload.new.wallet]); loadAvatarsFor([payload.new.wallet]) }
         })
         .subscribe()
     }
@@ -496,6 +501,9 @@ export default function App() {
     // GERCEK ZAMANLI: odalar (yeni oda, silme, uye sayisi degisimi)
     // DM: sadece BANA gelenler — cüzdan bağlanınca kurulur
     let dmChannel = null
+    window.__holdxLoadPeerInfo = (w) => {
+      if (w) { loadNamesFor([w]); loadAvatarsFor([w]) }
+    }
     window.__holdxSubscribeDM = (me) => {
       if (dmChannel) { supabase.removeChannel(dmChannel); dmChannel = null }
       if (!me) return
