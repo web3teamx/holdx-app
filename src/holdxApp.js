@@ -1673,7 +1673,7 @@ function myRoomsPage(){
 // postı paylaşma penceresi
 function postShareModal(){
  const p=S.posts.find(x=>x.id===S.sharePostId); if(!p)return "";
- const link=`https://melodic-wisp-7c1829.netlify.app/post/${p.id}`;
+ const link=`https://podcto.com/post/${p.id}`;
  const who=displayName(p.wallet,p.mine);
  const snippet=(p.text||"").slice(0,80)+((p.text||"").length>80?"…":"");
  const tweet=`${snippet ? '"'+snippet+'" ':""}See it on PODCTO 👉 ${link}`;
@@ -1691,7 +1691,7 @@ function postShareModal(){
  </div>`;
 }
 // oda paylaşma penceresi: link copy + Share on X + akışta paylaş
-function roomLink(ticker){return `https://melodic-wisp-7c1829.netlify.app/room/${encodeURIComponent(ticker)}`;}
+function roomLink(ticker){return `https://podcto.com/room/${encodeURIComponent(ticker)}`;}
 function leaveConfirmModal(ticker){
  return `<div class="overlay" data-act="closeLeave">
    <div class="editcard confirm">
@@ -2321,7 +2321,7 @@ document.addEventListener("click",e=>{
  else if(a==="copyAddr"){const addr=el.dataset.addr;
    (navigator.clipboard?navigator.clipboard.writeText(addr):Promise.reject()).then(()=>{S.copied=true;render();setTimeout(()=>{S.copied=false;render();},1400);}).catch(()=>{S.copied=true;render();setTimeout(()=>{S.copied=false;render();},1400);});}
  else if(a==="closePostShare"){if((el.classList.contains("overlay")&&e.target===el)||e.target.closest(".edit-x")){S.sharePostId=null;render();}}
- else if(a==="copyPostLink"){const link="https://melodic-wisp-7c1829.netlify.app/post/"+el.dataset.id;
+ else if(a==="copyPostLink"){const link="https://podcto.com/post/"+el.dataset.id;
    (navigator.clipboard?navigator.clipboard.writeText(link):Promise.reject()).then(()=>{S.copied=true;render();setTimeout(()=>{S.copied=false;render();},1400);}).catch(()=>{S.copied=true;render();setTimeout(()=>{S.copied=false;render();},1400);});}
  else if(a==="repost"){const id=el.dataset.id;
    let on2=false;
