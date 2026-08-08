@@ -102,7 +102,8 @@ const S={
 };
 
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const short=a=>a.slice(0,4)+"…"+a.slice(-4);
+const OFFICIAL_WALLET="8KcP9QU7Kxb7BoGWGRPxpt5HwhjP8YVbwG1FG7AeS8Qy";
+const short=a=>a===OFFICIAL_WALLET?"PODCTO":(a?a.slice(0,4)+"…"+a.slice(-4):"");
 function genAddr(){const c="ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz123456789";let s="";for(let i=0;i<44;i++)s+=c[Math.floor(Math.random()*c.length)];return s;}
 function fprice(p){if(p>=1000)return"$"+p.toLocaleString(undefined,{maximumFractionDigits:0});if(p<0.000001)return"$"+p.toFixed(9);if(p<0.001)return"$"+p.toFixed(7);if(p<1)return"$"+p.toFixed(4);return"$"+p.toFixed(2);}
 function avatar(seed){let h=0;for(let i=0;i<seed.length;i++)h=(h*31+seed.charCodeAt(i))%360;return`background:conic-gradient(from ${h}deg,hsl(${h} 70% 55%),hsl(${(h+90)%360} 70% 50%),hsl(${(h+200)%360} 70% 55%))`;}
@@ -130,6 +131,7 @@ function timeAgo(iso){
 }
 function displayName(w,mine){
  if(!w)return "";
+ if(w===OFFICIAL_WALLET)return "PODCTO";
  if(isMyWallet(w,mine)&&S.profile&&S.profile.name&&S.profile.name.trim())return S.profile.name.trim();
  if(S.names&&S.names[w]&&S.names[w].trim())return S.names[w].trim();
  return short(w);
