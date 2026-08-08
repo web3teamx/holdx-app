@@ -4,7 +4,7 @@ export function initHoldx(){
   if (window.__holdx_inited) return;
   window.__holdx_inited = true;
 
-const BRAND="PODCTO", TAGLINE="your wallet speaks";
+const BRAND="PODCTO", TAGLINE="The social layer for crypto intelligence";
 const FEEDBACK_EMAIL="feedback@holdx.app"; // ← gerçek e-posta adresinle değiştir
 // Oda kapasite kademeleri: [kapasite, toplam fiyat $]. 100 bedava.
 const CAP_TIERS=[
@@ -1825,7 +1825,7 @@ function welcomeScreen(){
      <div class="wc-logo">${window.__LOGO_URL?`<img class="wc-logo-img" src="${window.__LOGO_URL}" alt="PODCTO">`:`<span class="logo lg"></span>`}</div>
      <h1 class="wc-brand">${BRAND}</h1>
      <p class="wc-tag">${TAGLINE}</p>
-     <p class="wc-desc">Where holders meet. Connect your wallet, enter rooms for the coins you hold, talk with real holders. No bots, no fake accounts — just your wallet speaks.</p>
+     <p class="wc-desc">Where holders meet. Connect your wallet, enter rooms for the coins you hold, talk with real holders. No bots, no fake accounts — the social layer for crypto intelligence.</p>
      <div class="wc-actions">
        <button class="wc-connect" data-act="connect">${I.wallet} Connect wallet</button>
        <button class="wc-explore" data-act="enterExplore">Explore first →</button>
