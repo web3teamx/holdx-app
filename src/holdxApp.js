@@ -2349,7 +2349,7 @@ document.addEventListener("click",e=>{
    }
  }
  else if(a==="expandPost"){S.expandedPosts=S.expandedPosts||{};S.expandedPosts[el.dataset.id]=true;render();}
- else if(a==="gotoRoomLink"){const tk=el.dataset.token;S.view={name:"room",token:tk};S.chatScrollBottom=true;if(window.__holdxSubscribeRoom)window.__holdxSubscribeRoom(tk);render();}
+ else if(a==="gotoRoomLink"){const tk=el.dataset.token;S.view={name:"room",token:tk};if(isJoined(tk)){S.chatScrollBottom=true;if(window.__holdxSubscribeRoom)window.__holdxSubscribeRoom(tk);}render();}
  else if(a==="gotoPostLink"){const pid=el.dataset.id;S.view={name:"post",id:pid,token:null};render();}
  else if(a==="sharePost"){S.sharePostId=el.dataset.id;render();}
  else if(a==="repostFromShare"){const id=el.dataset.id;
@@ -2823,7 +2823,7 @@ render();
     const pm=path.match(/^\/post\/([^\/]+)/);
     if(rm&&rm[1]){
       const tk=decodeURIComponent(rm[1]).toUpperCase();
-      setTimeout(function(){ S.view={name:"room",token:tk}; S.chatScrollBottom=true; if(window.__holdxSubscribeRoom)window.__holdxSubscribeRoom(tk); render(); },300);
+      setTimeout(function(){ S.view={name:"room",token:tk}; if(isJoined(tk)){S.chatScrollBottom=true; if(window.__holdxSubscribeRoom)window.__holdxSubscribeRoom(tk);} render(); },300);
     } else if(pm&&pm[1]){
       const pid=decodeURIComponent(pm[1]);
       setTimeout(function(){ S.view={name:"post",id:pid,token:null}; render(); },300);
