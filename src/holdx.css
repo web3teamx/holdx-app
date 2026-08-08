@@ -1076,3 +1076,5 @@ html,body{margin:0;overflow-x:clip;width:100%;}
 .show-more{background:none;border:none;color:var(--green);font-weight:600;font-size:14px;cursor:pointer;padding:0;}
 .show-more:hover{text-decoration:underline;}
 .post-more{color:var(--tx3);}
+.link-in,.link-ext{color:var(--green);text-decoration:none;word-break:break-all;}
+.link-in:hover,.link-ext:hover{text-decoration:underline;}

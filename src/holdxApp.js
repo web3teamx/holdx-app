@@ -751,8 +751,22 @@ function refreshPostActions(id){
  if(rtBtn){ rtBtn.classList.toggle('reposted',!!p.reposted); rtBtn.innerHTML=I.repost+' '+(p.reposts||0); }
 }
 function fmtText(t){
- // önce güvenli kaçış, sonra @isim ve $TOKEN vurgusu
+ // önce güvenli kaçış
  let h=esc(t||"");
+ // podcto oda linkleri: iç yönlendirme (odaya git)
+ h=h.replace(/https?:\/\/(?:www\.)?podcto\.com\/room\/([A-Za-z0-9]+)/g,function(m,tk){
+   return '<a class="link-in" data-act="gotoRoomLink" data-token="'+tk.toUpperCase()+'" href="#">'+m+'</a>';
+ });
+ // podcto post linkleri: iç yönlendirme
+ h=h.replace(/https?:\/\/(?:www\.)?podcto\.com\/post\/([A-Za-z0-9\-]+)/g,function(m,pid){
+   return '<a class="link-in" data-act="gotoPostLink" data-id="'+pid+'" href="#">'+m+'</a>';
+ });
+ // diğer düz URL'ler: yeni sekmede aç (zaten işaretlenmiş linkleri atla)
+ h=h.replace(/(^|[^"'>])((https?:\/\/[^\s<]+))/g,function(m,pre,url){
+   if(pre==='"'||pre==="'"||pre===">")return m;
+   return pre+'<a class="link-ext" href="'+url+'" target="_blank" rel="noopener">'+url+'</a>';
+ });
+ // @isim ve $TOKEN vurgusu
  h=h.replace(/@([^\s@]{1,24})/g,'<span class="mention-tag" data-act="openMentionProfile" data-name="$1">@$1</span>');
  h=h.replace(/\$([A-Za-z0-9]{2,15})\b/g,'<span class="cashtag">$$$1</span>');
  return h;
@@ -1863,6 +1877,14 @@ function render(){
  requestAnimationFrame(function(){ _renderQueued=false; _renderNow(); });
 }
 function _renderNow(){
+ // adres çubuğunu görünüme göre güncelle
+ try{
+   const v=S.view||{};
+   let want="/";
+   if(v.name==="room"&&v.token)want="/room/"+encodeURIComponent(v.token);
+   else if(v.name==="post"&&v.id)want="/post/"+encodeURIComponent(v.id);
+   if(window.location.pathname!==want){ window.history.replaceState(null,"",want); }
+ }catch(e){}
  var _ae=document.activeElement;
  var _aeId=(_ae&&(_ae.tagName==="INPUT"||_ae.tagName==="TEXTAREA"))?_ae.id:null;
  var _aeSel=null; try{_aeSel=_aeId?_ae.selectionStart:null;}catch(e){}
@@ -2151,6 +2173,8 @@ document.addEventListener("click",e=>{
  if((S.emojiFor||S.gifFor)&&!e.target.closest("[data-emoji-pop]")&&!e.target.closest('[data-act="toggleEmoji"]')&&!e.target.closest('[data-act="toggleGif"]')&&!e.target.closest('[data-act="pickEmoji"]')&&!e.target.closest('[data-act="pickGif"]')){S.emojiFor=null;S.gifFor=null;render();}
  const el=e.target.closest("[data-act]"); if(!el)return;
  const a=el.dataset.act;
+ // href="#" olan link/buton (iç yönlendirme) sayfayı atlatmasın
+ if(el.tagName==="A"&&(el.getAttribute("href")==="#"||a==="gotoRoomLink"||a==="gotoPostLink")){e.preventDefault();}
  if(a==="closeModalBg"&&el!==e.target)return;
  if(a==="connect"){S.entered=true;connect();}
  else if(a==="enterExplore"){S.entered=true;S.view={name:"feed",token:null};render();}
@@ -2325,6 +2349,8 @@ document.addEventListener("click",e=>{
    }
  }
  else if(a==="expandPost"){S.expandedPosts=S.expandedPosts||{};S.expandedPosts[el.dataset.id]=true;render();}
+ else if(a==="gotoRoomLink"){const tk=el.dataset.token;S.view={name:"room",token:tk};S.chatScrollBottom=true;if(window.__holdxSubscribeRoom)window.__holdxSubscribeRoom(tk);render();}
+ else if(a==="gotoPostLink"){const pid=el.dataset.id;S.view={name:"post",id:pid,token:null};render();}
  else if(a==="sharePost"){S.sharePostId=el.dataset.id;render();}
  else if(a==="repostFromShare"){const id=el.dataset.id;
    let on2=false;
