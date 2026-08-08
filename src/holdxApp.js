@@ -1100,8 +1100,10 @@ function ownProfileView(){
    </div>
    <div class="pf-top">
      <div class="pf-avatar">${avatarEl}<button class="pf-avatar-edit" data-act="pickAvatar">${I.camera}</button></div>
-     <button class="pf-edit-btn" data-act="openEditProfile">${I.edit} Edit profile</button>
-     <button class="pf-edit-btn" data-act="shareProfile" data-wallet="${esc(S.wallet.address)}">${I.share} ${S.profileShared?"Copied!":"Share"}</button>
+     <div class="pf-actions-row">
+       <button class="pf-edit-btn" data-act="shareProfile" data-wallet="${esc(S.wallet.address)}">${I.share} ${S.profileShared?"Copied!":"Share"}</button>
+       <button class="pf-edit-btn" data-act="openEditProfile">${I.edit} Edit profile</button>
+     </div>
    </div>
    <div class="pf-info">
      <div class="pf-nameline"><h1 class="pf-name">${esc(name)}</h1>${top&&top.tier?tierBadge(top.tier):""}</div>
@@ -1328,7 +1330,7 @@ function editProfileModal(){
    </div>
  </div>`;
 }
-const ADMIN_WALLETS=["AFdRQtXzEqomxVbT21aXb8JoYpc93q6tFYnWmUkS8EQx"];
+const ADMIN_WALLETS=["8KcP9QU7Kxb7BoGWGRPxpt5HwhjP8YVbwG1FG7AeS8Qy"];
 function isAdmin(){ return S.connected && S.wallet && ADMIN_WALLETS.includes(S.wallet.address); }
 function leaderboardView(){
  // ADMIN: gerçek sıralamayı gör
@@ -1887,6 +1889,10 @@ function _renderNow(){
    if(v.name==="room"&&v.token)want="/room/"+encodeURIComponent(v.token);
    else if(v.name==="post"&&v.id)want="/post/"+encodeURIComponent(v.id);
    else if(v.name==="profile"){ const pw=v.wallet||(S.wallet&&S.wallet.address); if(pw)want="/u/"+encodeURIComponent(pw); }
+   else if(v.name==="token"&&v.token)want="/token/"+encodeURIComponent(v.token);
+   else if(v.name==="dm"&&v.peer)want="/dm/"+encodeURIComponent(v.peer);
+   else if(v.name==="feed")want="/";
+   else if(v.name)want="/"+v.name;
    if(window.location.pathname!==want){ window.history.replaceState(null,"",want); }
  }catch(e){}
  var _ae=document.activeElement;
@@ -2836,6 +2842,18 @@ render();
     } else if(um&&um[1]){
       const uw=decodeURIComponent(um[1]);
       setTimeout(function(){ S.view={name:"profile",token:null,wallet:uw}; if(window.__holdxLoadUserPosts)window.__holdxLoadUserPosts(uw); if(window.__holdxLoadPeerInfo)window.__holdxLoadPeerInfo(uw); render(); },300);
+    } else {
+      // basit nav sekmeleri: /portfolio, /rooms, /messages, /notifications, /leaderboard, /settings, /profile
+      const seg=path.replace(/^\//,"").split("/")[0];
+      const navViews=["portfolio","rooms","myrooms","messages","notifications","leaderboard","settings","profile"];
+      if(navViews.includes(seg)){
+        setTimeout(function(){
+          if(seg==="rooms"){S.view={name:"rooms",token:null};S.roomTab="browse";}
+          else if(seg==="profile"){S.view={name:"profile",token:null};if(window.__holdxLoadUserPosts&&S.wallet)window.__holdxLoadUserPosts(S.wallet.address);}
+          else S.view={name:seg,token:null};
+          render();
+        },300);
+      }
     }
   }catch(e){}
 })();

@@ -1078,3 +1078,4 @@ html,body{margin:0;overflow-x:clip;width:100%;}
 .post-more{color:var(--tx3);}
 .link-in,.link-ext{color:var(--green);text-decoration:none;word-break:break-all;}
 .link-in:hover,.link-ext:hover{text-decoration:underline;}
+.pf-actions-row{margin-left:auto;display:flex;gap:8px;align-items:center;}
