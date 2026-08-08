@@ -757,6 +757,22 @@ function fmtText(t){
  h=h.replace(/\$([A-Za-z0-9]{2,15})\b/g,'<span class="cashtag">$$$1</span>');
  return h;
 }
+function renderPostText(p){
+  let raw=(p.text||"");
+  // 2'den fazla ardışık boş satırı en fazla 2'ye indir (spam engelle)
+  raw=raw.replace(/\n{3,}/g,"\n\n");
+  const lines=raw.split("\n");
+  const tooLong=raw.length>280||lines.length>10;
+  const expanded=S.expandedPosts&&S.expandedPosts[p.id];
+  if(tooLong&&!expanded){
+    // ilk ~200 karakter veya ilk 8 satır (hangisi önce biterse)
+    let cut=raw.slice(0,220);
+    const cutLines=cut.split("\n").slice(0,8).join("\n");
+    if(cutLines.length<cut.length)cut=cutLines;
+    return `<p class="post-text">${fmtText(cut)}<span class="post-more">… </span><button class="show-more" data-act="expandPost" data-id="${p.id}">Show more</button></p>`;
+  }
+  return `<p class="post-text">${fmtText(raw)}</p>`;
+}
 function postCard(p){
  const tk=tokenBy(p.token)||{color:"#8A8A96"};
  const tier=postTier(p);
@@ -773,7 +789,7 @@ function postCard(p){
        ${(S.connected&&S.wallet&&p.wallet===S.wallet.address)?`<button class="post-menu-item danger" data-act="deletePost" data-id="${p.id}">${I.trash} Delete</button>`:""}
      </div>`:""}
    </div>
-  </div><p class="post-text">${fmtText(p.text)}</p>
+  </div>${renderPostText(p)}
   ${p.quoted?`<div class="quoted-post" data-act="openPost" data-id="${p.quoted.id}">
     <div class="qp-head">${ringAvatar(p.quoted.wallet,null,"xs",p.quoted.wallet)}<span class="qp-name">${esc(displayName(p.quoted.wallet))}</span></div>
     <div class="qp-text">${esc((p.quoted.text||"").slice(0,180))}</div>
@@ -2196,7 +2212,11 @@ document.addEventListener("click",e=>{
  else if(a==="shareToFeed"){const tk=el.dataset.token;
    if(!S.connected){S.shareOpen=null;S.view={name:"feed",token:null};render();return;}
    upsertToken(tokenBy(tk)||{symbol:tk,name:"",price:0,chg:0});
-   S.posts.unshift({id:Date.now(),wallet:myTag(),mine:true,token:tk,verified:holds(tk),time:"now",text:`Join the $${tk} room! 👇 ${roomLink(tk)}`,media:null,likes:0,replies:0,reposts:0,liked:false});
+   const _txt=`Join the $${tk} room! 👇 ${roomLink(tk)}`;
+   const _id=Date.now();
+   S.posts.unshift({id:_id,wallet:(S.wallet?S.wallet.address:myTag()),mine:true,token:tk,verified:holds(tk),created_at:new Date().toISOString(),time:"now",text:_txt,media:null,likes:0,replies:0,reposts:0,liked:false});
+   // veritabanına kaydet (kalıcı olsun)
+   if(window.__holdxSavePost && S.wallet){ window.__holdxSavePost({ wallet:S.wallet.address, text:_txt, token:tk, media:null, quoted_post_id:null }, _id); }
    S.shareOpen=null;S.view={name:"feed",token:null};render();}
  else if(a==="nav"){const v=el.dataset.view;
    if(v==="rooms"){S.view={name:"rooms",token:null};S.roomTab="browse";}
@@ -2304,6 +2324,7 @@ document.addEventListener("click",e=>{
      render();
    }
  }
+ else if(a==="expandPost"){S.expandedPosts=S.expandedPosts||{};S.expandedPosts[el.dataset.id]=true;render();}
  else if(a==="sharePost"){S.sharePostId=el.dataset.id;render();}
  else if(a==="repostFromShare"){const id=el.dataset.id;
    let on2=false;
@@ -2767,6 +2788,22 @@ setInterval(async()=>{
 },2500);
 
 render();
+
+// URL yönlendirmesi: /room/TICKER veya /post/ID ile gelindiyse aç
+(function(){
+  try{
+    const path=window.location.pathname||"";
+    const rm=path.match(/^\/room\/([^\/]+)/);
+    const pm=path.match(/^\/post\/([^\/]+)/);
+    if(rm&&rm[1]){
+      const tk=decodeURIComponent(rm[1]).toUpperCase();
+      setTimeout(function(){ S.view={name:"room",token:tk}; S.chatScrollBottom=true; if(window.__holdxSubscribeRoom)window.__holdxSubscribeRoom(tk); render(); },300);
+    } else if(pm&&pm[1]){
+      const pid=decodeURIComponent(pm[1]);
+      setTimeout(function(){ S.view={name:"post",id:pid,token:null}; render(); },300);
+    }
+  }catch(e){}
+})();
 
 // live fiyatları arka planda çek (elle yazılı örnek fiyatların yerine gerçek veri)
 refreshTokenPrices();
