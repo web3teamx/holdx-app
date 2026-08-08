@@ -1101,6 +1101,7 @@ function ownProfileView(){
    <div class="pf-top">
      <div class="pf-avatar">${avatarEl}<button class="pf-avatar-edit" data-act="pickAvatar">${I.camera}</button></div>
      <button class="pf-edit-btn" data-act="openEditProfile">${I.edit} Edit profile</button>
+     <button class="pf-edit-btn" data-act="shareProfile" data-wallet="${esc(S.wallet.address)}">${I.share} ${S.profileShared?"Copied!":"Share"}</button>
    </div>
    <div class="pf-info">
      <div class="pf-nameline"><h1 class="pf-name">${esc(name)}</h1>${top&&top.tier?tierBadge(top.tier):""}</div>
@@ -1885,6 +1886,7 @@ function _renderNow(){
    let want="/";
    if(v.name==="room"&&v.token)want="/room/"+encodeURIComponent(v.token);
    else if(v.name==="post"&&v.id)want="/post/"+encodeURIComponent(v.id);
+   else if(v.name==="profile"){ const pw=v.wallet||(S.wallet&&S.wallet.address); if(pw)want="/u/"+encodeURIComponent(pw); }
    if(window.location.pathname!==want){ window.history.replaceState(null,"",want); }
  }catch(e){}
  var _ae=document.activeElement;
@@ -2351,6 +2353,7 @@ document.addEventListener("click",e=>{
    }
  }
  else if(a==="expandPost"){S.expandedPosts=S.expandedPosts||{};S.expandedPosts[el.dataset.id]=true;render();}
+ else if(a==="shareProfile"){const w=el.dataset.wallet;const link="https://podcto.com/u/"+w;(navigator.clipboard?navigator.clipboard.writeText(link):Promise.reject()).then(function(){S.profileShared=true;render();setTimeout(function(){S.profileShared=false;render();},1600);}).catch(function(){S.profileShared=true;render();setTimeout(function(){S.profileShared=false;render();},1600);});}
  else if(a==="gotoRoomLink"){const tk=el.dataset.token;S.view={name:"room",token:tk};if(isJoined(tk)){S.chatScrollBottom=true;if(window.__holdxSubscribeRoom)window.__holdxSubscribeRoom(tk);}render();}
  else if(a==="gotoPostLink"){const pid=el.dataset.id;S.view={name:"post",id:pid,token:null};render();}
  else if(a==="sharePost"){S.sharePostId=el.dataset.id;render();}
@@ -2823,12 +2826,16 @@ render();
     const path=window.location.pathname||"";
     const rm=path.match(/^\/room\/([^\/]+)/);
     const pm=path.match(/^\/post\/([^\/]+)/);
+    const um=path.match(/^\/u\/([^\/]+)/);
     if(rm&&rm[1]){
       const tk=decodeURIComponent(rm[1]).toUpperCase();
       setTimeout(function(){ S.view={name:"room",token:tk}; if(isJoined(tk)){S.chatScrollBottom=true; if(window.__holdxSubscribeRoom)window.__holdxSubscribeRoom(tk);} render(); },300);
     } else if(pm&&pm[1]){
       const pid=decodeURIComponent(pm[1]);
       setTimeout(function(){ S.view={name:"post",id:pid,token:null}; render(); },300);
+    } else if(um&&um[1]){
+      const uw=decodeURIComponent(um[1]);
+      setTimeout(function(){ S.view={name:"profile",token:null,wallet:uw}; if(window.__holdxLoadUserPosts)window.__holdxLoadUserPosts(uw); if(window.__holdxLoadPeerInfo)window.__holdxLoadPeerInfo(uw); render(); },300);
     }
   }catch(e){}
 })();
