@@ -66,10 +66,13 @@ function tokColor(t){let h=0;for(let i=0;i<t.length;i++)h=(h*37+t.charCodeAt(i))
    Her kayıt live veri kaynağından gelir → gerçek fiyat + contract address taşır (adresle fiyat %100 doğru çekilir).
    Aşağısı sadece DEMO cüzdan bakiyesinin gösterilebilmesi için ekilmiş birkaç örnek token. */
 const TOKREG={
- SOL:{t:"SOL",name:"Solana",price:168.4,chg:3.2,mc:"92.1B",color:tokColor("SOL"),address:"So11111111111111111111111111111111111111112",chain:"solana"},
+ SOL:{t:"SOL",name:"Solana",price:0,chg:0,mc:"—",color:tokColor("SOL"),address:"So11111111111111111111111111111111111111112",chain:"solana",cgId:"solana",official:true},
+ BTC:{t:"BTC",name:"Bitcoin",price:0,chg:0,mc:"—",color:tokColor("BTC"),chain:"bitcoin",cgId:"bitcoin",official:true},
+ BNB:{t:"BNB",name:"BNB",price:0,chg:0,mc:"—",color:tokColor("BNB"),chain:"bsc",cgId:"binancecoin",official:true},
+ XRP:{t:"XRP",name:"XRP",price:0,chg:0,mc:"—",color:tokColor("XRP"),chain:"xrp",cgId:"ripple",official:true},
  BONK:{t:"BONK",name:"Bonk",price:0.0000231,chg:8.1,mc:"1.6B",color:tokColor("BONK"),address:"DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",chain:"solana"},
  POPCAT:{t:"POPCAT",name:"Popcat",price:0.91,chg:12.7,mc:"894M",color:tokColor("POPCAT"),address:"7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr",chain:"solana"},
- ETH:{t:"ETH",name:"Ethereum",price:0,chg:0,mc:"—",color:tokColor("ETH"),chain:"ethereum",address:"0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",source:"dex"},
+ ETH:{t:"ETH",name:"Ethereum",price:0,chg:0,mc:"—",color:tokColor("ETH"),chain:"ethereum",address:"0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",source:"dex",cgId:"ethereum",official:true},
 };
 
 const MY_HOLDINGS={
@@ -171,6 +174,8 @@ window.__holdxApplyNames=function(map){
 };
 function chart(seed){let s=0;for(let i=0;i<seed.length;i++)s+=seed.charCodeAt(i);const o=[];let v=40;for(let i=0;i<40;i++){s=(s*9301+49297)%233280;v=Math.max(12,Math.min(96,v+((s/233280)-0.42)*26));o.push(v);}return o;}
 function livePrice(t){if(!S.livePrices[t]){const tk=tokenBy(t);S.livePrices[t]={price:(tk&&tk.price)||0,dir:0};}return S.livePrices[t];}
+const OFFICIAL_ROOMS=["BTC","ETH","SOL","BNB","XRP"];
+function isOfficialRoom(t){return OFFICIAL_ROOMS.includes((t||"").toUpperCase());}
 function isCustomRoom(t){return S.customRooms.some(r=>r.ticker===t);}
 function isJoined(t){return !!S.joined[t];}
 function roomFull(t){return false;} // odalar unlimited, hiç dolmaz
@@ -1491,7 +1496,7 @@ function browseRoomsView(){
    <div class="rc-body">
      <div class="rc-top"><span class="mono rc-tk">$${r.ticker}</span><span class="pubbadge">${I.globe} public</span>${full?`<span class="fulltag">${I.lock} dolu</span>`:""}</div>
      <div class="rc-name">${t.name||""}</div>
-     <div class="rc-meta">kurucu ${esc(r.creator)} · <span class="mono ${lp.dir>=0?"up":"down"}">${fprice(lp.price)}</span></div>
+     <div class="rc-meta">${r.official||r.creator==="__official__"?"Official":"by "+esc(r.creator)} · <span class="mono ${lp.dir>=0?"up":"down"}">${fprice(lp.price)}</span></div>
      <div class="rc-capacity">
        ${unlimited
          ? `<span class="rc-capnum mono">${r.members.toLocaleString()} members · <span class="rc-unlim">∞ unlimited</span></span>`
@@ -1577,6 +1582,7 @@ function createRoomView(){
      <input class="searchinput" id="createTicker" placeholder="paste contract address (CA)" value="${esc(S.createTicker||"")}" maxlength="64" autocomplete="off" ${picked?"disabled":""}>
    </div>
    <p class="ca-note">Search by contract address (CA) only.</p>
+   ${S.officialRoomError?`<p class="official-room-note">${I.globe} BTC, ETH, SOL, BNB and XRP have official PODCTO rooms — you can't create these. Just open them from the Rooms list.</p>`:""}
    <div id="searchResults" class="searchresults">${createResultsHtml()}</div>
   </div>
   ${picked&&!exists?`
@@ -1607,7 +1613,7 @@ function roomView(ticker){
        <div><span class="js-v mono ${t.chg>=0?"up":"down"}">${t.chg>=0?"+":""}${t.chg}%</span><span class="js-l">24s</span></div>
        <div><span class="js-v mono">${(room?room.members:0).toLocaleString()}${cap===Infinity?"":"/"+capLabel(cap)}</span><span class="js-l">members</span></div>
      </div>
-     <div class="join-lockinfo">${I.globe} Public room · creator ${esc(room.creator)}</div>
+     <div class="join-lockinfo">${I.globe} ${room.official||room.creator==="__official__"?"Official PODCTO room":"Public room · creator "+esc(room.creator)}</div>
      ${(function(){
        if(full) return `<div class="room-fullbox">${I.lock} This room is full (${capLabel(cap)}/${capLabel(cap)}).</div>`;
        return `<button class="joinbig" data-act="joinRoom" data-token="${ticker}">Join room</button>
@@ -1999,7 +2005,15 @@ window.__holdxApplyRooms=function(rows){
     if(S.wallet && r.creator===S.wallet.address){ S.joined[r.ticker]=true; }
     return {ticker:r.ticker, creator:r.creator, members:r.members||1, cap:cap, address:r.address||null, createdAt:""};
   });
-  S.customRooms = mapped;
+  // resmi odaları (BTC/ETH/SOL/BNB/XRP) her zaman ekle — kurucu gizli, silinemez
+  const officialCards=OFFICIAL_ROOMS.map(function(tk){
+    const dbRoom=rows.find(function(r){return (r.ticker||"").toUpperCase()===tk;});
+    const memberCount=dbRoom?(dbRoom.members||0):0;
+    return {ticker:tk, creator:"__official__", members:memberCount, cap:Infinity, address:(TOKREG[tk]&&TOKREG[tk].address)||null, createdAt:"", official:true};
+  });
+  // DB'den gelen odalardan resmi ticker'lari çıkar (çift olmasın), resmi olanları başa koy
+  const nonOfficial=mapped.filter(function(m){return !isOfficialRoom(m.ticker);});
+  S.customRooms = officialCards.concat(nonOfficial);
   render();
   // yeni odalarin fiyatlarini hemen cek
   if(typeof refreshTokenPrices==="function"){ refreshTokenPrices(); }
@@ -2539,12 +2553,13 @@ document.addEventListener("click",e=>{
  }
  else if(a==="roomTab"){S.roomTab=el.dataset.tab;if(el.dataset.tab==="create"){S.createTicker="";S.searchResults=[];S.picked=null;S.searchErr=false;}render();}
  else if(a==="openCreate"){if(!S.connected)connect();S.view={name:"rooms",token:null};S.roomTab="create";S.createTicker="";S.searchResults=[];S.picked=null;render();}
- else if(a==="pickToken"){const r=S.searchResults[+el.dataset.i];if(r){S.picked=r;S.searchResults=[];S.createCap=100;}render();}
+ else if(a==="pickToken"){const r=S.searchResults[+el.dataset.i];if(r){if(isOfficialRoom(r.symbol)){S.officialRoomError=true;S.searchResults=[];render();return;}S.officialRoomError=false;S.picked=r;S.searchResults=[];S.createCap=100;}render();}
  else if(a==="unpick"){S.picked=null;S.createTicker="";S.searchResults=[];render();}
  else if(a==="pickCap"){S.createCap=+el.dataset.cap;render();}
  else if(a==="payCreate"){
   const p=S.picked;
   if(!p||isCustomRoom(p.symbol))return;
+  if(isOfficialRoom(p.symbol)){ S.officialRoomError=true; render(); return; } // resmi oda kurulamaz
   if(myRoom())return; // 1 cüzdan = 1 oda kuralı (bu devam ediyor)
   S.createHoldError=false;
   const tier={cap:Infinity,price:0}; // kapasite kaldırıldı, unlimited
@@ -2823,6 +2838,13 @@ setInterval(async()=>{
    lp.price=Math.max(lp.price*(1+delta),1e-9);lp.dir=delta>=0?1:-1;flash(lp.dir);
  }
 },2500);
+
+// resmi odaları başlangıçta yükle (App.jsx loadRooms gelene kadar görünsünler)
+if(!S.customRooms||!S.customRooms.length){
+  S.customRooms=OFFICIAL_ROOMS.map(function(tk){
+    return {ticker:tk, creator:"__official__", members:0, cap:Infinity, address:(TOKREG[tk]&&TOKREG[tk].address)||null, createdAt:"", official:true};
+  });
+}
 
 render();
 
