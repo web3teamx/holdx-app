@@ -1080,3 +1080,5 @@ html,body{margin:0;overflow-x:clip;width:100%;}
 .link-in:hover,.link-ext:hover{text-decoration:underline;}
 .pf-actions-row{margin-left:auto;display:flex;gap:8px;align-items:center;}
 .official-room-note{background:rgba(52,227,154,.1);border:1px solid var(--green);color:var(--green);padding:10px 12px;border-radius:10px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px;margin:8px 0;}
+/* token logo (img olarak) - daire ile ayni boyut/sekil */
+img.tokenmark{object-fit:cover;background:transparent;}

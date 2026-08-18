@@ -66,13 +66,19 @@ function tokColor(t){let h=0;for(let i=0;i<t.length;i++)h=(h*37+t.charCodeAt(i))
    Her kayıt live veri kaynağından gelir → gerçek fiyat + contract address taşır (adresle fiyat %100 doğru çekilir).
    Aşağısı sadece DEMO cüzdan bakiyesinin gösterilebilmesi için ekilmiş birkaç örnek token. */
 const TOKREG={
- SOL:{t:"SOL",name:"Solana",price:0,chg:0,mc:"—",color:tokColor("SOL"),address:"So11111111111111111111111111111111111111112",chain:"solana",cgId:"solana",official:true},
- BTC:{t:"BTC",name:"Bitcoin",price:0,chg:0,mc:"—",color:tokColor("BTC"),chain:"bitcoin",cgId:"bitcoin",official:true},
- BNB:{t:"BNB",name:"BNB",price:0,chg:0,mc:"—",color:tokColor("BNB"),chain:"bsc",cgId:"binancecoin",official:true},
- XRP:{t:"XRP",name:"XRP",price:0,chg:0,mc:"—",color:tokColor("XRP"),chain:"xrp",cgId:"ripple",official:true},
+ SOL:{t:"SOL",name:"Solana",price:0,chg:0,mc:"—",color:tokColor("SOL"),address:"So11111111111111111111111111111111111111112",chain:"solana",cgId:"solana",official:true,logo:"https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/solana/info/logo.png"},
+ BTC:{t:"BTC",name:"Bitcoin",price:0,chg:0,mc:"—",color:tokColor("BTC"),chain:"bitcoin",cgId:"bitcoin",official:true,logo:"https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/128/color/btc.png"},
+ BNB:{t:"BNB",name:"BNB",price:0,chg:0,mc:"—",color:tokColor("BNB"),chain:"bsc",cgId:"binancecoin",official:true,logo:"https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/128/color/bnb.png"},
+ XRP:{t:"XRP",name:"XRP",price:0,chg:0,mc:"—",color:tokColor("XRP"),chain:"xrp",cgId:"ripple",official:true,logo:"https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/128/color/xrp.png"},
  BONK:{t:"BONK",name:"Bonk",price:0.0000231,chg:8.1,mc:"1.6B",color:tokColor("BONK"),address:"DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",chain:"solana"},
  POPCAT:{t:"POPCAT",name:"Popcat",price:0.91,chg:12.7,mc:"894M",color:tokColor("POPCAT"),address:"7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr",chain:"solana"},
- ETH:{t:"ETH",name:"Ethereum",price:0,chg:0,mc:"—",color:tokColor("ETH"),chain:"ethereum",address:"0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",source:"dex",cgId:"ethereum",official:true},
+ ETH:{t:"ETH",name:"Ethereum",price:0,chg:0,mc:"—",color:tokColor("ETH"),chain:"ethereum",address:"0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",source:"dex",cgId:"ethereum",official:true,logo:"https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/128/color/eth.png"},
+ DOGE:{t:"DOGE",name:"Dogecoin",price:0,chg:0,mc:"—",color:tokColor("DOGE"),chain:"dogecoin",cgId:"dogecoin",official:true,logo:"https://coin-images.coingecko.com/coins/images/5/large/dogecoin.png"},
+ TRX:{t:"TRX",name:"TRON",price:0,chg:0,mc:"—",color:tokColor("TRX"),chain:"tron",cgId:"tron",official:true,logo:"https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/128/color/trx.png"},
+ SUI:{t:"SUI",name:"Sui",price:0,chg:0,mc:"—",color:tokColor("SUI"),chain:"sui",cgId:"sui",official:true,logo:"https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/sui/info/logo.png"},
+ ARB:{t:"ARB",name:"Arbitrum",price:0,chg:0,mc:"—",color:tokColor("ARB"),chain:"arbitrum",cgId:"arbitrum",official:true,logo:"https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/arbitrum/info/logo.png"},
+ EIGEN:{t:"EIGEN",name:"EigenLayer",price:0,chg:0,mc:"—",color:tokColor("EIGEN"),chain:"ethereum",address:"0xec53bF9167f50cDEB3Ae105f56099aaaB9061F83",cgId:"eigenlayer",official:true,logo:"https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xec53bF9167f50cDEB3Ae105f56099aaaB9061F83/logo.png"},
+ HYPE:{t:"HYPE",name:"Hyperliquid",price:0,chg:0,mc:"—",color:tokColor("HYPE"),chain:"hyperliquid",cgId:"hyperliquid",official:true,logo:"https://coin-images.coingecko.com/coins/images/50882/large/hyperliquid.jpg"},
 };
 
 const MY_HOLDINGS={
@@ -114,7 +120,7 @@ function tokenBy(t){return TOKREG[t];}
 function allTokens(){return Object.values(TOKREG);}
 function upsertToken(r){ // arama sonucunu registry'ye ekle/güncelle
  const sym=(r.symbol||r.t||"").toUpperCase(); const prev=TOKREG[sym]||{};
- TOKREG[sym]={t:sym,name:r.name,price:r.price,chg:+(+(r.chg||0)).toFixed(1),mc:typeof r.mc==="number"?fmtMc(r.mc):(r.mc||"—"),color:tokColor(sym),address:r.address||prev.address,chain:r.chain||prev.chain||"solana",source:r.source||prev.source,cgId:r.cgId||prev.cgId};
+ TOKREG[sym]={t:sym,name:r.name,price:r.price,chg:+(+(r.chg||0)).toFixed(1),mc:typeof r.mc==="number"?fmtMc(r.mc):(r.mc||"—"),color:tokColor(sym),address:r.address||prev.address,chain:r.chain||prev.chain||"solana",source:r.source||prev.source,cgId:r.cgId||prev.cgId,logo:r.logo||prev.logo||null};
  return TOKREG[sym];
 }
 function holds(t){return S.connected&&!!S.wallet.holdings[t];}
@@ -174,8 +180,10 @@ window.__holdxApplyNames=function(map){
 };
 function chart(seed){let s=0;for(let i=0;i<seed.length;i++)s+=seed.charCodeAt(i);const o=[];let v=40;for(let i=0;i<40;i++){s=(s*9301+49297)%233280;v=Math.max(12,Math.min(96,v+((s/233280)-0.42)*26));o.push(v);}return o;}
 function livePrice(t){if(!S.livePrices[t]){const tk=tokenBy(t);S.livePrices[t]={price:(tk&&tk.price)||0,dir:0};}return S.livePrices[t];}
-const OFFICIAL_ROOMS=["BTC","ETH","SOL","BNB","XRP"];
+const OFFICIAL_ROOMS=["BTC","ETH","SOL","BNB","XRP","DOGE","TRX","SUI","ARB","EIGEN","HYPE"];
 function isOfficialRoom(t){return OFFICIAL_ROOMS.includes((t||"").toUpperCase());}
+function tokenLogo(tk){ const t=TOKREG[(tk||"").toUpperCase()]; return (t&&t.logo)||null; }
+function tokenMarkHtml(tk,cls,directLogo){ const logo=directLogo||tokenLogo(tk); const c=tokColor(tk); const k=cls?(" "+cls):""; if(logo){ return '<img class="tokenmark'+k+'" src="'+esc(logo)+'" alt="" onerror="this.removeAttribute(\'src\');this.style.background=\''+c+'\'">'; } return '<span class="tokenmark'+k+'" style="background:'+c+'"></span>'; }
 function isCustomRoom(t){return S.customRooms.some(r=>r.ticker===t);}
 function isJoined(t){return !!S.joined[t];}
 function roomFull(t){return false;} // odalar unlimited, hiç dolmaz
@@ -329,7 +337,8 @@ async function cgSearch(q){
    const p=prices[c.id]||{};
    return {source:"cg", cgId:c.id, symbol:(c.symbol||"").toUpperCase(), name:c.name,
      price:p.usd!=null?p.usd:null, chg:p.usd_24h_change||0, mc:p.usd_market_cap||0,
-     rank:c.market_cap_rank||9999, chain:"cex", address:null};
+     rank:c.market_cap_rank||9999, chain:"cex", address:null,
+     logo:(c.large||c.thumb||"").replace("/thumb/","/large/").replace("/small/","/large/")||null};
  }).filter(x=>x.price!=null);
  cgCache[ck]={t:Date.now(),v:out};
  return out;
@@ -389,7 +398,8 @@ async function dexSearch(q){
      source:"dex", address:p.baseToken.address, chain:p.chainId,
      symbol:p.baseToken.symbol, name:p.baseToken.name,
      price:parseFloat(p.priceUsd), chg:(p.priceChange&&p.priceChange.h24)||0,
-     mc:p.marketCap||p.fdv||0, _liq:liq
+     mc:p.marketCap||p.fdv||0, _liq:liq,
+     logo:(p.info&&p.info.imageUrl)||null
    };
  }
  return Object.values(byToken);
@@ -520,6 +530,22 @@ async function tokenSearch(q){
  }
  return unique.slice(0,14);
 }
+// CoinGecko: kontrat adresinden logo çek (en doğru kaynak)
+const _cgLogoCache={};
+async function cgLogoByAddress(address,chain){
+  if(!address)return null;
+  const key=(chain||"")+":"+address.toLowerCase();
+  if(_cgLogoCache[key]!==undefined)return _cgLogoCache[key];
+  // CoinGecko asset platform id eşlemesi
+  const platMap={ethereum:"ethereum",eth:"ethereum",bsc:"binance-smart-chain",base:"base",polygon:"polygon-pos",arbitrum:"arbitrum-one",optimism:"optimistic-ethereum",avalanche:"avalanche",solana:"solana"};
+  const plat=platMap[(chain||"").toLowerCase()];
+  if(!plat){ _cgLogoCache[key]=null; return null; }
+  try{
+    const d=await cgFetch(`/coins/${plat}/contract/${address}`);
+    const logo=(d&&d.image&&(d.image.large||d.image.small||d.image.thumb))||null;
+    _cgLogoCache[key]=logo; return logo;
+  }catch(e){ _cgLogoCache[key]=null; return null; }
+}
 async function dexPrice(address,chain){
  // adres formatına göre doğru ağ (chain yanlış/eksikse düzelt)
  const isEvm=/^0x[a-fA-F0-9]{40}$/.test(address||"");
@@ -539,7 +565,7 @@ async function dexPrice(address,chain){
  });
  if(!mine.length)return null;
  const best=mine.sort((a,b)=>((b.liquidity&&b.liquidity.usd)||0)-((a.liquidity&&a.liquidity.usd)||0))[0];
- return {price:parseFloat(best.priceUsd), chg:(best.priceChange&&best.priceChange.h24)||0, mc:best.marketCap||best.fdv||0};
+ return {price:parseFloat(best.priceUsd), chg:(best.priceChange&&best.priceChange.h24)||0, mc:best.marketCap||best.fdv||0, logo:(best.info&&best.info.imageUrl)||null};
 }
 function fmtMc(n){if(!n)return"—";if(n>=1e9)return"$"+(n/1e9).toFixed(2)+"B";if(n>=1e6)return"$"+(n/1e6).toFixed(1)+"M";if(n>=1e3)return"$"+(n/1e3).toFixed(0)+"K";return"$"+n.toFixed(0);}
 let _searchTimer=null;
@@ -606,7 +632,7 @@ function postSearchResultsHtml(){
  if(!S.postResults.length)return `<p class="searchhint">"${esc(q)}" no results.</p>`;
  return `<div class="resultlist">${S.postResults.map((r,i)=>`
    <button class="resultrow" data-act="pickPostToken" data-i="${i}">
-     <span class="tokenmark sm" style="background:${tokColor(r.symbol)}"></span>
+     ${tokenMarkHtml(r.symbol,"sm",r.logo)}
      <div class="rr-body"><span class="rr-line"><span class="mono rr-tk">$${esc(r.symbol)}</span>${chainBadge(r.chain)}${S.customRooms.find(x=>x.ticker.toUpperCase()===(r.symbol||"").toUpperCase())?`<span class="rr-hasroom">● has room</span>`:""}</span><span class="rr-name">${esc(r.name)}${r.mc?` · mcap ${typeof r.mc==="number"?fmtMc(r.mc):r.mc}`:""}${r._liq?` · likidite ${fmtMc(r._liq)}`:""}${r.address?` · <span class="mono rr-ca">${r.address.slice(0,5)}…${r.address.slice(-4)}</span>`:""}</span></div>
      <span class="mono rr-price ${r.chg>=0?"up":"down"}">${fprice(r.price)}</span>
    </button>`).join("")}</div>`;
@@ -646,13 +672,21 @@ async function refreshTokenPrices(){
        if(!d){
          if(tok.address){ d=await dexPrice(tok.address,tok.chain); }
          else if(tok.cgId){ try{const pr=await cgFetch(`/simple/price?ids=${encodeURIComponent(tok.cgId)}&vs_currencies=usd&include_24hr_change=true&include_market_cap=true`);const o=pr[tok.cgId];if(o&&o.usd!=null)d={price:o.usd,chg:o.usd_24h_change||0,mc:o.usd_market_cap||0};}catch(e){} }
-         else { const res=await dexSearch(tok.t); const ex=res.find(r=>r.symbol.toUpperCase()===tok.t.toUpperCase())||res[0]; if(ex)d={price:ex.price,chg:ex.chg,mc:ex.mc}; }
+         else { const res=await dexSearch(tok.t); const ex=res.find(r=>r.symbol.toUpperCase()===tok.t.toUpperCase())||res[0]; if(ex)d={price:ex.price,chg:ex.chg,mc:ex.mc,logo:ex.logo||null}; }
          // taze veriyi önbelleğe yaz (herkes 10 sn buradan okur)
          if(d&&d.price>0&&window.__holdxSetCachedPrice){ window.__holdxSetCachedPrice(tok.t,d.price,+(+d.chg).toFixed(1),d.mc||0,tok.address||null,tok.chain||null); }
        }
+       // logo: resmi coinler sabit. Diğerleri: önce DexScreener, o yoksa CoinGecko (adresle)
+       if(!tok.official && !tok.logo && tok.address){
+         try{ const lp=await dexPrice(tok.address,tok.chain); if(lp&&lp.logo)tok.logo=lp.logo; }catch(e){}
+         if(!tok.logo && !tok._cgLogoTried){
+           tok._cgLogoTried=true;
+           try{ const cgl=await cgLogoByAddress(tok.address,tok.chain); if(cgl)tok.logo=cgl; }catch(e){}
+         }
+       }
        if(d===null&&tok.address){ tok.price=0; tok.mc="—"; }
        if(d&&d.price>0){
-         tok.price=d.price; tok.chg=+(+d.chg).toFixed(1); if(d.mc)tok.mc=fmtMc(d.mc);
+         tok.price=d.price; tok.chg=+(+d.chg).toFixed(1); if(d.mc)tok.mc=fmtMc(d.mc); if(d.logo&&!tok.logo)tok.logo=d.logo;
          if(S.livePrices[tok.t])S.livePrices[tok.t].price=d.price; else S.livePrices[tok.t]={price:d.price,dir:0};
        }
      }catch(e){}
@@ -970,7 +1004,7 @@ function exploreResultsHtml(){
    if(!S.exploreResults.length)return `<p class="searchhint">"${esc(q)}" no results.</p>`;
    return `<div class="resultlist">${S.exploreResults.map((r,i)=>`
      <button class="resultrow" data-act="openResult" data-i="${i}">
-       <span class="tokenmark sm" style="background:${tokColor(r.symbol)}"></span>
+       ${tokenMarkHtml(r.symbol,"sm",r.logo)}
        <div class="rr-body"><span class="rr-line"><span class="mono rr-tk">$${esc(r.symbol)}</span>${chainBadge(r.chain)}</span><span class="rr-name">${esc(r.name)}</span></div>
        <span class="mono rr-price ${r.chg>=0?"up":"down"}">${fprice(r.price)}</span>
      </button>`).join("")}</div>`;
@@ -997,7 +1031,7 @@ function tokenPageView(ticker){
  const addr=t.address;
  const mcTxt=typeof t.mc==="number"?fmtMc(t.mc):(t.mc||"—");
  return `<button class="back" data-act="nav" data-view="tokens">← Token ara</button>
-  <div class="token-hero"><div class="token-ids"><span class="tokenmark" style="background:${t.color}"></span>
+  <div class="token-hero"><div class="token-ids">${tokenMarkHtml(t.t,"xl")}
    <div><h1 class="mono tokenticker">$${t.t} ${chain?chainBadge(chain):""}</h1><p class="token-full">${t.name||""}</p></div></div>
    <div class="token-livewrap"><span class="lp-live"><span class="pulse"></span>LIVE</span></div></div>
   ${addr?`<button class="token-addr" data-act="copyAddr" data-addr="${esc(addr)}">${I.copy}<span class="mono">${addr.slice(0,8)}…${addr.slice(-8)}</span><span class="ta-copy">${S.copied?"copied":"copy"}</span></button>`:""}
@@ -1053,7 +1087,7 @@ function myRoomsView(){
   const mineCreator=room&&room.creator===myTag();
   return`<div class="roomcard">
     <div class="rc-click" data-act="openRoom" data-token="${tk}">
-      <span class="tokenmark" style="background:${t.color}"></span>
+      ${tokenMarkHtml(tk)}
       <div class="rc-body">
         <div class="rc-top"><span class="mono rc-tk">$${esc(tk)}</span>
           ${mineCreator?`<span class="creatorbadge">${I.badge} your room</span>`:custom?`<span class="pubbadge">${I.globe} public</span>`:`<span class="openbadge">${I.badge} holder</span>`}</div>
@@ -1128,7 +1162,7 @@ function ownProfileView(){
    </div>
    ${tab==="posts"
      ? `<div class="posts">${myPosts.length?myPosts.map(postCard).join(""):`<p class="empty">No posts yet. Make your first post from the Feed.</p>`}</div>`
-     : `<div class="roomgrid">${myRooms.length?myRooms.map(tk=>{const t=tokenBy(tk)||{name:"",color:tokColor(tk)};const lp=livePrice(tk);const room=S.customRooms.find(r=>r.ticker===tk);const mineCreator=room&&room.creator===myTag();return`<div class="roomcard" data-act="openRoom" data-token="${tk}"><span class="tokenmark" style="background:${t.color}"></span><div class="rc-body"><div class="rc-top"><span class="mono rc-tk">$${esc(tk)}</span>${mineCreator?`<span class="creatorbadge">${I.badge} your room</span>`:`<span class="pubbadge">${I.globe} members</span>`}</div><div class="rc-name">${t.name||""}</div><div class="rc-meta"><span class="mono ${lp.dir>=0?"up":"down"}">${fprice(lp.price)}</span></div></div><span class="rc-go">Enter →</span></div>`;}).join(""):`<p class="empty">You're not in any room yet.</p>`}</div>`}
+     : `<div class="roomgrid">${myRooms.length?myRooms.map(tk=>{const t=tokenBy(tk)||{name:"",color:tokColor(tk)};const lp=livePrice(tk);const room=S.customRooms.find(r=>r.ticker===tk);const mineCreator=room&&room.creator===myTag();return`<div class="roomcard" data-act="openRoom" data-token="${tk}">${tokenMarkHtml(tk)}<div class="rc-body"><div class="rc-top"><span class="mono rc-tk">$${esc(tk)}</span>${mineCreator?`<span class="creatorbadge">${I.badge} your room</span>`:`<span class="pubbadge">${I.globe} members</span>`}</div><div class="rc-name">${t.name||""}</div><div class="rc-meta"><span class="mono ${lp.dir>=0?"up":"down"}">${fprice(lp.price)}</span></div></div><span class="rc-go">Enter →</span></div>`;}).join(""):`<p class="empty">You're not in any room yet.</p>`}</div>`}
    ${S.editProfile?editProfileModal():""}
    ${S.crop?cropModal():""}
  </div>`;
@@ -1492,7 +1526,7 @@ function browseRoomsView(){
   const t=tokenBy(r.ticker)||{name:"",color:tokColor(r.ticker)}; const lp=livePrice(r.ticker); const joined=isJoined(r.ticker);
   const cap=r.cap||100; const unlimited=cap===Infinity; const full=!unlimited&&r.members>=cap; const pct=unlimited?0:Math.min(100,Math.round((r.members/cap)*100));
   return`<div class="roomcard" data-act="openRoom" data-token="${r.ticker}">
-   <span class="tokenmark" style="background:${t.color}"></span>
+   ${tokenMarkHtml(r.ticker)}
    <div class="rc-body">
      <div class="rc-top"><span class="mono rc-tk">$${r.ticker}</span><span class="pubbadge">${I.globe} public</span>${full?`<span class="fulltag">${I.lock} dolu</span>`:""}</div>
      <div class="rc-name">${t.name||""}</div>
@@ -1524,7 +1558,7 @@ function createResultsHtml(){
   const p=S.picked; const exists=isCustomRoom(p.symbol);
   return `<div class="pickedcard">
     <div class="pk-row"><div class="pk-left">
-      <span class="tokenmark" style="background:${tokColor(p.symbol)}"></span>
+      ${tokenMarkHtml(p.symbol,"",p.logo)}
       <div><div class="pk-tk mono">$${esc(p.symbol)} ${chainBadge(p.chain)}</div><div class="pk-name">${esc(p.name)}</div></div>
     </div>
     <div class="pk-price"><div class="mono pk-p">${fprice(p.price)}</div><div class="mono pk-c ${p.chg>=0?"up":"down"}">${p.chg>=0?"+":""}${(+p.chg).toFixed(1)}%</div></div></div>
@@ -1539,7 +1573,7 @@ function createResultsHtml(){
  if(!S.searchResults.length)return `<p class="searchhint">"${esc(q)}" no results. Check the ticker.</p>`;
  return `<div class="resultlist">${S.searchResults.map((r,i)=>`
    <button class="resultrow" data-act="pickToken" data-i="${i}">
-     <span class="tokenmark sm" style="background:${tokColor(r.symbol)}"></span>
+     ${tokenMarkHtml(r.symbol,"sm",r.logo)}
      <div class="rr-body"><span class="rr-line"><span class="mono rr-tk">$${esc(r.symbol)}</span>${chainBadge(r.chain)}${S.customRooms.find(x=>x.ticker.toUpperCase()===(r.symbol||"").toUpperCase())?`<span class="rr-hasroom">● has room</span>`:""}</span><span class="rr-name">${esc(r.name)}${r.mc?` · mcap ${typeof r.mc==="number"?fmtMc(r.mc):r.mc}`:""}${r._liq?` · likidite ${fmtMc(r._liq)}`:""}${r.address?` · <span class="mono rr-ca">${r.address.slice(0,5)}…${r.address.slice(-4)}</span>`:""}</span></div>
      <span class="mono rr-price ${r.chg>=0?"up":"down"}">${fprice(r.price)}</span>
    </button>`).join("")}</div>`;
@@ -1556,7 +1590,7 @@ function createRoomView(){
        <h3 class="ar-title">Zaten bir odan var</h3>
        <p class="ar-txt">Each wallet can only You already have <b>a room</b>. It's below — enter anytime.</p>
        <div class="ar-card">
-         <span class="tokenmark" style="background:${t.color}"></span>
+         ${tokenMarkHtml(t.t||tk)}
          <div class="ar-info"><span class="mono ar-tk">$${esc(existing.ticker)}</span><span class="ar-meta">${(existing.members||0).toLocaleString()}${(existing.cap||100)===Infinity?" members · ∞ unlimited":"/"+capLabel(existing.cap||100)+" members"} · you are the creator</span></div>
          <button class="ar-go" data-act="openRoom" data-token="${esc(existing.ticker)}">Git →</button>
        </div>
@@ -1605,7 +1639,7 @@ function roomView(ticker){
   const cap=room?room.cap||100:100; const full=room?room.members>=cap:false;
   return `<button class="back" data-act="nav" data-view="rooms">← Rooms</button>
    <div class="joinscreen">
-     <span class="tokenmark xl" style="background:${t.color}"></span>
+     ${tokenMarkHtml(t.t,"xl")}
      <h2 class="mono join-tk">$${ticker}</h2>
      <p class="join-name">${t.name||""}</p>
      <div class="join-stats">
@@ -1624,7 +1658,7 @@ function roomView(ticker){
  const msgs=S.chat[ticker]||[];
  const lp=livePrice(ticker);
  return `<div class="roompane"><div class="roomhead"><button class="back" data-act="nav" data-view="rooms">←</button>
-   <span class="tokenmark sm" style="background:${t.color}"></span><span class="mono tk">$${ticker}</span>
+   ${tokenMarkHtml(ticker,"sm")}<span class="mono tk">$${ticker}</span>
    <span class="roommeta">${I.globe} ${(room?room.members:0).toLocaleString()}${(room?room.cap:100)===Infinity?" members · ∞":"/"+capLabel(room?room.cap||100:100)+" members"}</span>
    <div class="livepricebox">
      <span class="lp-live"><span class="pulse"></span>LIVE</span>
@@ -1852,7 +1886,7 @@ function topSearchResultsHtml(){
  }).slice(0,5);
  if(rooms.length){
    html+=`<div class="sd-cat">Rooms</div>`+rooms.map(r=>`<button class="sd-row" data-act="openRoom" data-token="${esc(r.ticker)}">
-     <span class="tokenmark xs" style="background:${tokColor(r.ticker)}"></span><span class="mono sd-tk">$${esc(r.ticker)}</span><span class="sd-type">${(r.members||0)} members · ${esc(S.names&&S.names[r.creator]?S.names[r.creator]:short(r.creator||""))}</span></button>`).join("");
+     ${tokenMarkHtml(r.ticker,"xs")}<span class="mono sd-tk">$${esc(r.ticker)}</span><span class="sd-type">${(r.members||0)} members · ${esc(S.names&&S.names[r.creator]?S.names[r.creator]:short(r.creator||""))}</span></button>`).join("");
  }
  if(!html)html=`<div class="sd-hint">"${esc(q)}" no room or user found.</div>`;
  return html;
