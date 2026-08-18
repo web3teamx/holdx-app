@@ -1928,7 +1928,7 @@ function _renderNow(){
    let want="/";
    if(v.name==="room"&&v.token)want="/room/"+encodeURIComponent(v.token);
    else if(v.name==="post"&&v.id)want="/post/"+encodeURIComponent(v.id);
-   else if(v.name==="profile"){ const pw=v.wallet||(S.wallet&&S.wallet.address); if(pw)want="/u/"+encodeURIComponent(pw); }
+   else if(v.name==="profile"){ const pw=v.wallet||(S.wallet&&S.wallet.address); if(pw)want="/u/"+(pw===OFFICIAL_WALLET?"PODCTO":encodeURIComponent(pw)); }
    else if(v.name==="token"&&v.token)want="/token/"+encodeURIComponent(v.token);
    else if(v.name==="dm"&&v.peer)want="/dm/"+encodeURIComponent(v.peer);
    else if(v.name==="feed")want="/";
@@ -2407,7 +2407,7 @@ document.addEventListener("click",e=>{
    }
  }
  else if(a==="expandPost"){S.expandedPosts=S.expandedPosts||{};S.expandedPosts[el.dataset.id]=true;render();}
- else if(a==="shareProfile"){const w=el.dataset.wallet;const link="https://podcto.com/u/"+w;(navigator.clipboard?navigator.clipboard.writeText(link):Promise.reject()).then(function(){S.profileShared=true;render();setTimeout(function(){S.profileShared=false;render();},1600);}).catch(function(){S.profileShared=true;render();setTimeout(function(){S.profileShared=false;render();},1600);});}
+ else if(a==="shareProfile"){const w=el.dataset.wallet;const link="https://podcto.com/u/"+(w===OFFICIAL_WALLET?"PODCTO":w);(navigator.clipboard?navigator.clipboard.writeText(link):Promise.reject()).then(function(){S.profileShared=true;render();setTimeout(function(){S.profileShared=false;render();},1600);}).catch(function(){S.profileShared=true;render();setTimeout(function(){S.profileShared=false;render();},1600);});}
  else if(a==="gotoRoomLink"){const tk=el.dataset.token;S.view={name:"room",token:tk};if(isJoined(tk)){S.chatScrollBottom=true;if(window.__holdxSubscribeRoom)window.__holdxSubscribeRoom(tk);}render();}
  else if(a==="gotoPostLink"){const pid=el.dataset.id;S.view={name:"post",id:pid,token:null};render();}
  else if(a==="sharePost"){S.sharePostId=el.dataset.id;render();}
@@ -2896,7 +2896,8 @@ render();
       const pid=decodeURIComponent(pm[1]);
       setTimeout(function(){ S.view={name:"post",id:pid,token:null}; render(); },300);
     } else if(um&&um[1]){
-      const uw=decodeURIComponent(um[1]);
+      let uw=decodeURIComponent(um[1]);
+      if(uw.toUpperCase()==="PODCTO")uw=OFFICIAL_WALLET; // /u/PODCTO -> proje cüzdanı
       setTimeout(function(){ S.view={name:"profile",token:null,wallet:uw}; if(window.__holdxLoadUserPosts)window.__holdxLoadUserPosts(uw); if(window.__holdxLoadPeerInfo)window.__holdxLoadPeerInfo(uw); render(); },300);
     } else {
       // basit nav sekmeleri: /portfolio, /rooms, /messages, /notifications, /leaderboard, /settings, /profile
