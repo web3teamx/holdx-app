@@ -152,6 +152,8 @@ function nameCls(w,mine){
 }
 // Baska cuzdanlarin profil isimleri (Supabase'den) burada tutulur
 window.__avatarCache=window.__avatarCache||{};
+window.__bioCache=window.__bioCache||{};
+window.__holdxApplyBios=function(map){ window.__bioCache=window.__bioCache||{}; Object.assign(window.__bioCache, map||{}); render(); };
 window.__holdxApplyFollows=function(data){
  // data: {following:[wallet], followerCounts:{wallet:count}, followingCounts:{wallet:count}}
  S.following={};
