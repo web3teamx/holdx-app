@@ -569,12 +569,13 @@ export default function App() {
 
     const loadNamesFor = async (walletList) => {
       if (!walletList.length) return
-      const { data } = await supabase.from('profiles').select('wallet,display_name,avatar').in('wallet', walletList)
+      const { data } = await supabase.from('profiles').select('wallet,display_name,avatar,bio').in('wallet', walletList)
       if (data) {
-        const map = {}, avaMap = {}
-        data.forEach(r => { if (r.display_name) map[r.wallet] = r.display_name; if (r.avatar) avaMap[r.wallet] = r.avatar })
+        const map = {}, avaMap = {}, bioMap = {}
+        data.forEach(r => { if (r.display_name) map[r.wallet] = r.display_name; if (r.avatar) avaMap[r.wallet] = r.avatar; if (r.bio != null) bioMap[r.wallet] = r.bio })
         if (window.__holdxApplyNames) window.__holdxApplyNames(map)
         if (window.__holdxApplyAvatars) window.__holdxApplyAvatars(avaMap)
+        if (window.__holdxApplyBios) window.__holdxApplyBios(bioMap)
       }
     }
     const loadAvatarsFor = async (walletList) => {

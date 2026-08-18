@@ -1325,8 +1325,7 @@ function otherProfileView(wallet){
  const isFollowing=!!S.following[wallet];
  // bu kullanıcının en yüksek kademesi (postlarındaki tier'lardan tahmini)
  const anyTier=theirPosts.map(postTier).find(Boolean)||null;
- const bios=["degen & holder","just watching charts","buys early sells late","memecoin hunter","holder gang","living on-chain",""];
- const bio=bios[h%bios.length];
+ const bio=(window.__bioCache&&window.__bioCache[wallet]!=null)?window.__bioCache[wallet]:"";
  return `<div class="profilewrap">
    <div class="pf-cover"><!-- diğer kullanıcı, kapak yok --></div>
    <div class="pf-top">
@@ -2534,7 +2533,7 @@ document.addEventListener("click",e=>{
  }
  else if(a==="toggleTheme"){S.theme=S.theme==="dark"?"light":"dark";render();}
  else if(a==="profileTab"){S.profileTab=el.dataset.tab;render();}
- else if(a==="openProfile"){const _pw=el.dataset.wallet; if(_pw&&window.__holdxLoadUserPosts){window.__holdxLoadUserPosts(_pw);}const w=el.dataset.wallet;S.view={name:"profile",token:null,wallet:w};S.profileTab="posts";render();}
+ else if(a==="openProfile"){const _pw=el.dataset.wallet; if(_pw&&window.__holdxLoadUserPosts){window.__holdxLoadUserPosts(_pw);} if(_pw&&window.__holdxLoadPeerInfo){window.__holdxLoadPeerInfo(_pw);}const w=el.dataset.wallet;S.view={name:"profile",token:null,wallet:w};S.profileTab="posts";render();}
  else if(a==="toggleFollow"){const w=el.dataset.wallet;const on=!S.following[w];S.following[w]=on;
    if(window.__holdxToggleFollow && S.wallet){ window.__holdxToggleFollow(S.wallet.address, w, on);
      if(on&&window.__holdxNotify){ window.__holdxNotify({wallet:w,type:"follow",from_wallet:S.wallet.address}); } }
