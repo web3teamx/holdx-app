@@ -1082,3 +1082,8 @@ html,body{margin:0;overflow-x:clip;width:100%;}
 .official-room-note{background:rgba(52,227,154,.1);border:1px solid var(--green);color:var(--green);padding:10px 12px;border-radius:10px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px;margin:8px 0;}
 /* token logo (img olarak) - daire ile ayni boyut/sekil */
 img.tokenmark{object-fit:cover;background:transparent;}
+
+/* nav'da "soon" (yakında) sekmeleri — pasif, tıklanamaz */
+.navbtn.soon{opacity:.45;cursor:default;pointer-events:none;}
+.navbtn.soon:hover{background:none;}
+.soon-tag{margin-left:auto;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;background:var(--surface2);color:var(--tx3);padding:2px 6px;border-radius:6px;border:1px solid var(--border);}

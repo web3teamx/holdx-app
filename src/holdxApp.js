@@ -25,6 +25,7 @@ function nextTiers(cap){return CAP_TIERS.filter(t=>t.cap>cap);} // yükseltme se
 const I={
  home:'<svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg>',
  trend:'<svg viewBox="0 0 24 24"><path d="M23 6l-9.5 9.5-5-5L1 18"/><path d="M17 6h6v6"/></svg>',
+ news:'<svg viewBox="0 0 24 24"><path d="M4 4h13a1 1 0 0 1 1 1v13a2 2 0 0 0 2 2H5a2 2 0 0 1-2-2V4z"/><path d="M18 8h2a1 1 0 0 1 1 1v9a2 2 0 0 1-2 2"/><line x1="7" y1="8" x2="14" y2="8"/><line x1="7" y1="12" x2="14" y2="12"/><line x1="7" y1="16" x2="11" y2="16"/></svg>',
  waves:'<svg viewBox="0 0 24 24"><path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/></svg>',
  wallet:'<svg viewBox="0 0 24 24"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h3v-4z"/></svg>',
  chat:'<svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
@@ -696,7 +697,7 @@ async function refreshTokenPrices(){
  }
  if(["tokens","feed","rooms","portfolio"].includes(S.view.name))render();
 }
-const NAV=[["feed","Feed","home"],["profile","Profile","user"],["portfolio","Portfolio","wallet"],["rooms","Rooms","chat"],["myrooms","My Rooms","badge"],["messages","Messages","send"],["notifications","Notifications","bell"],["leaderboard","Leaderboard","trend"],["settings","Settings","gear"]];
+const NAV=[["feed","Feed","home"],["profile","Profile","user"],["portfolio","Portfolio","wallet"],["rooms","Rooms","chat"],["myrooms","My Rooms","badge"],["messages","Messages","send"],["notifications","Notifications","bell"],["leaderboard","Leaderboard","trend"],["unlocks","Unlocks","lock",true],["news","News","news",true],["onchain","On-Chain","waves",true],["settings","Settings","gear"]];
 
 // --- emoji seti (X benzeri bol seçenek, kategorili) ---
 const EMOJI={
@@ -1963,12 +1964,12 @@ function _renderNow(){
       :`<button class="connect" data-act="connect">Connect wallet</button>`}
    </div></header>
   <div class="shell">
-   <nav class="rail">${NAV.map(n=>`<button class="navbtn ${navActive(n[0])?"on":""}" data-act="nav" data-view="${n[0]}"><span class="icn">${I[n[2]]}</span><span>${n[1]}</span>${n[0]==="messages"&&S.unreadDM>0?`<span class="nav-badge">${S.unreadDM}</span>`:""}${n[0]==="notifications"&&S.unreadNotif>0?`<span class="nav-badge">${S.unreadNotif}</span>`:""}</button>`).join("")}
+   <nav class="rail">${NAV.map(n=>n[3]?`<button class="navbtn soon" disabled><span class="icn">${I[n[2]]}</span><span>${n[1]}</span><span class="soon-tag">Soon</span></button>`:`<button class="navbtn ${navActive(n[0])?"on":""}" data-act="nav" data-view="${n[0]}"><span class="icn">${I[n[2]]}</span><span>${n[1]}</span>${n[0]==="messages"&&S.unreadDM>0?`<span class="nav-badge">${S.unreadDM}</span>`:""}${n[0]==="notifications"&&S.unreadNotif>0?`<span class="nav-badge">${S.unreadNotif}</span>`:""}</button>`).join("")}
     <div class="rail-foot"><p class="tag">${TAGLINE}</p></div></nav>
    <main class="main">${mainView()}</main>
    ${activityPanel()}
   </div>
-  <nav class="bottom">${NAV.map(n=>`<button class="${navActive(n[0])?"on":""}" data-act="nav" data-view="${n[0]}">${I[n[2]]}${n[0]==="messages"&&S.unreadDM>0?`<span class="nav-badge sm">${S.unreadDM}</span>`:""}</button>`).join("")}</nav>
+  <nav class="bottom">${NAV.filter(n=>!n[3]).map(n=>`<button class="${navActive(n[0])?"on":""}" data-act="nav" data-view="${n[0]}">${I[n[2]]}${n[0]==="messages"&&S.unreadDM>0?`<span class="nav-badge sm">${S.unreadDM}</span>`:""}</button>`).join("")}</nav>
   ${modalView()}
   ${S.lightbox?`<div class="lightbox" data-act="closeZoom"><button class="lb-close" data-act="closeZoom">${I.x}</button><img src="${S.lightbox}" alt=""></div>`:""}
   <button class="scrolltop" data-act="scrollTop" title="Back to top">↑</button>`;
