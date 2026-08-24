@@ -1087,3 +1087,4 @@ img.tokenmark{object-fit:cover;background:transparent;}
 .navbtn.soon{opacity:.45;cursor:default;pointer-events:none;}
 .navbtn.soon:hover{background:none;}
 .soon-tag{margin-left:auto;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;background:var(--surface2);color:var(--tx3);padding:2px 6px;border-radius:6px;border:1px solid var(--border);}
+.ff-hint{text-align:center;color:var(--tx3);font-size:12px;padding:8px;margin:0;}

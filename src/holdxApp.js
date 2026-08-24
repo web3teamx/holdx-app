@@ -662,6 +662,22 @@ function renderPostResults(){
 // Adresi olanlar DexScreener'dan adresle (kesin) çekilir; adresi olmayan demo tokenlar sembolle denenir.
 async function refreshTokenPrices(){
  const targets=Object.values(TOKREG);
+ // cgId'li tokenleri TEK toplu CoinGecko isteğiyle çek (rate limit dostu, BTC/HYPE/SOL vb.)
+ try{
+   const cgToks=targets.filter(t=>t.cgId);
+   if(cgToks.length){
+     const ids=[...new Set(cgToks.map(t=>t.cgId))].join(",");
+     const pr=await cgFetch(`/simple/price?ids=${encodeURIComponent(ids)}&vs_currencies=usd&include_24hr_change=true&include_market_cap=true`);
+     cgToks.forEach(function(tok){
+       const o=pr&&pr[tok.cgId];
+       if(o&&o.usd!=null){
+         tok.price=o.usd; tok.chg=+(+(o.usd_24h_change||0)).toFixed(1); if(o.usd_market_cap)tok.mc=fmtMc(o.usd_market_cap);
+         if(S.livePrices[tok.t])S.livePrices[tok.t].price=o.usd; else S.livePrices[tok.t]={price:o.usd,dir:0};
+       }
+     });
+     render();
+   }
+ }catch(e){}
  for(let i=0;i<targets.length;i+=4){
    const group=targets.slice(i,i+4);
    await Promise.all(group.map(async tok=>{
@@ -674,10 +690,9 @@ async function refreshTokenPrices(){
        }
        // 2) Önbellek eski/yoksa live çek
        if(!d){
-         // cgId varsa CoinGecko önce (kesin doğru token — TIA gibi borsa coinleri)
-         if(tok.cgId){ try{const pr=await cgFetch(`/simple/price?ids=${encodeURIComponent(tok.cgId)}&vs_currencies=usd&include_24hr_change=true&include_market_cap=true`);const o=pr[tok.cgId];if(o&&o.usd!=null)d={price:o.usd,chg:o.usd_24h_change||0,mc:o.usd_market_cap||0};}catch(e){} }
-         if(!d && tok.address){ d=await dexPrice(tok.address,tok.chain); }
-         if(!d && !tok.cgId){ const res=await dexSearch(tok.t); const ex=res.find(r=>r.symbol.toUpperCase()===tok.t.toUpperCase())||res[0]; if(ex)d={price:ex.price,chg:ex.chg,mc:ex.mc,logo:ex.logo||null}; }
+         if(tok.address){ d=await dexPrice(tok.address,tok.chain); }
+         else if(tok.cgId){ try{const pr=await cgFetch(`/simple/price?ids=${encodeURIComponent(tok.cgId)}&vs_currencies=usd&include_24hr_change=true&include_market_cap=true`);const o=pr[tok.cgId];if(o&&o.usd!=null)d={price:o.usd,chg:o.usd_24h_change||0,mc:o.usd_market_cap||0};}catch(e){} }
+         else { const res=await dexSearch(tok.t); const ex=res.find(r=>r.symbol.toUpperCase()===tok.t.toUpperCase())||res[0]; if(ex)d={price:ex.price,chg:ex.chg,mc:ex.mc,logo:ex.logo||null}; }
          // taze veriyi önbelleğe yaz (herkes 10 sn buradan okur)
          if(d&&d.price>0&&window.__holdxSetCachedPrice){ window.__holdxSetCachedPrice(tok.t,d.price,+(+d.chg).toFixed(1),d.mc||0,tok.address||null,tok.chain||null); }
        }
@@ -938,13 +953,15 @@ function feedDropdown(){
        <span class="mono ff-p ${r.chg>=0?"up":"down"}">${fprice(r.price)}</span></button>`).join("");
    else listHtml=`<p class="ff-empty">"${esc(q)}" no results</p>`;
  } else {
-   // arama boşken: hızlı erişim — bizim bildiğimiz tokenlar
+   // arama boşken: sadece BTC + ETH hızlı erişim; gerisi aratılarak bulunur
+   const quick=["BTC","ETH"].map(tk=>TOKREG[tk]).filter(Boolean);
    listHtml=`<button class="ff-opt ${S.filter==="ALL"?"on":""}" data-act="pickFilter" data-token="ALL">
        <span class="ff-alldot">${I.globe}</span><span class="ff-t">All</span><span class="ff-n">entire feed</span></button>
-     ${allTokens().map(t=>`<button class="ff-opt ${S.filter===t.t?"on":""}" data-act="pickFilter" data-token="${t.t}">
-       <span class="dot" style="background:${t.color}"></span>
+     ${quick.map(t=>`<button class="ff-opt ${S.filter===t.t?"on":""}" data-act="pickFilter" data-token="${t.t}">
+       ${tokenMarkHtml(t.t,"xs")}
        <span class="mono ff-t">$${t.t}</span><span class="ff-n">${t.name}</span>
-       <span class="mono ff-p ${t.chg>=0?"up":"down"}">${fprice(t.price)}</span></button>`).join("")}`;
+       <span class="mono ff-p ${t.chg>=0?"up":"down"}">${fprice(t.price)}</span></button>`).join("")}
+     <p class="ff-hint">Search any coin above ↑</p>`;
  }
  return `<div class="ff-backdrop" data-act="closeFeedDrop"></div>
   <div class="ff-panel">
