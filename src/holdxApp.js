@@ -949,8 +949,7 @@ function feedDropdown(){
    if(S.feedSearching)listHtml=`<div class="searchstate">${I.search} searching…</div>`;
    else if(S.feedResults.length)listHtml=S.feedResults.map((r,i)=>`<button class="ff-opt" data-act="pickFeedToken" data-i="${i}">
        <span class="dot" style="background:${tokColor(r.symbol)}"></span>
-       <span class="mono ff-t">$${esc(r.symbol)}</span>${chainBadge(r.chain)}<span class="ff-n">${esc(r.name)}</span>
-       <span class="mono ff-p ${r.chg>=0?"up":"down"}">${fprice(r.price)}</span></button>`).join("");
+       <span class="mono ff-t">$${esc(r.symbol)}</span>${chainBadge(r.chain)}<span class="ff-n">${esc(r.name)}</span></button>`).join("");
    else listHtml=`<p class="ff-empty">"${esc(q)}" no results</p>`;
  } else {
    // arama boşken: sadece BTC + ETH hızlı erişim; gerisi aratılarak bulunur
@@ -959,8 +958,7 @@ function feedDropdown(){
        <span class="ff-alldot">${I.globe}</span><span class="ff-t">All</span><span class="ff-n">entire feed</span></button>
      ${quick.map(t=>`<button class="ff-opt ${S.filter===t.t?"on":""}" data-act="pickFilter" data-token="${t.t}">
        ${tokenMarkHtml(t.t,"xs")}
-       <span class="mono ff-t">$${t.t}</span><span class="ff-n">${t.name}</span>
-       <span class="mono ff-p ${t.chg>=0?"up":"down"}">${fprice(t.price)}</span></button>`).join("")}
+       <span class="mono ff-t">$${t.t}</span><span class="ff-n">${t.name}</span></button>`).join("")}
      <p class="ff-hint">Search any coin above ↑</p>`;
  }
  return `<div class="ff-backdrop" data-act="closeFeedDrop"></div>
