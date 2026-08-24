@@ -121,7 +121,8 @@ function tokenBy(t){return TOKREG[t];}
 function allTokens(){return Object.values(TOKREG);}
 function upsertToken(r){ // arama sonucunu registry'ye ekle/güncelle
  const sym=(r.symbol||r.t||"").toUpperCase(); const prev=TOKREG[sym]||{};
- TOKREG[sym]={t:sym,name:r.name,price:r.price,chg:+(+(r.chg||0)).toFixed(1),mc:typeof r.mc==="number"?fmtMc(r.mc):(r.mc||"—"),color:tokColor(sym),address:r.address||prev.address,chain:r.chain||prev.chain||"solana",source:r.source||prev.source,cgId:r.cgId||prev.cgId,logo:r.logo||prev.logo||null};
+ const _chain=r.chain||prev.chain||(r.cgId||prev.cgId?"cex":(r.address&&/^0x/.test(r.address)?"ethereum":"solana"));
+ TOKREG[sym]={t:sym,name:r.name,price:r.price,chg:+(+(r.chg||0)).toFixed(1),mc:typeof r.mc==="number"?fmtMc(r.mc):(r.mc||"—"),color:tokColor(sym),address:r.address||prev.address,chain:_chain,source:r.source||prev.source,cgId:r.cgId||prev.cgId,logo:r.logo||prev.logo||null};
  return TOKREG[sym];
 }
 function holds(t){return S.connected&&!!S.wallet.holdings[t];}
@@ -673,9 +674,10 @@ async function refreshTokenPrices(){
        }
        // 2) Önbellek eski/yoksa live çek
        if(!d){
-         if(tok.address){ d=await dexPrice(tok.address,tok.chain); }
-         else if(tok.cgId){ try{const pr=await cgFetch(`/simple/price?ids=${encodeURIComponent(tok.cgId)}&vs_currencies=usd&include_24hr_change=true&include_market_cap=true`);const o=pr[tok.cgId];if(o&&o.usd!=null)d={price:o.usd,chg:o.usd_24h_change||0,mc:o.usd_market_cap||0};}catch(e){} }
-         else { const res=await dexSearch(tok.t); const ex=res.find(r=>r.symbol.toUpperCase()===tok.t.toUpperCase())||res[0]; if(ex)d={price:ex.price,chg:ex.chg,mc:ex.mc,logo:ex.logo||null}; }
+         // cgId varsa CoinGecko önce (kesin doğru token — TIA gibi borsa coinleri)
+         if(tok.cgId){ try{const pr=await cgFetch(`/simple/price?ids=${encodeURIComponent(tok.cgId)}&vs_currencies=usd&include_24hr_change=true&include_market_cap=true`);const o=pr[tok.cgId];if(o&&o.usd!=null)d={price:o.usd,chg:o.usd_24h_change||0,mc:o.usd_market_cap||0};}catch(e){} }
+         if(!d && tok.address){ d=await dexPrice(tok.address,tok.chain); }
+         if(!d && !tok.cgId){ const res=await dexSearch(tok.t); const ex=res.find(r=>r.symbol.toUpperCase()===tok.t.toUpperCase())||res[0]; if(ex)d={price:ex.price,chg:ex.chg,mc:ex.mc,logo:ex.logo||null}; }
          // taze veriyi önbelleğe yaz (herkes 10 sn buradan okur)
          if(d&&d.price>0&&window.__holdxSetCachedPrice){ window.__holdxSetCachedPrice(tok.t,d.price,+(+d.chg).toFixed(1),d.mc||0,tok.address||null,tok.chain||null); }
        }
