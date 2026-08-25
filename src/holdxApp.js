@@ -971,7 +971,7 @@ function feedView(){
  const filtered=(S.filter==="ALL"?S.posts:S.posts.filter(p=>p.token===S.filter)).slice().sort(function(a,b){ return (new Date(b._repostAt||b.created_at||0))-(new Date(a._repostAt||a.created_at||0)); });
  const filterBar=`<div class="feedfilter">
    <button class="ff-btn ${sel?"active":""}" data-act="toggleFeedDrop">
-     ${sel?`<span class="dot" style="background:${sel.color}"></span><span class="mono ff-btn-tk">$${sel.t}</span>${sel.chain?chainBadge(sel.chain):""}<span class="ff-btn-name">${sel.name}</span>`
+     ${sel?`<span class="dot" style="background:${sel.color}"></span><span class="mono ff-btn-tk">$${sel.t}</span><span class="ff-btn-name">${sel.name}</span>`
           :`<span class="ff-btn-ico">${I.search}</span><span>Filter by coin</span>`}
      <span class="ff-caret ${S.feedDrop?"up":""}">▾</span>
    </button>
