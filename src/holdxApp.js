@@ -949,7 +949,7 @@ function feedDropdown(){
    if(S.feedSearching)listHtml=`<div class="searchstate">${I.search} searching…</div>`;
    else if(S.feedResults.length)listHtml=S.feedResults.map((r,i)=>`<button class="ff-opt" data-act="pickFeedToken" data-i="${i}">
        <span class="dot" style="background:${tokColor(r.symbol)}"></span>
-       <span class="mono ff-t">$${esc(r.symbol)}</span>${chainBadge(r.chain)}<span class="ff-n">${esc(r.name)}</span></button>`).join("");
+       <span class="mono ff-t">$${esc(r.symbol)}</span><span class="ff-n">${esc(r.name)}</span></button>`).join("");
    else listHtml=`<p class="ff-empty">"${esc(q)}" no results</p>`;
  } else {
    // arama boşken: sadece BTC + ETH hızlı erişim; gerisi aratılarak bulunur
