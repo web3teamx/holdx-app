@@ -837,12 +837,12 @@ function renderPostText(p){
   // 2'den fazla ardışık boş satırı en fazla 2'ye indir (spam engelle)
   raw=raw.replace(/\n{3,}/g,"\n\n");
   const lines=raw.split("\n");
-  const tooLong=raw.length>280||lines.length>10;
+  const tooLong=raw.length>180||lines.length>3;
   const expanded=S.expandedPosts&&S.expandedPosts[p.id];
   if(tooLong&&!expanded){
-    // ilk ~200 karakter veya ilk 8 satır (hangisi önce biterse)
-    let cut=raw.slice(0,220);
-    const cutLines=cut.split("\n").slice(0,8).join("\n");
+    // ilk ~150 karakter veya ilk 3 satır (hangisi önce biterse)
+    let cut=raw.slice(0,150);
+    const cutLines=cut.split("\n").slice(0,3).join("\n");
     if(cutLines.length<cut.length)cut=cutLines;
     return `<p class="post-text">${fmtText(cut)}<span class="post-more">… </span><button class="show-more" data-act="expandPost" data-id="${p.id}">Show more</button></p>`;
   }
@@ -985,7 +985,7 @@ function feedView(){
    : `<button class="attachbtn" data-act="openPostSearch">${I.plus} Add token</button>`;
  const composer=S.connected?
   `<div class="composer${S.quoting?" quoting":""}">${ringAvatar(S.wallet.address,null,"lg",S.wallet.address)}
-   <div class="composer-body"><textarea id="composerText" rows="2" maxlength="280" placeholder="What's on your mind?">${esc(S.composerText||"")}</textarea>
+   <div class="composer-body"><textarea id="composerText" rows="2" maxlength="1000" placeholder="What's on your mind?">${esc(S.composerText||"")}</textarea>
    ${S.mentionOpen&&S.mentionResults&&S.mentionResults.length?`<div class="mention-pop">${S.mentionResults.map(function(u,i){
      return `<button class="mention-item" data-act="pickMention" data-name="${esc(u.name)}" data-wallet="${esc(u.wallet)}">${ringAvatar(u.wallet,null,"sm",u.wallet)}<span class="mention-name">${esc(u.name)}</span><span class="mention-addr mono">${short(u.wallet)}</span></button>`;
    }).join("")}</div>`:""}
@@ -1002,7 +1002,7 @@ function feedView(){
        ${attachBtn}
        <div class="tool-pop">${S.emojiFor==="post"?emojiPicker("post"):""}${S.gifFor==="post"?gifPicker("post"):""}</div>
      </div>
-     <span class="char-count ${(S.composerText||"").length>260?"warn":""}">${280-(S.composerText||"").length}</span>
+     <span class="char-count ${(S.composerText||"").length>900?"warn":""}">${1000-(S.composerText||"").length}</span>
      <button class="post" data-act="publish">Post</button>
    </div></div></div>`
   :`<div class="connectbanner"><div><strong>Connect your wallet, make your voice real.</strong>
@@ -2019,6 +2019,7 @@ function _renderNow(){
  if(gsi){gsi.focus();gsi.setSelectionRange(gsi.value.length,gsi.value.length);}
  else { // gif araması açık değilse, metin alanlarına odağı geri ver
    const cta=document.getElementById("composerText");
+   if(cta){cta.style.height="auto";cta.style.height=Math.min(cta.scrollHeight,300)+"px";}
    if(cta&&S.composerText){cta.focus();cta.setSelectionRange(cta.value.length,cta.value.length);}
    const cin=document.getElementById("chatInput");
    if(cin&&S.chatText){cin.focus();cin.setSelectionRange(cin.value.length,cin.value.length);}
@@ -2643,6 +2644,7 @@ document.addEventListener("input",e=>{
  if(e.target.id==="postSearch"){S.postSearch=e.target.value;schedulePostSearch(e.target.value);}
  if(e.target.id==="composerText"){
    S.composerText=e.target.value;
+   e.target.style.height="auto"; e.target.style.height=Math.min(e.target.scrollHeight,300)+"px"; // X gibi yazdıkça büyüsün
    // @ mention tespiti: imleçten geriye doğru @kelime yakala
    const val=e.target.value, pos=e.target.selectionStart;
    const before=val.slice(0,pos);
