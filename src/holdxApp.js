@@ -2645,6 +2645,7 @@ document.addEventListener("input",e=>{
  if(e.target.id==="composerText"){
    S.composerText=e.target.value;
    e.target.style.height="auto"; e.target.style.height=Math.min(e.target.scrollHeight,300)+"px"; // X gibi yazdıkça büyüsün
+   const _cc=document.querySelector(".composer .char-count"); if(_cc){const _left=1000-e.target.value.length; _cc.textContent=_left; _cc.classList.toggle("warn",e.target.value.length>900);} // sayaç anlık
    // @ mention tespiti: imleçten geriye doğru @kelime yakala
    const val=e.target.value, pos=e.target.selectionStart;
    const before=val.slice(0,pos);
