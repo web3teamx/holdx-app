@@ -521,16 +521,15 @@ async function tokenSearch(q){
  }
  const exact=merged.filter(t=>(t.symbol||"").toLowerCase()===ql);
  if(exact.length)merged=exact;
- // AYNI SEMBOL TEK KAYIT: token kendi ana ağında görünsün (köprülenmiş copyr gizlensin)
- const seenSym={}, unique=[];
+ // AYNI SEMBOL + AYNI ADRES tek kayıt; farklı adresli aynı sembol AYRI token (2 farklı POD ayrı çıkar)
+ const seenKey={}, unique=[];
  for(const t of merged){
-   const k=(t.symbol||"").toUpperCase();
-   if(!k){unique.push(t);continue;}
-   if(seenSym[k]){
-     if(!seenSym[k].mc && t.mc) seenSym[k].mc=t.mc;
+   const k=((t.symbol||"").toUpperCase())+"|"+((t.address||"").toLowerCase());
+   if(seenKey[k]){
+     if(!seenKey[k].mc && t.mc) seenKey[k].mc=t.mc;
      continue;
    }
-   seenSym[k]=t; unique.push(t);
+   seenKey[k]=t; unique.push(t);
  }
  return unique.slice(0,14);
 }
@@ -595,6 +594,20 @@ let _feedTimer=null;
 function scheduleFeedSearch(q){
  clearTimeout(_feedTimer);
  if(!q||q.trim().length<2){S.feedResults=[];S.feedSearching=false;renderFeedDropList();return;}
+ // ÖNCE platformdaki paylaşımlarda kullanılan tokenlerde ara (kendi tokenlerimiz burada çıkar)
+ const ql=q.trim().toLowerCase();
+ const seenKey=new Set(); const localHits=[];
+ S.posts.forEach(p=>{
+   if(!p.token)return;
+   const key=(p.token||"")+"|"+(p.token_address||"");
+   if(seenKey.has(key))return; seenKey.add(key);
+   const t=TOKREG[p.token]||{};
+   if(p.token.toLowerCase().includes(ql)||((t.name||"").toLowerCase().includes(ql))){
+     localHits.push({symbol:p.token,name:t.name||p.token,chain:t.chain||"",price:t.price||0,chg:t.chg||0,logo:t.logo||null,address:p.token_address||null,_local:true});
+   }
+ });
+ if(localHits.length){ S.feedResults=localHits; S.feedSearching=false; renderFeedDropList(); return; }
+ // yerelde yoksa dış kaynakta ara
  S.feedSearching=true;renderFeedDropList();
  _feedTimer=setTimeout(async()=>{
    const my=q;
@@ -947,9 +960,9 @@ function feedDropdown(){
  let listHtml;
  if(q.length>=2){
    if(S.feedSearching)listHtml=`<div class="searchstate">${I.search} searching…</div>`;
-   else if(S.feedResults.length)listHtml=S.feedResults.map((r,i)=>`<button class="ff-opt" data-act="pickFeedToken" data-i="${i}">
-       <span class="dot" style="background:${tokColor(r.symbol)}"></span>
-       <span class="mono ff-t">$${esc(r.symbol)}</span><span class="ff-n">${esc(r.name)}</span></button>`).join("");
+   else if(S.feedResults.length)listHtml=S.feedResults.map((r,i)=>`<button class="ff-opt ff-rich" data-act="pickFeedToken" data-i="${i}">
+       ${tokenMarkHtml(r.symbol,"sm",r.logo)}
+       <div class="ff-body"><span class="ff-line"><span class="mono ff-t">$${esc(r.symbol)}</span>${r.chain?chainBadge(r.chain):""}</span><span class="ff-sub">${esc(r.name)}${r.mc?` · ${typeof r.mc==="number"?fmtMc(r.mc):r.mc}`:""}${r.address?` · <span class="mono">${r.address.slice(0,5)}…${r.address.slice(-4)}</span>`:""}</span></div></button>`).join("");
    else listHtml=`<p class="ff-empty">"${esc(q)}" no results</p>`;
  } else {
    // arama boşken: sadece BTC + ETH hızlı erişim; gerisi aratılarak bulunur
@@ -968,7 +981,7 @@ function feedDropdown(){
 }
 function feedView(){
  const sel=S.filter==="ALL"?null:(tokenBy(S.filter)||{t:S.filter,name:"",color:tokColor(S.filter)});
- const filtered=(S.filter==="ALL"?S.posts:S.posts.filter(p=>p.token===S.filter)).slice().sort(function(a,b){ return (new Date(b._repostAt||b.created_at||0))-(new Date(a._repostAt||a.created_at||0)); });
+ const filtered=(S.filter==="ALL"?S.posts:S.posts.filter(p=>p.token===S.filter&&(!S.filterAddr||(p.token_address||null)===S.filterAddr))).slice().sort(function(a,b){ return (new Date(b._repostAt||b.created_at||0))-(new Date(a._repostAt||a.created_at||0)); });
  const filterBar=`<div class="feedfilter">
    <button class="ff-btn ${sel?"active":""}" data-act="toggleFeedDrop">
      ${sel?`<span class="dot" style="background:${sel.color}"></span><span class="mono ff-btn-tk">$${sel.t}</span><span class="ff-btn-name">${sel.name}</span>`
@@ -2153,7 +2166,7 @@ window.__holdxApplyPosts=function(rows){
   const mapped=rows.map(function(r){
     // mevcut etkilesim verisi varsa koru (sayilar yanip sonmesin)
     const prev=S.posts.find(function(x){return String(x.id)===String(r.id);})||{};
-    return {id:r.id, wallet:r.wallet, mine:(S.wallet&&r.wallet===S.wallet.address), token:r.token||null, verified:false, created_at:r.created_at, time:timeAgo(r.created_at), text:r.text||"", media:r.media||null,
+    return {id:r.id, wallet:r.wallet, mine:(S.wallet&&r.wallet===S.wallet.address), token:r.token||null, token_address:r.token_address||null, verified:false, created_at:r.created_at, time:timeAgo(r.created_at), text:r.text||"", media:r.media||null,
       likes:prev.likes!==undefined?prev.likes:0, replies:prev.replies!==undefined?prev.replies:0, reposts:prev.reposts!==undefined?prev.reposts:0,
       liked:prev.liked||false, reposted:prev.reposted||false, comments:prev.comments||[], quotedId:r.quoted_post_id||null, _repostedBy:r._repostedBy||null, _repostAt:r._repostAt||null};
   });
@@ -2362,8 +2375,8 @@ document.addEventListener("click",e=>{
  else if(a==="setFilter"){S.filter=el.dataset.token;S.feedDrop=false;render();}
  else if(a==="toggleFeedDrop"){S.feedDrop=!S.feedDrop;S.feedSearch="";render();}
  else if(a==="closeFeedDrop"){S.feedDrop=false;render();}
- else if(a==="pickFilter"){S.filter=el.dataset.token;S.feedDrop=false;S.feedSearch="";S.feedResults=[];render();}
- else if(a==="pickFeedToken"){const r=S.feedResults[+el.dataset.i];if(r){upsertToken(r);S.filter=r.symbol;S.feedDrop=false;S.feedSearch="";S.feedResults=[];}render();}
+ else if(a==="pickFilter"){S.filter=el.dataset.token;S.filterAddr=null;S.feedDrop=false;S.feedSearch="";S.feedResults=[];render();}
+ else if(a==="pickFeedToken"){const r=S.feedResults[+el.dataset.i];if(r){upsertToken(r);S.filter=r.symbol;S.filterAddr=r.address||null;S.feedDrop=false;S.feedSearch="";S.feedResults=[];}render();}
  else if(a==="openResult"){const r=S.exploreResults[+el.dataset.i];if(r){upsertToken(r);S.view={name:"token",token:(r.symbol||"").toUpperCase()};S.exploreSearch="";S.exploreResults=[];}render();}
  else if(a==="createFor"){const sym=el.dataset.token;const t=tokenBy(sym);
    S.view={name:"rooms",token:null};S.roomTab="create";
@@ -2488,7 +2501,7 @@ document.addEventListener("click",e=>{
   if(!txt&&!S.postMedia)return; // en az metin veya medya olmalı
   const pt=S.postToken; // opsiyonel bağlı token
   if(pt)upsertToken(pt);
-  const newPost={id:Date.now(),created_at:new Date().toISOString(),quoted:S.quoting||null,wallet:(S.wallet?S.wallet.address:myTag()),mine:true,token:pt?pt.symbol:null,verified:pt?holds(pt.symbol):false,time:"now",text:txt,media:S.postMedia,likes:0,replies:0,reposts:0,liked:false};
+  const newPost={id:Date.now(),created_at:new Date().toISOString(),quoted:S.quoting||null,wallet:(S.wallet?S.wallet.address:myTag()),mine:true,token:pt?pt.symbol:null,token_address:pt?(pt.address||null):null,verified:pt?holds(pt.symbol):false,time:"now",text:txt,media:S.postMedia,likes:0,replies:0,reposts:0,liked:false};
   S.posts.unshift(newPost);
   // Supabase'e kaydet
   if(window.__holdxSavePost && S.connected && S.wallet){
@@ -2499,7 +2512,7 @@ document.addEventListener("click",e=>{
     const mentionWallets=Object.values(targets);
     // bildirim, post kaydolup GERÇEK id alınca gönderilecek (post_id dolu olsun, tıklayınca gitsin)
     window.__pendingMentions={ wallets:mentionWallets, text:txt };
-    window.__holdxSavePost({ wallet:S.wallet.address, text:txt, token:pt?pt.symbol:null, media:S.postMedia||null, quoted_post_id:S.quoting?S.quoting.id:null }, newPost.id);
+    window.__holdxSavePost({ wallet:S.wallet.address, text:txt, token:pt?pt.symbol:null, token_address:pt?(pt.address||null):null, media:S.postMedia||null, quoted_post_id:S.quoting?S.quoting.id:null }, newPost.id);
   }
   award("post",{capKey:"post"}); // günlük tavan
   S.postToken=null;S.postSearchOpen=false;S.postSearch="";S.postResults=[];S.postMedia=null;S.composerText="";S.emojiFor=null;S.gifFor=null;

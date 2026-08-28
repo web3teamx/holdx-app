@@ -1088,3 +1088,9 @@ img.tokenmark{object-fit:cover;background:transparent;}
 .navbtn.soon:hover{background:none;}
 .soon-tag{margin-left:auto;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;background:var(--surface2);color:var(--tx3);padding:2px 6px;border-radius:6px;border:1px solid var(--border);}
 .ff-hint{text-align:center;color:var(--tx3);font-size:12px;padding:8px;margin:0;}
+
+/* filter dropdown zengin sonuç satırı (logo + isim + CA + mcap) */
+.ff-opt.ff-rich{display:flex;align-items:center;gap:10px;text-align:left;}
+.ff-body{display:flex;flex-direction:column;gap:1px;min-width:0;flex:1;}
+.ff-line{display:flex;align-items:center;gap:6px;}
+.ff-sub{font-size:11px;color:var(--tx3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
