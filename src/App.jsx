@@ -92,6 +92,12 @@ export default function App() {
         .or('display_name.ilike.%' + term + '%,wallet.ilike.%' + term + '%').limit(6)
       return data || []
     }
+    window.__holdxLoadNews = async () => {
+      try {
+        const { data } = await supabase.from('news').select('*').order('published_at', { ascending: false }).limit(60)
+        if (window.__holdxApplyNews) window.__holdxApplyNews(data || [])
+      } catch (e) { if (window.__holdxApplyNews) window.__holdxApplyNews([]) }
+    }
     window.__holdxSavePost = async (p, tempId) => {
       const { data } = await supabase.from('posts').insert(p).select().single()
       if (data && tempId != null && window.__holdxFixPostId) window.__holdxFixPostId(tempId, data.id, data.created_at)

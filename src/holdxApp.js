@@ -107,6 +107,7 @@ const S={
  roomTab:"browse", createTicker:"", createDone:null, createCap:100, upgradeOpen:null, createHoldError:false,
  searchResults:[], searching:false, searchErr:false, picked:null,
  feedResults:[], feedSearching:false,
+ news:[], newsLoading:false, newsOpen:null, newsLoaded:false,
  exploreSearch:"", exploreResults:[], exploreSearching:false,
  postSearchOpen:false, postSearch:"", postResults:[], postSearching:false, postToken:null,
 };
@@ -156,6 +157,7 @@ function nameCls(w,mine){
 window.__avatarCache=window.__avatarCache||{};
 window.__bioCache=window.__bioCache||{};
 window.__holdxApplyBios=function(map){ window.__bioCache=window.__bioCache||{}; Object.assign(window.__bioCache, map||{}); render(); };
+window.__holdxApplyNews=function(rows){ S.news=rows||[]; S.newsLoading=false; S.newsLoaded=true; render(); };
 window.__holdxApplyFollows=function(data){
  // data: {following:[wallet], followerCounts:{wallet:count}, followingCounts:{wallet:count}}
  S.following={};
@@ -727,7 +729,7 @@ async function refreshTokenPrices(){
  }
  if(["tokens","feed","rooms","portfolio"].includes(S.view.name))render();
 }
-const NAV=[["feed","Feed","home"],["profile","Profile","user"],["portfolio","Portfolio","wallet"],["rooms","Rooms","chat"],["myrooms","My Rooms","badge"],["messages","Messages","send"],["notifications","Notifications","bell"],["leaderboard","Leaderboard","trend"],["unlocks","Unlocks","lock",true],["news","News","news",true],["onchain","On-Chain","waves",true],["settings","Settings","gear"]];
+const NAV=[["feed","Feed","home"],["profile","Profile","user"],["portfolio","Portfolio","wallet"],["rooms","Rooms","chat"],["myrooms","My Rooms","badge"],["messages","Messages","send"],["notifications","Notifications","bell"],["leaderboard","Leaderboard","trend"],["unlocks","Unlocks","lock",true],["news","News","news"],["onchain","On-Chain","waves",true],["settings","Settings","gear"]];
 
 // --- emoji seti (X benzeri bol seçenek, kategorili) ---
 const EMOJI={
@@ -1768,8 +1770,49 @@ function mainView(){
  if(v.name==="settings")return settingsView();
  if(v.name==="myrooms")return myRoomsPage();
  if(v.name==="rooms")return roomsView();
+ if(v.name==="news")return newsView();
  if(v.name==="room")return roomView(v.token);
  return"";
+}
+function timeAgo(iso){
+  if(!iso)return "";
+  const d=new Date(iso), now=new Date(), sec=Math.floor((now-d)/1000);
+  if(sec<60)return "just now";
+  if(sec<3600)return Math.floor(sec/60)+"m ago";
+  if(sec<86400)return Math.floor(sec/3600)+"h ago";
+  return Math.floor(sec/86400)+"d ago";
+}
+function sourceColor(src){
+  const map={"BWEnews":"#f7931a","Cointelegraph":"#fab617","CoinDesk":"#1a88f0","Decrypt":"#5b3df5","The Block":"#e8464f"};
+  return map[src]||tokColor(src||"news");
+}
+function newsView(){
+  if(!S.newsLoaded && !S.newsLoading && window.__holdxLoadNews){ S.newsLoading=true; window.__holdxLoadNews(); }
+  const cleanUrl=(u)=>{ if(!u)return ""; return u.replace(/^<!\[CDATA\[/,"").replace(/\]\]>$/,"").replace(/&amp;/g,"&").trim(); };
+  const sources=["All",...[...new Set(S.news.map(n=>n.source).filter(Boolean))]];
+  const active=S.newsFilter||"All";
+  const list=active==="All"?S.news:S.news.filter(n=>n.source===active);
+  const head=`<div class="news-head">
+    <h1 class="h1">News</h1>
+    <p class="sub">Live crypto headlines, updated continuously.</p>
+    <div class="news-tabs">${sources.map(sc=>`<button class="news-tab ${active===sc?"on":""}" data-act="newsFilter" data-src="${esc(sc)}">${sc==="All"?"":`<span class="news-dot" style="background:${sourceColor(sc)}"></span>`}${esc(sc)}</button>`).join("")}</div>
+  </div>`;
+
+  if(S.newsLoading && !S.news.length) return head+`<div class="news-loading">${I.search} Loading news…</div>`;
+  if(!list.length) return head+`<div class="news-empty">No news yet. Check back soon.</div>`;
+
+  const cards=list.map(n=>{
+    const open=S.newsOpen===n.id;
+    return `<article class="news-card ${open?"open":""}" data-act="toggleNews" data-id="${n.id}">
+      <div class="news-card-top">
+        <span class="news-time">${timeAgo(n.published_at||n.created_at)}</span>
+      </div>
+      <h3 class="news-title">${esc(n.title||"")}</h3>
+      ${open?`<div class="news-body"><p>${esc(n.body||n.summary||"")}</p>${cleanUrl(n.url)?`<a class="news-link" href="${esc(cleanUrl(n.url))}" target="_blank" rel="noopener">Read source ↗</a>`:""}</div>`:`<p class="news-summary">${esc(n.summary||"")}</p>`}
+    </article>`;
+  }).join("");
+
+  return head+`<div class="news-list">${cards}</div>`;
 }
 function myRoomsPage(){
  if(!S.connected)return gate("see their rooms");
@@ -2262,6 +2305,9 @@ document.addEventListener("click",e=>{
  if(_closed&&!e.target.closest("[data-act]")){render();}
  // emoji/gif popover'ı dışarı tıklayınca kapat (araç butonları ve popover içi hariç)
  if((S.emojiFor||S.gifFor)&&!e.target.closest("[data-emoji-pop]")&&!e.target.closest('[data-act="toggleEmoji"]')&&!e.target.closest('[data-act="toggleGif"]')&&!e.target.closest('[data-act="pickEmoji"]')&&!e.target.closest('[data-act="pickGif"]')){S.emojiFor=null;S.gifFor=null;render();}
+ // haber "Read source" linki: dogal ac (target=_blank), kart toggle etme
+ const _newsLink=e.target.closest("a.news-link");
+ if(_newsLink){ return; }
  const el=e.target.closest("[data-act]"); if(!el)return;
  const a=el.dataset.act;
  // href="#" olan link/buton (iç yönlendirme) sayfayı atlatmasın
@@ -2376,6 +2422,9 @@ document.addEventListener("click",e=>{
  else if(a==="toggleFeedDrop"){S.feedDrop=!S.feedDrop;S.feedSearch="";render();}
  else if(a==="closeFeedDrop"){S.feedDrop=false;render();}
  else if(a==="pickFilter"){S.filter=el.dataset.token;S.filterAddr=null;S.feedDrop=false;S.feedSearch="";S.feedResults=[];render();}
+ else if(a==="newsFilter"){S.newsFilter=el.dataset.src;S.newsOpen=null;render();}
+ else if(a==="toggleNews"){const id=el.dataset.id;S.newsOpen=S.newsOpen===id?null:id;render();}
+ else if(a==="stop"){/* link tiklamasi kart acmasin */}
  else if(a==="pickFeedToken"){const r=S.feedResults[+el.dataset.i];if(r){upsertToken(r);S.filter=r.symbol;S.filterAddr=r.address||null;S.feedDrop=false;S.feedSearch="";S.feedResults=[];}render();}
  else if(a==="openResult"){const r=S.exploreResults[+el.dataset.i];if(r){upsertToken(r);S.view={name:"token",token:(r.symbol||"").toUpperCase()};S.exploreSearch="";S.exploreResults=[];}render();}
  else if(a==="createFor"){const sym=el.dataset.token;const t=tokenBy(sym);
