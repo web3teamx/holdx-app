@@ -25,6 +25,7 @@ function nextTiers(cap){return CAP_TIERS.filter(t=>t.cap>cap);} // yükseltme se
 const I={
  home:'<svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg>',
  trend:'<svg viewBox="0 0 24 24"><path d="M23 6l-9.5 9.5-5-5L1 18"/><path d="M17 6h6v6"/></svg>',
+ arrowup:'<svg viewBox="0 0 24 24"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>',
  news:'<svg viewBox="0 0 24 24"><path d="M4 4h13a1 1 0 0 1 1 1v13a2 2 0 0 0 2 2H5a2 2 0 0 1-2-2V4z"/><path d="M18 8h2a1 1 0 0 1 1 1v9a2 2 0 0 1-2 2"/><line x1="7" y1="8" x2="14" y2="8"/><line x1="7" y1="12" x2="14" y2="12"/><line x1="7" y1="16" x2="11" y2="16"/></svg>',
  waves:'<svg viewBox="0 0 24 24"><path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/></svg>',
  wallet:'<svg viewBox="0 0 24 24"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h3v-4z"/></svg>',
@@ -108,6 +109,9 @@ const S={
  searchResults:[], searching:false, searchErr:false, picked:null,
  feedResults:[], feedSearching:false,
  news:[], newsLoading:false, newsOpen:null, newsLoaded:false,
+ spikes:[], spikesLoading:false, spikesLoaded:false, spikeTab:"exchanges",
+ whales:[], whalesLoading:false, whalesLoaded:false, ocTab:"surges",
+ pendingPosts:[],
  exploreSearch:"", exploreResults:[], exploreSearching:false,
  postSearchOpen:false, postSearch:"", postResults:[], postSearching:false, postToken:null,
 };
@@ -158,6 +162,18 @@ window.__avatarCache=window.__avatarCache||{};
 window.__bioCache=window.__bioCache||{};
 window.__holdxApplyBios=function(map){ window.__bioCache=window.__bioCache||{}; Object.assign(window.__bioCache, map||{}); render(); };
 window.__holdxApplyNews=function(rows){ S.news=rows||[]; S.newsLoading=false; S.newsLoaded=true; render(); };
+window.__holdxApplySpikes=function(rows){ S.spikes=rows||[]; S.spikesLoading=false; S.spikesLoaded=true; render(); };
+window.__holdxApplyWhales=function(rows){ S.whales=rows||[]; S.whalesLoading=false; S.whalesLoaded=true; render(); };
+window.__holdxNewPostArrived=function(row){
+  if(!row||!row.id)return;
+  // zaten feed'de varsa veya bekleyende varsa ekleme
+  if(S.posts.some(p=>String(p.id)===String(row.id)))return;
+  if(S.pendingPosts.some(p=>String(p.id)===String(row.id)))return;
+  // kendi paylasimimsa (zaten ekleniyor) sayma
+  if(S.wallet && row.wallet===S.wallet.address)return;
+  S.pendingPosts.unshift(row);
+  render();
+};
 window.__holdxApplyFollows=function(data){
  // data: {following:[wallet], followerCounts:{wallet:count}, followingCounts:{wallet:count}}
  S.following={};
@@ -729,7 +745,7 @@ async function refreshTokenPrices(){
  }
  if(["tokens","feed","rooms","portfolio"].includes(S.view.name))render();
 }
-const NAV=[["feed","Feed","home"],["profile","Profile","user"],["portfolio","Portfolio","wallet"],["rooms","Rooms","chat"],["myrooms","My Rooms","badge"],["messages","Messages","send"],["notifications","Notifications","bell"],["leaderboard","Leaderboard","trend"],["unlocks","Unlocks","lock",true],["news","News","news"],["onchain","On-Chain","waves",true],["settings","Settings","gear"]];
+const NAV=[["feed","Feed","home"],["profile","Profile","user"],["portfolio","Portfolio","wallet"],["rooms","Rooms","chat"],["myrooms","My Rooms","badge"],["messages","Messages","send"],["notifications","Notifications","bell"],["leaderboard","Leaderboard","trend"],["unlocks","Unlocks","lock",true],["news","News","news"],["onchain","On-Chain","waves"],["settings","Settings","gear"]];
 
 // --- emoji seti (X benzeri bol seçenek, kategorili) ---
 const EMOJI={
@@ -1023,7 +1039,8 @@ function feedView(){
   :`<div class="connectbanner"><div><strong>Connect your wallet, make your voice real.</strong>
     <p>On the token you hold <span class="vinline">${I.badge} verified holder</span> badge. No bots, no fake accounts.</p></div>
     <button class="connect" data-act="connect">Connect wallet</button></div>`;
- return `<h1 class="h1">Feed</h1>${filterBar}${composer}
+ const newPill=(S.pendingPosts&&S.pendingPosts.length&&S.filter==="ALL")?`<button class="newposts-pill" data-act="showNewPosts">${I.arrowup||"↑"} ${S.pendingPosts.length} new post${S.pendingPosts.length>1?"s":""}</button>`:"";
+ return `<h1 class="h1">Feed</h1>${filterBar}${composer}${newPill}
   <div class="posts">${filtered.length?filtered.map(postCard).join(""):`<p class="empty">$${S.filter} no posts yet. Be the first to post.</p>`}</div>
   ${S.hasMorePosts&&S.filter==="ALL"?`<button class="loadmore" data-act="loadMore">${S.loadingMore?"Loading…":"Show more"}</button>`:""}
   ${S.sharePostId?postShareModal():""}`;
@@ -1771,6 +1788,7 @@ function mainView(){
  if(v.name==="myrooms")return myRoomsPage();
  if(v.name==="rooms")return roomsView();
  if(v.name==="news")return newsView();
+ if(v.name==="onchain")return onchainView();
  if(v.name==="room")return roomView(v.token);
  return"";
 }
@@ -1805,7 +1823,7 @@ function newsView(){
     const open=S.newsOpen===n.id;
     return `<article class="news-card ${open?"open":""}" data-act="toggleNews" data-id="${n.id}">
       <div class="news-card-top">
-        <span class="news-time">${timeAgo(n.published_at||n.created_at)}</span>
+        <span class="news-time">${timeAgo(n.created_at||n.published_at)}</span>
       </div>
       <h3 class="news-title">${esc(n.title||"")}</h3>
       ${open?`<div class="news-body"><p>${esc(n.body||n.summary||"")}</p>${cleanUrl(n.url)?`<a class="news-link" href="${esc(cleanUrl(n.url))}" target="_blank" rel="noopener">Read source ↗</a>`:""}</div>`:`<p class="news-summary">${esc(n.summary||"")}</p>`}
@@ -1814,6 +1832,98 @@ function newsView(){
 
   return head+`<div class="news-list">${cards}</div>`;
 }
+function onchainView(){
+  if(!S.spikesLoaded && !S.spikesLoading && window.__holdxLoadSpikes){ S.spikesLoading=true; window.__holdxLoadSpikes(); }
+  if(!S.whalesLoaded && !S.whalesLoading && window.__holdxLoadWhales){ S.whalesLoading=true; window.__holdxLoadWhales(); }
+  // sayfa açıkken 30sn'de bir sessizce yenile
+  if(!window.__spikeTimer){
+    window.__spikeTimer=setInterval(function(){ if(S.view&&S.view.name==="onchain"){ if(window.__holdxLoadSpikes)window.__holdxLoadSpikes(); if(window.__holdxLoadWhales)window.__holdxLoadWhales(); } else { clearInterval(window.__spikeTimer); window.__spikeTimer=null; } },30000);
+  }
+  const ocTab=S.ocTab||"surges";
+
+  const head=`<div class="oc-head">
+    <h1 class="h1">On-Chain</h1>
+    <p class="sub">Real-time market signals — momentum and whale moves as they happen.</p>
+    <div class="oc-maintabs">
+      <button class="oc-maintab ${ocTab==="surges"?"on":""}" data-act="ocMainTab" data-tab="surges">${I.trend} Volume Surges</button>
+      <button class="oc-maintab ${ocTab==="whales"?"on":""}" data-act="ocMainTab" data-tab="whales">${I.waves} Whale Alerts</button>
+    </div>
+  </div>`;
+
+  if(ocTab==="whales") return head+whaleSection();
+
+  // VOLUME SURGES
+  const tab=S.spikeTab||"exchanges";
+  const list=(S.spikes||[]).filter(x=>x.category===tab).sort((a,b)=>new Date(b.detected_at||0)-new Date(a.detected_at||0));
+  const subtabs=`<div class="oc-tabs">
+      <button class="oc-tab ${tab==="exchanges"?"on":""}" data-act="spikeTab" data-tab="exchanges">Exchanges</button>
+      <button class="oc-tab ${tab==="solana"?"on":""}" data-act="spikeTab" data-tab="solana">Solana</button>
+    </div>`;
+
+  if(S.spikesLoading && !S.spikes.length) return head+subtabs+`<div class="oc-loading">${I.search} Scanning markets…</div>`;
+  if(!list.length) return head+subtabs+`<div class="oc-empty"><div class="oc-empty-ic">${I.trend}</div><p>No volume surges right now.</p><span>Markets are calm on this side. Check back soon.</span></div>`;
+
+  const nowT=Date.now();
+  const cards=list.map(x=>{
+    const fresh=x.detected_at&&(nowT-new Date(x.detected_at).getTime())<90000;
+    const up=(x.price_change||0)>=0;
+    const chg=x.price_change!=null?`${up?"+":""}${(+x.price_change).toFixed(1)}%`:"";
+    return `<article class="oc-card${fresh?" fresh":""}">
+      <div class="oc-left">
+        ${tokenMarkHtml(x.symbol,"sm",x.logo)}
+        <div class="oc-info">
+          <div class="oc-sym">$${esc(x.symbol||"")}${x.name&&x.name!==x.symbol?`<span class="oc-name">${esc(x.name)}</span>`:""}</div>
+          <div class="oc-sub">Vol $${fmtMc(x.volume_now||0)}${chg?` · <span class="${up?"up":"down"}">${chg}</span>`:""}</div>
+        </div>
+      </div>
+      <div class="oc-right">
+        <div class="oc-mult">${(+x.multiple).toFixed(1)}x</div>
+        <div class="oc-mult-lbl">volume</div>
+        ${x.url?`<a class="oc-link" href="${esc(x.url)}" target="_blank" rel="noopener">View ↗</a>`:""}
+      </div>
+    </article>`;
+  }).join("");
+
+  return head+subtabs+`<div class="oc-list">${cards}</div>`;
+}
+
+function fmtEntity(e){
+  if(!e)return "unknown";
+  return esc(e.replace(/^#/,"").trim());
+}
+function whaleSection(){
+  const list=(S.whales||[]).slice().sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0));
+  if(S.whalesLoading && !S.whales.length) return `<div class="oc-loading">${I.search} Tracking whales…</div>`;
+  if(!list.length) return `<div class="oc-empty"><div class="oc-empty-ic">${I.waves}</div><p>No whale moves right now.</p><span>Large transfers will appear here as they happen.</span></div>`;
+
+  const nowT=Date.now();
+  const cards=list.map(w=>{
+    const fresh=w.created_at&&(nowT-new Date(w.created_at).getTime())<90000;
+    const usdM=w.amount_usd?(w.amount_usd>=1e9?`$${(w.amount_usd/1e9).toFixed(2)}B`:`$${(w.amount_usd/1e6).toFixed(1)}M`):"";
+    // yön: borsaya giriş = satış baskısı (kırmızı), çıkış = birikim (yeşil)
+    let dirLabel="", dirClass="wa-neutral";
+    if(w.direction==="inflow"){ dirLabel="→ "+esc(w.exchange||"Exchange"); dirClass="wa-in"; }
+    else if(w.direction==="outflow"){ dirLabel=esc(w.exchange||"Exchange")+" →"; dirClass="wa-out"; }
+    else { dirLabel="wallet → wallet"; dirClass="wa-neutral"; }
+    const sizeClass=w.amount_usd>=100e6?"huge":(w.amount_usd>=20e6?"big":"");
+    return `<article class="wa-card ${dirClass} ${sizeClass}${fresh?" fresh":""}">
+      <div class="wa-left">
+        ${tokenMarkHtml(w.symbol,"sm")}
+        <div class="wa-info">
+          <div class="wa-amt">${(+w.amount_token).toLocaleString()} $${esc(w.symbol||"")}</div>
+          <div class="wa-flow">${fmtEntity(w.from_entity)} <span class="wa-arrow">→</span> ${fmtEntity(w.to_entity)}</div>
+        </div>
+      </div>
+      <div class="wa-right">
+        <div class="wa-usd">${usdM}</div>
+        ${w.direction==="inflow"?`<div class="wa-tag in">Exchange inflow</div>`:w.direction==="outflow"?`<div class="wa-tag out">Exchange outflow</div>`:`<div class="wa-tag neutral">Transfer</div>`}
+      </div>
+    </article>`;
+  }).join("");
+
+  return `<div class="wa-legend"><span class="wa-dot in"></span> Inflow = sell pressure &nbsp;&nbsp; <span class="wa-dot out"></span> Outflow = accumulation</div><div class="oc-list">${cards}</div>`;
+}
+
 function myRoomsPage(){
  if(!S.connected)return gate("see their rooms");
  return `<h1 class="h1">My Rooms</h1>
@@ -2308,6 +2418,8 @@ document.addEventListener("click",e=>{
  // haber "Read source" linki: dogal ac (target=_blank), kart toggle etme
  const _newsLink=e.target.closest("a.news-link");
  if(_newsLink){ return; }
+ const _ocLink=e.target.closest("a.oc-link");
+ if(_ocLink){ return; }
  const el=e.target.closest("[data-act]"); if(!el)return;
  const a=el.dataset.act;
  // href="#" olan link/buton (iç yönlendirme) sayfayı atlatmasın
@@ -2423,6 +2535,13 @@ document.addEventListener("click",e=>{
  else if(a==="closeFeedDrop"){S.feedDrop=false;render();}
  else if(a==="pickFilter"){S.filter=el.dataset.token;S.filterAddr=null;S.feedDrop=false;S.feedSearch="";S.feedResults=[];render();}
  else if(a==="newsFilter"){S.newsFilter=el.dataset.src;S.newsOpen=null;render();}
+ else if(a==="spikeTab"){S.spikeTab=el.dataset.tab;render();}
+ else if(a==="ocMainTab"){S.ocTab=el.dataset.tab;render();}
+ else if(a==="showNewPosts"){
+   if(S.pendingPosts&&S.pendingPosts.length&&window.__holdxApplyPosts){ window.__holdxApplyPosts(S.pendingPosts.slice()); S.pendingPosts=[]; }
+   var _sc=document.querySelector(".shell")||document.scrollingElement||document.documentElement; if(_sc)_sc.scrollTo({top:0,behavior:"smooth"});
+   render();
+ }
  else if(a==="toggleNews"){const id=el.dataset.id;S.newsOpen=S.newsOpen===id?null:id;render();}
  else if(a==="stop"){/* link tiklamasi kart acmasin */}
  else if(a==="pickFeedToken"){const r=S.feedResults[+el.dataset.i];if(r){upsertToken(r);S.filter=r.symbol;S.filterAddr=r.address||null;S.feedDrop=false;S.feedSearch="";S.feedResults=[];}render();}

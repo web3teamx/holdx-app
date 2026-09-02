@@ -92,9 +92,21 @@ export default function App() {
         .or('display_name.ilike.%' + term + '%,wallet.ilike.%' + term + '%').limit(6)
       return data || []
     }
+    window.__holdxLoadWhales = async () => {
+      try {
+        const { data } = await supabase.from('whale_alerts').select('*').order('created_at', { ascending: false }).limit(60)
+        if (window.__holdxApplyWhales) window.__holdxApplyWhales(data || [])
+      } catch (e) { if (window.__holdxApplyWhales) window.__holdxApplyWhales([]) }
+    }
+    window.__holdxLoadSpikes = async () => {
+      try {
+        const { data } = await supabase.from('volume_spikes').select('*').order('detected_at', { ascending: false }).limit(80)
+        if (window.__holdxApplySpikes) window.__holdxApplySpikes(data || [])
+      } catch (e) { if (window.__holdxApplySpikes) window.__holdxApplySpikes([]) }
+    }
     window.__holdxLoadNews = async () => {
       try {
-        const { data } = await supabase.from('news').select('*').order('published_at', { ascending: false }).limit(60)
+        const { data } = await supabase.from('news').select('*').order('created_at', { ascending: false }).limit(60)
         if (window.__holdxApplyNews) window.__holdxApplyNews(data || [])
       } catch (e) { if (window.__holdxApplyNews) window.__holdxApplyNews([]) }
     }
@@ -545,6 +557,9 @@ export default function App() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'likes' }, throttledRefresh)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'comments' }, throttledRefresh)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'reposts' }, throttledRefresh)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'posts' }, (payload) => {
+        if (payload.new && window.__holdxNewPostArrived) window.__holdxNewPostArrived(payload.new)
+      })
       .subscribe()
 
     let roomTimer = null

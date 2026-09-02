@@ -1118,3 +1118,79 @@ img.tokenmark{object-fit:cover;background:transparent;}
 .news-link{display:inline-flex;align-items:center;gap:5px;font-size:13px;font-weight:700;color:var(--green);text-decoration:none;padding:7px 14px;border:1px solid color-mix(in srgb,var(--green) 40%,transparent);border-radius:999px;background:color-mix(in srgb,var(--green) 10%,transparent);}
 .news-link:hover{background:color-mix(in srgb,var(--green) 20%,transparent);}
 .news-loading,.news-empty{text-align:center;color:var(--tx3);padding:50px 20px;font-size:14px;}
+
+/* ============ ON-CHAIN (VOLUME SURGES) ============ */
+.oc-head{padding:4px 0 0;}
+.oc-tabs{display:flex;gap:8px;margin:14px 0 4px;}
+.oc-tab{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:999px;border:1px solid var(--border);background:var(--surface);color:var(--tx2);font-size:14px;font-weight:600;cursor:pointer;transition:all .15s;}
+.oc-tab svg{width:16px;height:16px;}
+.oc-tab:hover{border-color:var(--green);color:var(--tx);}
+.oc-tab.on{background:var(--green);border-color:var(--green);color:#05140d;}
+.oc-list{display:flex;flex-direction:column;gap:10px;margin-top:16px;}
+.oc-card{display:flex;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 16px;transition:border-color .15s;}
+.oc-card:hover{border-color:var(--green);}
+.oc-left{display:flex;align-items:center;gap:12px;min-width:0;flex:1;}
+.oc-info{min-width:0;}
+.oc-sym{font-size:15px;font-weight:800;color:var(--tx);display:flex;align-items:center;gap:8px;}
+.oc-name{font-size:12px;font-weight:500;color:var(--tx3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px;}
+.oc-sub{font-size:12.5px;color:var(--tx3);margin-top:2px;}
+.oc-sub .up{color:var(--green);}
+.oc-sub .down{color:#f6465d;}
+.oc-right{display:flex;flex-direction:column;align-items:flex-end;gap:1px;flex:none;margin-left:12px;}
+.oc-mult{font-size:20px;font-weight:900;color:var(--green);line-height:1;letter-spacing:-.5px;}
+.oc-mult-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--tx3);font-weight:700;}
+.oc-link{margin-top:6px;font-size:12px;font-weight:700;color:var(--green);text-decoration:none;padding:4px 12px;border:1px solid color-mix(in srgb,var(--green) 40%,transparent);border-radius:999px;background:color-mix(in srgb,var(--green) 10%,transparent);}
+.oc-link:hover{background:color-mix(in srgb,var(--green) 20%,transparent);}
+.oc-loading{text-align:center;color:var(--tx3);padding:50px 20px;font-size:14px;}
+.oc-empty{text-align:center;padding:50px 20px;}
+.oc-empty-ic{opacity:.3;margin-bottom:10px;}
+.oc-empty-ic svg{width:40px;height:40px;}
+.oc-empty p{color:var(--tx2);font-size:15px;font-weight:600;margin:0 0 4px;}
+.oc-empty span{color:var(--tx3);font-size:13px;}
+
+/* akışta "yeni gönderi" butonu (X gibi) */
+.newposts-pill{display:flex;align-items:center;justify-content:center;gap:7px;margin:10px auto 4px;padding:9px 20px;border-radius:999px;background:var(--green);color:#05140d;border:none;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(52,227,154,.3);transition:transform .1s,box-shadow .15s;position:sticky;top:8px;z-index:20;}
+.newposts-pill:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(52,227,154,.4);}
+.newposts-pill svg{width:15px;height:15px;stroke:#05140d;stroke-width:2.5;fill:none;}
+
+/* yeni gelen spike — dikkat çeken yanıp sönme */
+.oc-card.fresh{animation:ocPulse 1.2s ease-in-out 0s 4;border-color:var(--green);}
+@keyframes ocPulse{
+  0%,100%{border-color:var(--green);box-shadow:0 0 0 0 rgba(52,227,154,0);}
+  50%{border-color:var(--green);box-shadow:0 0 14px 2px rgba(52,227,154,.55);}
+}
+.oc-card.fresh::before{content:"NEW";position:absolute;top:-8px;left:14px;background:var(--green);color:#05140d;font-size:9px;font-weight:800;letter-spacing:.5px;padding:2px 7px;border-radius:5px;}
+.oc-card{position:relative;}
+
+/* On-Chain ana sekmeler (Volume Surges / Whale Alerts) */
+.oc-maintabs{display:flex;gap:8px;margin:14px 0 4px;}
+.oc-maintab{display:inline-flex;align-items:center;gap:7px;padding:10px 20px;border-radius:12px;border:1px solid var(--border);background:var(--surface);color:var(--tx2);font-size:14px;font-weight:700;cursor:pointer;transition:all .15s;}
+.oc-maintab svg{width:16px;height:16px;}
+.oc-maintab:hover{border-color:var(--green);color:var(--tx);}
+.oc-maintab.on{background:var(--green);border-color:var(--green);color:#05140d;}
+
+/* Whale Alert kartları */
+.wa-legend{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--tx3);margin:14px 0 6px;flex-wrap:wrap;}
+.wa-dot{width:9px;height:9px;border-radius:50%;display:inline-block;}
+.wa-dot.in{background:#f6465d;}
+.wa-dot.out{background:var(--green);}
+.wa-card{display:flex;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--border);border-radius:14px;padding:13px 16px;margin-bottom:10px;transition:border-color .15s;}
+.wa-card.wa-in{border-left-color:#f6465d;}
+.wa-card.wa-out{border-left-color:var(--green);}
+.wa-card.wa-neutral{border-left-color:var(--tx3);}
+.wa-card.huge{background:linear-gradient(90deg,color-mix(in srgb,var(--green) 6%,var(--surface)),var(--surface));}
+.wa-left{display:flex;align-items:center;gap:12px;min-width:0;flex:1;}
+.wa-info{min-width:0;}
+.wa-amt{font-size:15px;font-weight:800;color:var(--tx);}
+.wa-flow{font-size:13px;color:var(--tx);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:280px;font-weight:500;}
+.wa-arrow{color:var(--green);margin:0 4px;font-weight:700;}
+.wa-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex:none;margin-left:12px;}
+.wa-usd{font-size:17px;font-weight:900;color:var(--tx);letter-spacing:-.3px;}
+.wa-tag{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;padding:3px 8px;border-radius:6px;}
+.wa-tag.in{background:color-mix(in srgb,#f6465d 15%,transparent);color:#f6465d;}
+.wa-tag.out{background:color-mix(in srgb,var(--green) 15%,transparent);color:var(--green);}
+.wa-tag.neutral{background:var(--surface2);color:var(--tx2);}
+.wa-card.fresh{animation:ocPulse 1.2s ease-in-out 0s 4;}
+.wa-ex{color:var(--tx);font-weight:700;}
+.wa-ent{color:var(--tx2);font-weight:600;}
+.wa-unknown{color:var(--tx3);}
