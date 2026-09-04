@@ -1194,3 +1194,31 @@ img.tokenmark{object-fit:cover;background:transparent;}
 .wa-ex{color:var(--tx);font-weight:700;}
 .wa-ent{color:var(--tx2);font-weight:600;}
 .wa-unknown{color:var(--tx3);}
+
+/* ============ ECONOMIC CALENDAR ============ */
+.cal-head{padding:4px 0 0;}
+.cal-list{margin-top:16px;}
+.cal-day{font-size:13px;font-weight:800;color:var(--tx);text-transform:uppercase;letter-spacing:.5px;margin:18px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+.cal-day:first-child{margin-top:0;}
+.cal-card{display:flex;align-items:center;gap:14px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px;transition:border-color .15s;}
+.cal-card:hover{border-color:var(--tx3);}
+.cal-card.done{background:var(--surface2);}
+.cal-time{font-size:13px;font-weight:700;color:var(--tx2);font-variant-numeric:tabular-nums;min-width:64px;flex:none;}
+.cal-mid{flex:1;min-width:0;}
+.cal-title{font-size:14px;font-weight:600;color:var(--tx);margin-bottom:4px;}
+.cal-flag{margin-right:2px;}
+.cal-cur{font-size:11px;font-weight:700;color:var(--tx3);margin-left:4px;}
+.cal-vals{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;}
+.cal-actual{font-weight:800;color:var(--tx2);}
+.cal-actual.up{color:var(--green);}
+.cal-actual.down{color:#f6465d;}
+.cal-pending{color:var(--tx3);font-style:italic;}
+.cal-fc,.cal-prev{color:var(--tx3);}
+.cal-imp{width:10px;height:10px;border-radius:50%;flex:none;}
+.imp-dot-high{background:#f6465d;}
+.imp-dot-medium{background:#f0a020;}
+.imp-dot-low{background:var(--tx3);}
+.cal-card.imp-high{border-left:3px solid #f6465d;}
+.cal-card.imp-medium{border-left:3px solid #f0a020;}
+.cal-card.fresh{animation:ocPulse 1.2s ease-in-out 0s 4;}
+.cal-loading,.cal-empty{text-align:center;color:var(--tx3);padding:50px 20px;font-size:14px;}

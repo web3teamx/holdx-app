@@ -92,6 +92,12 @@ export default function App() {
         .or('display_name.ilike.%' + term + '%,wallet.ilike.%' + term + '%').limit(6)
       return data || []
     }
+    window.__holdxLoadEcon = async () => {
+      try {
+        const _cut = new Date(Date.now() - 3*3600*1000).toISOString(); const { data } = await supabase.from('econ_calendar').select('*').gte('event_time', _cut).order('event_time', { ascending: true }).limit(300)
+        if (window.__holdxApplyEcon) window.__holdxApplyEcon(data || [])
+      } catch (e) { if (window.__holdxApplyEcon) window.__holdxApplyEcon([]) }
+    }
     window.__holdxLoadWhales = async () => {
       try {
         const { data } = await supabase.from('whale_alerts').select('*').order('created_at', { ascending: false }).limit(60)
@@ -710,8 +716,16 @@ export default function App() {
         if (data && window.__holdxApplyMemberships) window.__holdxApplyMemberships(data.map(r => r.ticker))
       })
       // kendi RT'lerimi yükle (akışta "You reposted" olarak görünsün, yenileyince kaybolmasın)
-      supabase.from('reposts').select('post_id,created_at').eq('wallet', address).order('created_at', { ascending: false }).limit(50).then(({ data }) => {
-        if (data && window.__holdxSetFeedReposts) window.__holdxSetFeedReposts(data)
+      // + RT'lenen postların içeriğini de çek (akışta yüklü olmasa bile RT görünsün)
+      supabase.from('reposts').select('post_id,created_at').eq('wallet', address).order('created_at', { ascending: false }).limit(50).then(async ({ data }) => {
+        if (!data) return
+        // RT'lenen postların içeriğini çek
+        const rtPostIds = data.map(r => r.post_id)
+        if (rtPostIds.length) {
+          const { data: rtPosts } = await supabase.from('posts').select('*').in('id', rtPostIds)
+          if (rtPosts && rtPosts.length && window.__holdxApplyPosts) window.__holdxApplyPosts(rtPosts)
+        }
+        if (window.__holdxSetFeedReposts) window.__holdxSetFeedReposts(data)
       })
       if (window.__holdxLoadPoints) window.__holdxLoadPoints(address)
       if (window.__holdxLoadFollows) window.__holdxLoadFollows(address)

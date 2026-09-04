@@ -25,6 +25,7 @@ function nextTiers(cap){return CAP_TIERS.filter(t=>t.cap>cap);} // yükseltme se
 const I={
  home:'<svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg>',
  trend:'<svg viewBox="0 0 24 24"><path d="M23 6l-9.5 9.5-5-5L1 18"/><path d="M17 6h6v6"/></svg>',
+ calendar:'<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
  arrowup:'<svg viewBox="0 0 24 24"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>',
  news:'<svg viewBox="0 0 24 24"><path d="M4 4h13a1 1 0 0 1 1 1v13a2 2 0 0 0 2 2H5a2 2 0 0 1-2-2V4z"/><path d="M18 8h2a1 1 0 0 1 1 1v9a2 2 0 0 1-2 2"/><line x1="7" y1="8" x2="14" y2="8"/><line x1="7" y1="12" x2="14" y2="12"/><line x1="7" y1="16" x2="11" y2="16"/></svg>',
  waves:'<svg viewBox="0 0 24 24"><path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/></svg>',
@@ -111,6 +112,7 @@ const S={
  news:[], newsLoading:false, newsOpen:null, newsLoaded:false,
  spikes:[], spikesLoading:false, spikesLoaded:false, spikeTab:"exchanges",
  whales:[], whalesLoading:false, whalesLoaded:false, ocTab:"surges",
+ econEvents:[], econLoading:false, econLoaded:false,
  pendingPosts:[],
  exploreSearch:"", exploreResults:[], exploreSearching:false,
  postSearchOpen:false, postSearch:"", postResults:[], postSearching:false, postToken:null,
@@ -164,6 +166,7 @@ window.__holdxApplyBios=function(map){ window.__bioCache=window.__bioCache||{}; 
 window.__holdxApplyNews=function(rows){ S.news=rows||[]; S.newsLoading=false; S.newsLoaded=true; render(); };
 window.__holdxApplySpikes=function(rows){ S.spikes=rows||[]; S.spikesLoading=false; S.spikesLoaded=true; render(); };
 window.__holdxApplyWhales=function(rows){ S.whales=rows||[]; S.whalesLoading=false; S.whalesLoaded=true; render(); };
+window.__holdxApplyEcon=function(rows){ S.econEvents=rows||[]; S.econLoading=false; S.econLoaded=true; render(); };
 window.__holdxNewPostArrived=function(row){
   if(!row||!row.id)return;
   // zaten feed'de varsa veya bekleyende varsa ekleme
@@ -745,7 +748,7 @@ async function refreshTokenPrices(){
  }
  if(["tokens","feed","rooms","portfolio"].includes(S.view.name))render();
 }
-const NAV=[["feed","Feed","home"],["profile","Profile","user"],["portfolio","Portfolio","wallet"],["rooms","Rooms","chat"],["myrooms","My Rooms","badge"],["messages","Messages","send"],["notifications","Notifications","bell"],["leaderboard","Leaderboard","trend"],["unlocks","Unlocks","lock",true],["news","News","news"],["onchain","On-Chain","waves"],["settings","Settings","gear"]];
+const NAV=[["feed","Feed","home"],["profile","Profile","user"],["portfolio","Portfolio","wallet"],["rooms","Rooms","chat"],["myrooms","My Rooms","badge"],["messages","Messages","send"],["notifications","Notifications","bell"],["leaderboard","Leaderboard","trend"],["unlocks","Unlocks","lock",true],["news","News","news"],["onchain","On-Chain","waves"],["calendar","Calendar","calendar"],["settings","Settings","gear"]];
 
 // --- emoji seti (X benzeri bol seçenek, kategorili) ---
 const EMOJI={
@@ -1789,6 +1792,7 @@ function mainView(){
  if(v.name==="rooms")return roomsView();
  if(v.name==="news")return newsView();
  if(v.name==="onchain")return onchainView();
+ if(v.name==="calendar")return calendarView();
  if(v.name==="room")return roomView(v.token);
  return"";
 }
@@ -1924,6 +1928,78 @@ function whaleSection(){
   return `<div class="wa-legend"><span class="wa-dot in"></span> Inflow = sell pressure &nbsp;&nbsp; <span class="wa-dot out"></span> Outflow = accumulation</div><div class="oc-list">${cards}</div>`;
 }
 
+function calendarView(){
+  if(!S.econLoaded && !S.econLoading && window.__holdxLoadEcon){ S.econLoading=true; window.__holdxLoadEcon(); }
+  if(!window.__econTimer){
+    window.__econTimer=setInterval(function(){ if(S.view&&S.view.name==="calendar"){ if(window.__holdxLoadEcon)window.__holdxLoadEcon(); } else { clearInterval(window.__econTimer); window.__econTimer=null; } },30000);
+  }
+  const now=Date.now();
+  // sadece high + medium goster (low cok fazla gurultu), gecmis 12 saat + gelecek
+  let evs=(S.econEvents||[]).filter(function(e){
+    if(!e.event_time)return false;
+    if(e.impact==="low"||e.impact==="holiday"||!e.impact)return false;
+    const t=new Date(e.event_time).getTime();
+    return t > now-3*3600*1000; // bugün (son 3 saat toleransı) + gelecek
+  }).sort(function(a,b){ return new Date(a.event_time)-new Date(b.event_time); });
+
+  const head=`<div class="cal-head">
+    <h1 class="h1">Economic Calendar</h1>
+    <p class="sub">Upcoming market-moving events — CPI, Fed decisions, jobs data, with forecasts.</p>
+  </div>`;
+
+  if(S.econLoading && !evs.length) return head+`<div class="cal-loading">${I.search} Loading events…</div>`;
+  if(!evs.length) return head+`<div class="cal-empty">No major events scheduled. Check back soon.</div>`;
+
+  // gune gore grupla
+  const days={};
+  evs.forEach(function(e){
+    const d=new Date(e.event_time);
+    const key=d.toISOString().slice(0,10);
+    (days[key]=days[key]||[]).push(e);
+  });
+
+  const flag=function(c){ const m={USD:"🇺🇸",EUR:"🇪🇺",GBP:"🇬🇧",JPY:"🇯🇵",CNY:"🇨🇳",AUD:"🇦🇺",CAD:"🇨🇦",NZD:"🇳🇿",CHF:"🇨🇭"}; return m[c]||"🌐"; };
+  const dayName=function(key){
+    const d=new Date(key+"T12:00:00Z"), today=new Date().toISOString().slice(0,10);
+    const tmr=new Date(Date.now()+86400000).toISOString().slice(0,10);
+    const yst=new Date(Date.now()-86400000).toISOString().slice(0,10);
+    if(key===today)return "Today";
+    if(key===tmr)return "Tomorrow";
+    if(key===yst)return "Yesterday";
+    return d.toLocaleDateString("en-US",{weekday:"long",month:"short",day:"numeric"});
+  };
+
+  let html="";
+  Object.keys(days).sort().forEach(function(key){
+    html+=`<div class="cal-day">${dayName(key)}</div>`;
+    days[key].forEach(function(e){
+      const t=new Date(e.event_time);
+      const time=t.toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"});
+      const done=e.actual&&e.actual!=="";
+      const fresh=done&&e.updated_at&&(now-new Date(e.updated_at).getTime())<120000;
+      // surprise: actual vs forecast
+      let surprise="";
+      if(done&&e.forecast){
+        const a=parseFloat((e.actual||"").replace(/[^0-9.\-]/g,"")), fc=parseFloat((e.forecast||"").replace(/[^0-9.\-]/g,""));
+        if(!isNaN(a)&&!isNaN(fc)){ if(a>fc)surprise="up"; else if(a<fc)surprise="down"; }
+      }
+      html+=`<article class="cal-card imp-${e.impact}">
+        <div class="cal-time">${time}</div>
+        <div class="cal-mid">
+          <div class="cal-title"><span class="cal-flag">${flag(e.country)}</span> ${esc(e.title||"")} <span class="cal-cur">${esc(e.country||"")}</span></div>
+          <div class="cal-vals">
+            ${e.forecast?`<span class="cal-fc">Forecast <b>${esc(e.forecast)}</b></span>`:""}
+            ${e.previous?`<span class="cal-prev">Prev ${esc(e.previous)}</span>`:""}
+            ${!e.forecast&&!e.previous?`<span class="cal-pending">Scheduled</span>`:""}
+          </div>
+        </div>
+        <div class="cal-imp imp-dot-${e.impact}" title="${e.impact} impact"></div>
+      </article>`;
+    });
+  });
+
+  return head+`<div class="cal-list">${html}</div>`;
+}
 function myRoomsPage(){
  if(!S.connected)return gate("see their rooms");
  return `<h1 class="h1">My Rooms</h1>
