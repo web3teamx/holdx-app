@@ -970,6 +970,7 @@ function postDetailView(id){
         <button data-act="openComment" data-cid="${c.id||""}" data-post="${p.id}">${I.reply} ${kids(c.id).length}</button>
         <button class="${c.reposted?"reposted":""}" data-act="repostComment" data-cid="${c.id||""}">${I.repost} ${c.reposts||0}</button>
         <button class="${c.liked?"liked":""}" data-act="likeComment" data-cid="${c.id||""}">${c.liked?I.heartf:I.heart} ${c.likes||0}</button>
+        ${(S.wallet&&c.wallet===S.wallet.address&&c.id)?`<button class="comment-del" data-act="deleteComment" data-cid="${c.id}" data-post="${p.id}" title="Delete">${I.trash||"🗑"}</button>`:""}
       </div></div></div></div>`;
     };
     return roots.length?roots.map(function(c){return renderC(c,0);}).join(""):`<p class="empty">Be the first to comment.</p>`;
@@ -1246,6 +1247,7 @@ function commentDetailView(cid,postId){
      <div class="comment-actions big">
        <button class="${c.reposted?"reposted":""}" data-act="repostComment" data-cid="${c.id}">${I.repost} ${c.reposts||0}</button>
        <button class="${c.liked?"liked":""}" data-act="likeComment" data-cid="${c.id}">${c.liked?I.heartf:I.heart} ${c.likes||0}</button>
+       ${(S.wallet&&c.wallet===S.wallet.address&&c.id)?`<button class="comment-del" data-act="deleteComment" data-cid="${c.id}" data-post="${c.post_id||""}" title="Delete">${I.trash||"🗑"}</button>`:""}
      </div>
    </div>
    ${S.connected?`<div class="commentbox">
@@ -1937,7 +1939,7 @@ function calendarView(){
   // sadece high + medium goster (low cok fazla gurultu), gecmis 12 saat + gelecek
   let evs=(S.econEvents||[]).filter(function(e){
     if(!e.event_time)return false;
-    if(e.impact==="low"||e.impact==="holiday"||!e.impact)return false;
+    if(e.impact==="holiday")return false; // sadece tatilleri gizle, gerisi görünsün
     const t=new Date(e.event_time).getTime();
     return t > now-3*3600*1000; // bugün (son 3 saat toleransı) + gelecek
   }).sort(function(a,b){ return new Date(a.event_time)-new Date(b.event_time); });
@@ -2659,6 +2661,13 @@ document.addEventListener("click",e=>{
    S.view={name:"comment",cid:cid,postId:pid,token:null};
    S.replyTo=cid; S.commentText="";
    render();}
+else if(a==="deleteComment"){const cid=el.dataset.cid, pid=el.dataset.post; if(!cid||!S.wallet)return;
+   if(!confirm("Delete this comment?"))return;
+   // local'den kaldir
+   S.posts=S.posts.map(function(p){ if(String(p.id)===String(pid)&&p.comments){ return Object.assign({},p,{comments:p.comments.filter(function(c){return String(c.id)!==String(cid);}),replies:Math.max(0,(p.replies||1)-1)}); } return p; });
+   if(window.__holdxDeleteComment)window.__holdxDeleteComment(cid);
+   render();
+ }
  else if(a==="likeComment"){const cid=el.dataset.cid; if(!cid||!S.wallet)return;
    let on=false;
    S.posts=S.posts.map(function(p){ if(!p.comments)return p;

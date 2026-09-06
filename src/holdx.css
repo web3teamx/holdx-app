@@ -1222,3 +1222,6 @@ img.tokenmark{object-fit:cover;background:transparent;}
 .cal-card.imp-medium{border-left:3px solid #f0a020;}
 .cal-card.fresh{animation:ocPulse 1.2s ease-in-out 0s 4;}
 .cal-loading,.cal-empty{text-align:center;color:var(--tx3);padding:50px 20px;font-size:14px;}
+.comment-del{color:var(--tx3)!important;}
+.comment-del:hover{color:#f6465d!important;}
+.comment-del svg{width:14px;height:14px;}

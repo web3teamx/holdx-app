@@ -166,6 +166,7 @@ export default function App() {
       else await supabase.from('reposts').delete().eq('post_id', postId).eq('wallet', wallet)
     }
     window.__holdxSaveComment = async (c) => { await supabase.from('comments').insert(c) }
+    window.__holdxDeleteComment = async (cid) => { await supabase.from('comments').delete().eq('id', cid) }
     window.__holdxToggleCommentLike = async (commentId, wallet, on) => {
       if (on) await supabase.from('comment_likes').upsert({ comment_id: commentId, wallet }, { onConflict: 'comment_id,wallet' })
       else await supabase.from('comment_likes').delete().eq('comment_id', commentId).eq('wallet', wallet)
