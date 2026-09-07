@@ -134,17 +134,57 @@ export default function App() {
         return out
       } catch (e) { return [] }
     }
+    window.__holdxRugCheck = async (mint) => {
+      try {
+        const [rcRes, dexRes] = await Promise.all([
+          fetch(`https://api.rugcheck.xyz/v1/tokens/${mint}/report`),
+          fetch(`https://api.dexscreener.com/latest/dex/tokens/${mint}`).catch(() => null)
+        ])
+        if (!rcRes.ok) return { ok: false, error: 'Token not found on RugCheck.' }
+        const data = await rcRes.json()
+        // DexScreener: fiyat, mcap, sosyal
+        try {
+          if (dexRes && dexRes.ok) {
+            const dx = await dexRes.json()
+            const p = (dx.pairs || []).sort((a,b) => (b.liquidity?.usd||0)-(a.liquidity?.usd||0))[0]
+            if (p) {
+              data._dex = {
+                price: parseFloat(p.priceUsd) || 0,
+                mcap: p.marketCap || p.fdv || 0,
+                chg24: p.priceChange?.h24 || 0,
+                vol24: p.volume?.h24 || 0,
+                website: (p.info?.websites?.[0]?.url) || null,
+                socials: (p.info?.socials || []).map(x => ({ type: x.type, url: x.url })),
+                dexName: p.dexId || ''
+              }
+            }
+          }
+        } catch (e) {}
+        return { ok: true, data }
+      } catch (e) {
+        return { ok: false, error: 'Could not reach RugCheck. Try again.' }
+      }
+    }
+    window.__holdxLoadFresh = async () => {
+      try {
+        const { data } = await supabase.from('safe_launches').select('*').order('detected_at', { ascending: false }).limit(50)
+        if (window.__holdxApplyFresh) window.__holdxApplyFresh(data || [])
+      } catch (e) { if (window.__holdxApplyFresh) window.__holdxApplyFresh([]) }
+    }
     window.__holdxLoadGlobal = async () => {
       // CoinLore (CORS açık, doğru btc dominance)
       try {
-        const [gRes, sRes] = await Promise.all([
+        const [gRes, sRes, solVolRes] = await Promise.all([
           fetch('https://api.coinlore.net/api/global/'),
-          fetch('https://api.coinlore.net/api/ticker/?id=48543')
+          fetch('https://api.coinlore.net/api/ticker/?id=48543'),
+          fetch('https://api.llama.fi/overview/dexs/solana?excludeTotalDataChart=true&excludeTotalDataChartBreakdown=true').catch(() => null)
         ])
         const arr = await gRes.json()
         const d = Array.isArray(arr) ? arr[0] : arr
         let solPrice = null, solChg = null
         try { const st = await sRes.json(); const so = Array.isArray(st) ? st[0] : st; if (so) { solPrice = parseFloat(so.price_usd); solChg = parseFloat(so.percent_change_24h) } } catch (e) {}
+        let solDexVol = null
+        try { if (solVolRes && solVolRes.ok) { const sv = await solVolRes.json(); solDexVol = sv.total24h || null } } catch (e) {}
         if (d && window.__holdxApplyGlobal) {
           window.__holdxApplyGlobal({
             btcDom: parseFloat(d.btc_d),
@@ -153,7 +193,8 @@ export default function App() {
             totalChg: parseFloat(d.mcap_change),
             btcDomChg: null,
             solPrice: solPrice,
-            solChg: solChg
+            solChg: solChg,
+            solDexVol: solDexVol
           })
           return
         }

@@ -1322,3 +1322,113 @@ img.tokenmark{object-fit:cover;background:transparent;}
 /* Fear&Greed etiketi diğerleriyle tek tip */
 .market-bar .fg-badge{background:linear-gradient(135deg,color-mix(in srgb,var(--green) 6%,var(--surface)),var(--surface));border:1px solid var(--border);}
 .market-bar .fg-class{font-size:14px;font-weight:900;}
+
+/* ============ RUG CHECK / SAFETY ============ */
+.safety-search{display:flex;gap:8px;margin:16px 0 8px;}
+.safety-input{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 16px;color:var(--tx);font-size:14px;outline:none;font-family:monospace;}
+.safety-input:focus{border-color:var(--green);}
+.safety-btn{padding:12px 24px;border-radius:12px;background:var(--green);color:#05140d;border:none;font-weight:800;font-size:14px;cursor:pointer;}
+.safety-hint{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--tx3);margin:0 0 8px;}
+.safety-hint svg{width:15px;height:15px;flex:none;}
+.safety-empty,.safety-err{text-align:center;color:var(--tx3);padding:40px 20px;font-size:14px;}
+.safety-err{color:#f6465d;}
+.safety-report{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px;margin-top:8px;}
+.safety-top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-bottom:16px;border-bottom:1px solid var(--border);}
+.safety-name{font-size:18px;font-weight:800;color:var(--tx);}
+.safety-sym{color:var(--tx3);font-weight:600;font-size:14px;margin-left:6px;}
+.safety-score{display:flex;flex-direction:column;align-items:center;padding:8px 20px;border-radius:14px;background:color-mix(in srgb,var(--sv) 12%,transparent);border:1px solid color-mix(in srgb,var(--sv) 40%,transparent);}
+.ss-num{font-size:26px;font-weight:900;color:var(--sv);line-height:1;}
+.ss-lbl{font-size:11px;font-weight:700;color:var(--sv);text-transform:uppercase;letter-spacing:.4px;margin-top:2px;}
+.safety-checks{display:flex;flex-direction:column;gap:8px;margin:16px 0;}
+.safety-check{font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px;}
+.safety-check span{font-weight:900;}
+.safety-check.ok{color:var(--green);}
+.safety-check.bad{color:#f6465d;}
+.safety-risks-title,.safety-risks-title{font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--tx3);font-weight:700;margin:16px 0 8px;}
+.safety-risk{display:flex;gap:10px;padding:10px 0;border-top:1px solid var(--border);}
+.sr-dot{width:9px;height:9px;border-radius:50%;flex:none;margin-top:4px;}
+.sr-name{font-size:14px;font-weight:700;color:var(--tx);}
+.sr-desc{font-size:12.5px;color:var(--tx3);margin-top:2px;}
+.safety-norisk{color:var(--green);font-weight:600;font-size:14px;margin-top:12px;}
+.safety-disclaimer{font-size:11px;color:var(--tx3);margin-top:16px;font-style:italic;}
+.safety-check.warn{color:#f0a020;}
+.safety-warnsum{color:#f0a020;font-weight:700;font-size:13.5px;margin-top:12px;padding:10px 14px;background:color-mix(in srgb,#f0a020 10%,transparent);border-radius:10px;}
+
+/* safety ek: fiyat, market, sosyal */
+.safety-price{font-size:15px;font-weight:800;color:var(--tx);margin-top:4px;}
+.safety-price .up{color:var(--green);font-size:13px;}
+.safety-price .down{color:#f6465d;font-size:13px;}
+.ss-lbl2{font-size:13px;font-weight:900;color:var(--sv);text-transform:uppercase;letter-spacing:.4px;}
+.safety-score{padding:10px 18px;}
+.safety-market{display:flex;gap:10px;margin:14px 0;padding:12px 0;border-bottom:1px solid var(--border);}
+.sm-item{flex:1;display:flex;flex-direction:column;gap:2px;}
+.sm-l{font-size:10px;color:var(--tx3);text-transform:uppercase;letter-spacing:.4px;font-weight:700;}
+.sm-v{font-size:15px;font-weight:800;color:var(--tx);}
+.safety-social{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;}
+.soc-link{font-size:12.5px;font-weight:700;color:var(--green);text-decoration:none;padding:6px 14px;border:1px solid color-mix(in srgb,var(--green) 40%,transparent);border-radius:999px;background:color-mix(in srgb,var(--green) 8%,transparent);}
+.soc-link:hover{background:color-mix(in srgb,var(--green) 18%,transparent);}
+.safety-nosocial{margin-top:14px;color:#f0a020;font-size:12.5px;font-weight:600;}
+.safety-head{padding:4px 0 0;}
+
+/* dev & early buyers */
+.safety-devsec{margin-top:16px;padding-top:14px;border-top:1px solid var(--border);}
+.safety-devtitle{font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--tx3);font-weight:700;margin-bottom:10px;}
+.dev-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 0;font-size:13.5px;}
+.dev-l{color:var(--tx2);font-weight:600;flex:none;}
+.dev-v{color:var(--tx);text-align:right;}
+.dev-addr{color:var(--green);font-family:monospace;font-size:13px;text-decoration:none;font-weight:700;}
+.dev-row.warn .dev-l,.dev-row.warn .dev-v{color:#f0a020;}
+.dev-row.bad .dev-l,.dev-row.bad .dev-v{color:#f6465d;}
+.dev-row.ok .dev-l{color:var(--green);}
+
+/* ============ COMPARE ============ */
+.cmp-head{padding:4px 0 0;}
+.cmp-inputs{display:flex;align-items:center;gap:8px;margin:14px 0 8px;flex-wrap:wrap;}
+.cmp-in{flex:1;min-width:150px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:11px 14px;color:var(--tx);font-size:13px;font-family:monospace;outline:none;}
+.cmp-in:focus{border-color:var(--green);}
+.cmp-vs{font-weight:900;color:var(--tx3);font-size:13px;}
+.cmp-btn{padding:11px 22px;border-radius:12px;background:var(--green);color:#05140d;border:none;font-weight:800;font-size:14px;cursor:pointer;}
+.cmp-empty{text-align:center;color:var(--tx3);padding:40px 20px;font-size:14px;}
+.cmp-table{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-top:8px;}
+.cmp-row{display:grid;grid-template-columns:1fr 1.1fr 1fr;align-items:center;border-bottom:1px solid var(--border);}
+.cmp-row:last-child{border-bottom:none;}
+.cmp-header{background:var(--surface2);}
+.cmp-name{font-size:15px!important;font-weight:900!important;color:var(--tx)!important;}
+.cmp-cell{padding:12px 10px;text-align:center;font-size:14px;font-weight:700;color:var(--tx);}
+.cmp-cell.win{color:var(--green);background:color-mix(in srgb,var(--green) 8%,transparent);}
+.cmp-lbl{padding:12px 6px;text-align:center;font-size:11px;color:var(--tx3);text-transform:uppercase;letter-spacing:.3px;font-weight:700;}
+
+/* ============ NEW + SAFE ============ */
+.fresh-head{padding:4px 0 0;}
+.fresh-list{display:flex;flex-direction:column;gap:10px;margin-top:16px;}
+.fresh-card{display:flex;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--green);border-radius:14px;padding:13px 16px;transition:border-color .15s;}
+.fresh-card:hover{border-color:var(--green);}
+.fresh-left{display:flex;align-items:center;gap:12px;min-width:0;flex:1;}
+.fresh-info{min-width:0;}
+.fresh-sym{font-size:15px;font-weight:800;color:var(--tx);display:flex;align-items:center;gap:8px;}
+.fresh-name{font-size:12px;font-weight:500;color:var(--tx3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px;}
+.fresh-sub{font-size:12px;color:var(--tx3);margin-top:2px;}
+.fresh-right{display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex:none;margin-left:12px;}
+.fresh-badge{font-size:11px;font-weight:800;color:var(--green);background:color-mix(in srgb,var(--green) 15%,transparent);padding:3px 10px;border-radius:6px;letter-spacing:.3px;}
+.fresh-lp{font-size:11px;color:var(--tx3);font-weight:700;}
+.fresh-link{font-size:12px;font-weight:700;color:var(--green);text-decoration:none;margin-top:2px;}
+.fresh-card.fresh{animation:ocPulse 1.2s ease-in-out 0s 4;}
+.fresh-warn{font-size:12px;color:#f0a020;font-weight:600;margin:8px 0 0;}
+
+/* ============ MEMECOIN ANA SEKME ============ */
+.meme-head{padding:4px 0 0;}
+.meme-head .h1{display:flex;align-items:center;gap:8px;}
+.meme-head .h1 svg{width:24px;height:24px;stroke:var(--green);fill:none;}
+.meme-tabs{display:flex;gap:8px;margin:14px 0 8px;overflow-x:auto;scrollbar-width:none;}
+.meme-tabs::-webkit-scrollbar{display:none;}
+.meme-tab{white-space:nowrap;flex:none;padding:10px 18px;border-radius:11px;border:1px solid var(--border);background:var(--surface);color:var(--tx2);font-size:14px;font-weight:700;cursor:pointer;transition:all .15s;}
+.meme-tab:hover{border-color:var(--green);color:var(--tx);}
+.meme-tab.on{background:var(--green);border-color:var(--green);color:#05140d;}
+.fresh-desc{font-size:13px;color:var(--tx3);line-height:1.5;margin:4px 0 0;}
+
+/* alt sekmeler çerçeveli kutu */
+.meme-tabs{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:5px;gap:5px;}
+.meme-tab{border:none;background:none;}
+.meme-tab.soon{opacity:.4;pointer-events:none;}
+.oc-tabs{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:5px;gap:5px;display:inline-flex;}
+.oc-tab{border:none;background:none;}

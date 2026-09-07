@@ -27,6 +27,10 @@ const I={
  trend:'<svg viewBox="0 0 24 24"><path d="M23 6l-9.5 9.5-5-5L1 18"/><path d="M17 6h6v6"/></svg>',
  candle:'<svg viewBox="0 0 24 24"><rect x="5" y="7" width="4" height="9" rx="1"/><line x1="7" y1="3" x2="7" y2="7"/><line x1="7" y1="16" x2="7" y2="20"/><rect x="15" y="10" width="4" height="7" rx="1"/><line x1="17" y1="5" x2="17" y2="10"/><line x1="17" y1="17" x2="17" y2="21"/></svg>',
  chartbar:'<svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>',
+ rocket:'<svg viewBox="0 0 24 24"><path d="M12 2c3 1 6 4 6 9 0 3-1 5-2 6l-1 4h-6l-1-4c-1-1-2-3-2-6 0-5 3-8 6-9z"/><circle cx="12" cy="9" r="1.5"/></svg>',
+ sparkle:'<svg viewBox="0 0 24 24"><path d="M12 3l1.9 5.6L19.5 10l-5.6 1.9L12 17.5l-1.9-5.6L4.5 10l5.6-1.4z"/></svg>',
+ compare:'<svg viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>',
+ shield:'<svg viewBox="0 0 24 24"><path d="M12 2l8 4v6c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6z"/></svg>',
  crown:'<svg viewBox="0 0 24 24"><path d="M2 18h20l-2-9-4 4-4-7-4 7-4-4z"/><line x1="2" y1="21" x2="22" y2="21"/></svg>',
  calendar:'<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
  arrowup:'<svg viewBox="0 0 24 24"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>',
@@ -115,6 +119,9 @@ const S={
  news:[], newsLoading:false, newsOpen:null, newsLoaded:false,
  spikes:[], spikesLoading:false, spikesLoaded:false, spikeTab:"exchanges",
  whales:[], whalesLoading:false, whalesLoaded:false, ocTab:"surges",
+ safetyQuery:"", safetyReport:null, safetyLoading:false, safetyError:"",
+ cmpA:"", cmpB:"", cmpDataA:null, cmpDataB:null, cmpLoading:false,
+ fresh:[], freshLoading:false, freshLoaded:false, memeTab:"new",
  econEvents:[], econLoading:false, econLoaded:false,
  fearGreed:null, global:null, chartSymbol:"BINANCE:BTCUSDT", chartSearch:"", chartResults:[], chartSearching:false, chartTab:"cex", dexAddr:"", dexSearch:"", dexResults:[], dexSearching:false,
  pendingPosts:[],
@@ -173,6 +180,7 @@ window.__holdxApplyWhales=function(rows){ S.whales=rows||[]; S.whalesLoading=fal
 window.__holdxApplyEcon=function(rows){ S.econEvents=rows||[]; S.econLoading=false; S.econLoaded=true; render(); };
 window.__holdxApplyFearGreed=function(d){ S.fearGreed=d; render(); };
 window.__holdxApplyGlobal=function(d){ S.global=d; render(); };
+window.__holdxApplyFresh=function(rows){ S.fresh=rows||[]; S.freshLoading=false; S.freshLoaded=true; render(); };
 window.__holdxNewPostArrived=function(row){
   if(!row||!row.id)return;
   // zaten feed'de varsa veya bekleyende varsa ekleme
@@ -754,7 +762,7 @@ async function refreshTokenPrices(){
  }
  if(["tokens","feed","rooms","portfolio"].includes(S.view.name))render();
 }
-const NAV=[["feed","Feed","home"],["profile","Profile","user"],["portfolio","Portfolio","wallet"],["rooms","Rooms","chat"],["myrooms","My Rooms","badge"],["messages","Messages","send"],["notifications","Notifications","bell"],["leaderboard","Leaderboard","trend"],["vip","VIP","crown",true],["unlocks","Unlocks","lock",true],["news","News","news"],["chart","Charts","candle"],["onchain","On-Chain","waves"],["calendar","Calendar","calendar"],["settings","Settings","gear"]];
+const NAV=[["feed","Feed","home"],["profile","Profile","user"],["portfolio","Portfolio","wallet"],["rooms","Rooms","chat"],["myrooms","My Rooms","badge"],["messages","Messages","send"],["notifications","Notifications","bell"],["leaderboard","Leaderboard","trend"],["vip","VIP","crown",true],["unlocks","Unlocks","lock",true],["news","News","news"],["chart","Charts","candle"],["onchain","On-Chain","waves"],["memecoin","Memecoin","rocket"],["calendar","Calendar","calendar"],["settings","Settings","gear"]];
 
 // --- emoji seti (X benzeri bol seçenek, kategorili) ---
 const EMOJI={
@@ -1040,7 +1048,8 @@ function marketBar(){
       <div class="mstat"><span class="mstat-l">BTC Dom</span><span class="mstat-v">${g.btcDom!=null?g.btcDom.toFixed(1)+"%":"—"}</span></div>
       <div class="mstat"><span class="mstat-l">ETH Dom</span><span class="mstat-v">${g.ethDom!=null?g.ethDom.toFixed(1)+"%":"—"}</span></div>
       <div class="mstat"><span class="mstat-l">Total Cap</span><span class="mstat-v">${fmtBigUsd(g.totalMcap)}</span></div>
-      ${g.solPrice!=null?`<div class="mstat mstat-sol"><span class="mstat-l">SOL</span><span class="mstat-v">$${g.solPrice<10?g.solPrice.toFixed(2):g.solPrice.toFixed(1)}</span></div>`:""}`;
+      ${g.solPrice!=null?`<div class="mstat mstat-sol"><span class="mstat-l">SOL</span><span class="mstat-v">$${g.solPrice<10?g.solPrice.toFixed(2):g.solPrice.toFixed(1)}</span></div>`:""}
+      ${g.solDexVol!=null?`<div class="mstat mstat-sol"><span class="mstat-l">SOL DEX Vol 24h</span><span class="mstat-v">${fmtBigUsd(g.solDexVol)}</span></div>`:""}`;
   }
   if(!fg && !stats)return "";
   return `<div class="market-bar">${fg}${stats}</div>`;
@@ -1993,6 +2002,8 @@ function mainView(){
  if(v.name==="rooms")return roomsView();
  if(v.name==="news")return newsView();
  if(v.name==="onchain")return onchainView();
+ if(v.name==="memecoin")return memecoinView();
+ if(v.name==="compare")return compareView();
  if(v.name==="calendar")return calendarView();
  if(v.name==="chart")return chartView();
  if(v.name==="room")return roomView(v.token);
@@ -2066,7 +2077,6 @@ function onchainView(){
   const list=(S.spikes||[]).filter(x=>x.category===tab).sort((a,b)=>new Date(b.detected_at||0)-new Date(a.detected_at||0));
   const subtabs=`<div class="oc-tabs">
       <button class="oc-tab ${tab==="exchanges"?"on":""}" data-act="spikeTab" data-tab="exchanges">Exchanges</button>
-      <button class="oc-tab ${tab==="solana"?"on":""}" data-act="spikeTab" data-tab="solana">Solana</button>
     </div>`;
 
   if(S.spikesLoading && !S.spikes.length) return head+subtabs+`<div class="oc-loading">${I.search} Scanning markets…</div>`;
@@ -2079,7 +2089,6 @@ function onchainView(){
     const chg=x.price_change!=null?`${up?"+":""}${(+x.price_change).toFixed(1)}%`:"";
     return `<article class="oc-card${fresh?" fresh":""}">
       <div class="oc-left">
-        ${tokenMarkHtml(x.symbol,"sm",x.logo)}
         <div class="oc-info">
           <div class="oc-sym">$${esc(x.symbol||"")}${x.name&&x.name!==x.symbol?`<span class="oc-name">${esc(x.name)}</span>`:""}</div>
           <div class="oc-sub">Vol $${fmtMc(x.volume_now||0)}${chg?` · <span class="${up?"up":"down"}">${chg}</span>`:""}</div>
@@ -2099,6 +2108,283 @@ function onchainView(){
 function fmtEntity(e){
   if(!e)return "unknown";
   return esc(e.replace(/^#/,"").trim());
+}
+function extractMetrics(r){
+  if(!r)return null;
+  const dx=r._dex||{};
+  const topH=r.topHolders||[];
+  let top10=0; for(let i=0;i<Math.min(10,topH.length);i++){ top10+=(topH[i].pct||0); }
+  let lpLocked=null;
+  if(r.markets&&r.markets.length){ for(const m of r.markets){ if(m.lp&&m.lp.lpLockedPct!=null){ lpLocked=Math.max(lpLocked||0,m.lp.lpLockedPct); } } }
+  let ageDays=null;
+  if(r.detectedAt){ const d=new Date(r.detectedAt); if(!isNaN(d))ageDays=Math.floor((Date.now()-d.getTime())/86400000); }
+  const meta=r.tokenMeta||{};
+  const score=r.score!=null?r.score:0;
+  return {
+    name:meta.name||"Token", symbol:meta.symbol||"",
+    price:dx.price||0, mcap:dx.mcap||0, chg24:dx.chg24||0, vol24:dx.vol24||0,
+    liq:r.totalMarketLiquidity||0,
+    holders:r.totalHolders||topH.length||0,
+    top10:top10, lpLocked:lpLocked,
+    mintOk:(r.token&&r.token.mintAuthority==null),
+    freezeOk:(r.token&&r.token.freezeAuthority==null),
+    insiders:r.graphInsidersDetected||0,
+    age:ageDays, score:score, rugged:r.rugged===true,
+    hasSocial:!!(dx.website||(dx.socials&&dx.socials.length)),
+    devTokens:(r.creatorTokens&&r.creatorTokens.length)||0,
+    lpProviders:r.totalLPProviders||0,
+    verified:!!(r.verification&&r.verification.jup_verified),
+    top1:topH.length?(topH[0].pct||0):0
+  };
+}
+function compareSection(){
+  const head=`<div class="cmp-head">
+    <div class="cmp-inputs">
+      <input class="cmp-in" id="cmpAin" placeholder="Token A address..." value="${esc(S.cmpA||"")}" autocomplete="off">
+      <span class="cmp-vs">VS</span>
+      <input class="cmp-in" id="cmpBin" placeholder="Token B address..." value="${esc(S.cmpB||"")}" autocomplete="off">
+      <button class="cmp-btn" data-act="cmpGo">Compare</button>
+    </div>
+  </div>`;
+  if(S.cmpLoading)return head+`<div class="oc-loading">${I.search} Loading both tokens…</div>`;
+  const a=extractMetrics(S.cmpDataA), b=extractMetrics(S.cmpDataB);
+  if(!a||!b)return head+`<div class="cmp-empty">Enter two token addresses above to compare.</div>`;
+
+  // satir: label, a deger, b deger, hangisi iyi (1=a,2=b,0=esit), format
+  const fmtRow=function(label,av,bv,better,fmt){
+    const af=fmt?fmt(av):av, bf=fmt?fmt(bv):bv;
+    return `<div class="cmp-row">
+      <div class="cmp-cell ${better===1?"win":""}">${af}</div>
+      <div class="cmp-lbl">${label}</div>
+      <div class="cmp-cell ${better===2?"win":""}">${bf}</div>
+    </div>`;
+  };
+  const hi=function(x,y){return x>y?1:(y>x?2:0);};
+  const lo=function(x,y){return x<y?1:(y<x?2:0);};
+  const bool=function(x,y){return x&&!y?1:(y&&!x?2:0);};
+  const usd=function(v){return fmtBigUsd(v);};
+  const pct=function(v){return v!=null?v.toFixed(1)+"%":"—";};
+  const yn=function(v){return v?"✓ Yes":"✕ No";};
+
+  const rows=[
+    fmtRow("Price", a.price, b.price, 0, function(v){return "$"+(v<0.01?v.toFixed(6):v.toFixed(4));}),
+    fmtRow("Market Cap", a.mcap, b.mcap, hi(a.mcap,b.mcap), usd),
+    fmtRow("24h Change", a.chg24, b.chg24, hi(a.chg24,b.chg24), function(v){return (v>=0?"+":"")+v.toFixed(1)+"%";}),
+    fmtRow("24h Volume", a.vol24, b.vol24, hi(a.vol24,b.vol24), usd),
+    fmtRow("Liquidity", a.liq, b.liq, hi(a.liq,b.liq), usd),
+    fmtRow("Holders", a.holders, b.holders, hi(a.holders,b.holders), function(v){return v.toLocaleString();}),
+    fmtRow("Top 10 hold", a.top10, b.top10, lo(a.top10,b.top10), pct),
+    fmtRow("LP Locked", a.lpLocked, b.lpLocked, hi(a.lpLocked||0,b.lpLocked||0), pct),
+    fmtRow("Age", a.age, b.age, hi(a.age||0,b.age||0), function(v){return v!=null?v+"d":"—";}),
+    fmtRow("Mint revoked", a.mintOk, b.mintOk, bool(a.mintOk,b.mintOk), yn),
+    fmtRow("Freeze revoked", a.freezeOk, b.freezeOk, bool(a.freezeOk,b.freezeOk), yn),
+    fmtRow("Insiders", a.insiders, b.insiders, lo(a.insiders,b.insiders), function(v){return v+"";}),
+    fmtRow("Risk score", a.score, b.score, lo(a.score,b.score), function(v){return Math.round(v)+"";}),
+    fmtRow("Socials", a.hasSocial, b.hasSocial, bool(a.hasSocial,b.hasSocial), yn),
+    fmtRow("Top holder", a.top1, b.top1, lo(a.top1,b.top1), pct),
+    fmtRow("LP providers", a.lpProviders, b.lpProviders, hi(a.lpProviders,b.lpProviders), function(v){return v+"";}),
+    fmtRow("Dev other tokens", a.devTokens, b.devTokens, lo(a.devTokens,b.devTokens), function(v){return v+"";}),
+    fmtRow("Jupiter verified", a.verified, b.verified, bool(a.verified,b.verified), yn),
+    fmtRow("Rugged", a.rugged, b.rugged, bool(!a.rugged,!b.rugged), function(v){return v?"✕ Yes":"✓ No";})
+  ].join("");
+
+  return head+`<div class="cmp-table">
+    <div class="cmp-row cmp-header">
+      <div class="cmp-cell cmp-name">$${esc(a.symbol||"A")}</div>
+      <div class="cmp-lbl"></div>
+      <div class="cmp-cell cmp-name">$${esc(b.symbol||"B")}</div>
+    </div>
+    ${rows}
+  </div>
+  <p class="safety-disclaimer">Green highlights the stronger side. Not financial advice — always do your own research.</p>`;
+}
+function memecoinView(){
+  const tab=S.memeTab||"new";
+  const head=`<div class="meme-head">
+    <h1 class="h1">${I.rocket} Memecoin</h1>
+    <p class="sub">Everything a Solana memecoin trader needs — new launches, momentum, safety.</p>
+    <div class="meme-tabs">
+      <button class="meme-tab ${tab==="new"?"on":""}" data-act="memeTab" data-tab="new">New + Safe</button>
+      <button class="meme-tab ${tab==="surges"?"on":""}" data-act="memeTab" data-tab="surges">Volume Surges</button>
+      <button class="meme-tab ${tab==="rug"?"on":""}" data-act="memeTab" data-tab="rug">Rug Check</button>
+      <button class="meme-tab ${tab==="compare"?"on":""}" data-act="memeTab" data-tab="compare">Compare</button>
+      <button class="meme-tab soon" disabled>Soon</button>
+      <button class="meme-tab soon" disabled>Soon</button>
+      <button class="meme-tab soon" disabled>Soon</button>
+      <button class="meme-tab soon" disabled>Soon</button>
+      <button class="meme-tab soon" disabled>Soon</button>
+      <button class="meme-tab soon" disabled>Soon</button>
+    </div>
+  </div>`;
+
+  if(tab==="rug") return head+safetySection();
+  if(tab==="compare") return head+compareSection();
+  if(tab==="surges") return head+memeSurges();
+  return head+freshSection();
+}
+function memeSurges(){
+  if(!S.spikesLoaded && !S.spikesLoading && window.__holdxLoadSpikes){ S.spikesLoading=true; window.__holdxLoadSpikes(); }
+  if(!window.__spikeTimer){
+    window.__spikeTimer=setInterval(function(){ if(S.view&&S.view.name==="memecoin"){ if(window.__holdxLoadSpikes)window.__holdxLoadSpikes(); } else { clearInterval(window.__spikeTimer); window.__spikeTimer=null; } },30000);
+  }
+  const list=(S.spikes||[]).filter(function(x){return x.category==="solana";}).sort(function(a,b){return new Date(b.detected_at||0)-new Date(a.detected_at||0);});
+  if(S.spikesLoading && !list.length) return `<div class="oc-loading">${I.search} Scanning Solana volume…</div>`;
+  if(!list.length) return `<div class="oc-empty"><div class="oc-empty-ic">${I.trend}</div><p>No volume surges right now.</p><span>Solana is calm — check back soon.</span></div>`;
+  const nowT=Date.now();
+  const cards=list.map(function(x){
+    const fresh=x.detected_at&&(nowT-new Date(x.detected_at).getTime())<90000;
+    const up=(x.price_change||0)>=0;
+    const chg=x.price_change!=null?`${up?"+":""}${(+x.price_change).toFixed(1)}%`:"";
+    return `<article class="oc-card${fresh?" fresh":""}">
+      <div class="oc-left">${tokenMarkHtml(x.symbol,"sm",x.logo)}
+        <div class="oc-info"><div class="oc-sym">$${esc(x.symbol||"")}${x.name&&x.name!==x.symbol?`<span class="oc-name">${esc(x.name)}</span>`:""}</div>
+        <div class="oc-sub">Vol $${fmtMc(x.volume_now||0)}${chg?` · <span class="${up?"up":"down"}">${chg}</span>`:""}</div></div></div>
+      <div class="oc-right"><div class="oc-mult">${(+x.multiple).toFixed(1)}x</div><div class="oc-mult-lbl">volume</div>
+        ${x.url?`<a class="oc-link" href="${esc(x.url)}" target="_blank" rel="noopener">View ↗</a>`:""}</div>
+    </article>`;
+  }).join("");
+  return `<div class="oc-list">${cards}</div>`;
+}
+function freshSection(){
+  if(!S.freshLoaded && !S.freshLoading && window.__holdxLoadFresh){ S.freshLoading=true; window.__holdxLoadFresh(); }
+  if(!window.__freshTimer){
+    window.__freshTimer=setInterval(function(){ if(S.view&&S.view.name==="memecoin"){ if(window.__holdxLoadFresh)window.__holdxLoadFresh(); } else { clearInterval(window.__freshTimer); window.__freshTimer=null; } },30000);
+  }
+  const head=`<p class="fresh-desc">Freshly launched Solana tokens that pass every safety check: not flagged as rugged, mint authority revoked, freeze authority revoked, LP locked, enough liquidity, enough holders, no extreme wallet concentration, and a low overall risk score.</p><p class="fresh-warn">⚠ Passing these checks does not guarantee safety. Not financial advice — always do your own research.</p>`;
+  const list=(S.fresh||[]).slice().sort(function(a,b){return new Date(b.detected_at||0)-new Date(a.detected_at||0);});
+  if(S.freshLoading && !list.length)return head+`<div class="oc-loading">${I.search} Finding safe launches…</div>`;
+  if(!list.length)return head+`<div class="oc-empty"><div class="oc-empty-ic">${I.sparkle}</div><p>No safe launches right now.</p><span>New tokens are scanned continuously — check back soon.</span></div>`;
+
+  const nowT=Date.now();
+  const cards=list.map(function(t){
+    const fresh=t.detected_at&&(nowT-new Date(t.detected_at).getTime())<90000;
+    const age=t.age_min!=null?(t.age_min<60?t.age_min+"m":Math.floor(t.age_min/60)+"h"):"";
+    return `<article class="fresh-card${fresh?" fresh":""}">
+      <div class="fresh-left">
+        ${tokenMarkHtml(t.symbol,"sm",t.logo)}
+        <div class="fresh-info">
+          <div class="fresh-sym">$${esc(t.symbol||"")}${t.name&&t.name!==t.symbol?`<span class="fresh-name">${esc(t.name)}</span>`:""}</div>
+          <div class="fresh-sub">MC ${fmtBigUsd(t.mcap||0)} · Liq ${fmtBigUsd(t.liquidity||0)} · ${t.holders||0} holders${age?` · ${age} old`:""}</div>
+        </div>
+      </div>
+      <div class="fresh-right">
+        <div class="fresh-badge">✓ SAFE</div>
+        <div class="fresh-lp">LP ${Math.round(t.lp_locked||0)}%</div>
+        ${t.url?`<a class="fresh-link" href="${esc(t.url)}" target="_blank" rel="noopener">View ↗</a>`:""}
+      </div>
+    </article>`;
+  }).join("");
+  return head+`<div class="fresh-list">${cards}</div>`;
+}
+function safetyView(){
+  return `<div class="safety-head"><h1 class="h1">Rug Check</h1><p class="sub">Scan any Solana token for rug risks before you ape in.</p></div>`+safetySection();
+}
+function safetySection(){
+  const r=S.safetyReport;
+  const searchBox=`<div class="safety-search">
+    <input class="safety-input" id="safetyInput" placeholder="Paste Solana token address (mint)..." value="${esc(S.safetyQuery||"")}" autocomplete="off">
+    <button class="safety-btn" data-act="safetyCheck">Check</button>
+  </div>
+  <p class="safety-hint">${I.shield} Paste any Solana token mint address to scan for rug risks — mint authority, LP lock, holder concentration and more.</p>`;
+
+  if(S.safetyLoading) return searchBox+`<div class="oc-loading">${I.search} Scanning token…</div>`;
+  if(S.safetyError) return searchBox+`<div class="safety-err">${esc(S.safetyError)}</div>`;
+  if(!r) return searchBox+`<div class="safety-empty">Enter a token address above to run a safety check.</div>`;
+
+  // skor -> renk/etiket (RugCheck score: yüksek = riskli)
+  const score=r.score!=null?r.score:(r.score_normalised||0);
+  const rugged=r.rugged===true;
+
+  const risks=(r.risks||[]).map(function(rk){
+    const lvl=(rk.level||"").toLowerCase();
+    const rc=lvl==="danger"?"#f6465d":(lvl==="warn"?"#f0a020":"var(--tx3)");
+    return `<div class="safety-risk"><span class="sr-dot" style="background:${rc}"></span><div><div class="sr-name">${esc(rk.name||"")}</div><div class="sr-desc">${esc(rk.description||"")}</div></div></div>`;
+  }).join("");
+
+  const mintOk=r.token&&(r.token.mintAuthority==null||r.token.mintAuthority==="");
+  const freezeOk=r.token&&(r.token.freezeAuthority==null||r.token.freezeAuthority==="");
+  const meta=r.tokenMeta||{};
+  const dx=r._dex||null;
+  // top holder konsantrasyonu
+  const topH=r.topHolders||[];
+  let top10=0; for(let i=0;i<Math.min(10,topH.length);i++){ top10+=(topH[i].pct||0); }
+  const liq=r.totalMarketLiquidity||0;
+  const holderCount=r.totalHolders||(r.token&&r.token.holderCount)||topH.length||0;
+  // LP kilit: markets içindeki lp.lpLockedPct
+  let lpLocked=null;
+  if(r.markets&&r.markets.length){ for(const m of r.markets){ if(m.lp&&m.lp.lpLockedPct!=null){ lpLocked=Math.max(lpLocked||0,m.lp.lpLockedPct); } } }
+  // insider / bundle
+  const insiders=r.graphInsidersDetected||0;
+  // token yasi
+  let ageDays=null;
+  if(r.detectedAt){ const d=new Date(r.detectedAt); if(!isNaN(d)){ ageDays=Math.floor((Date.now()-d.getTime())/86400000); } }
+  // arz + burned
+  const totalSupply=(r.token&&r.token.supply)||null;
+  // creator (dev) bilgisi
+  const creator=r.creator||null;
+  const creatorBal=r.creatorBalance!=null?r.creatorBalance:null;
+  const creatorTokens=(r.creatorTokens&&r.creatorTokens.length)||0; // dev'in cikardigi diger tokenler
+  // insider/sniper detayi
+  const insiderNetworks=(r.insiderNetworks&&r.insiderNetworks.length)||0;
+  const short6=function(a){return a?a.slice(0,4)+"…"+a.slice(-4):"";};
+  // gerçek risk sayacı: bizim tüm kontrollerimizden kırmızı/turuncu olanlar
+  let warnCount=0, dangerCount=0;
+  if(!mintOk)dangerCount++;
+  if(!freezeOk)dangerCount++;
+  if(top10>50)dangerCount++; else if(top10>30)warnCount++;
+  if(liq>0&&liq<20000)warnCount++;
+  if(lpLocked!=null&&lpLocked<50)dangerCount++; else if(lpLocked!=null&&lpLocked<80)warnCount++;
+  if(holderCount>0&&holderCount<100)warnCount++;
+  if(ageDays!=null&&ageDays<3)warnCount++;
+  if(insiders>50)dangerCount++; else if(insiders>0)warnCount++;
+  if(rugged)dangerCount+=5;
+  // RugCheck'in kendi risk sayısı
+  const rcRisks=(r.risks||[]).length;
+  // verdict: danger/warn sayısına göre
+  let verdict, vcolor;
+  if(rugged||dangerCount>=2){ verdict="High Risk"; vcolor="#f6465d"; }
+  else if(dangerCount>=1||warnCount>=2){ verdict="Caution"; vcolor="#f0a020"; }
+  else if(warnCount===1){ verdict="Mostly Safe"; vcolor="#7ac74f"; }
+  else { verdict="Low Risk"; vcolor="#34e39a"; }
+
+  return searchBox+`<div class="safety-report">
+    <div class="safety-top">
+      <div class="safety-tokinfo">
+        <div class="safety-name">${esc(meta.name||"Token")} ${meta.symbol?`<span class="safety-sym">$${esc(meta.symbol)}</span>`:""}</div>
+        ${dx?`<div class="safety-price">$${dx.price<0.01?dx.price.toFixed(6):dx.price.toFixed(4)} <span class="${dx.chg24>=0?"up":"down"}">${dx.chg24>=0?"▲":"▼"}${Math.abs(dx.chg24).toFixed(1)}%</span></div>`:""}
+      </div>
+      <div class="safety-score" style="--sv:${vcolor}"><span class="ss-lbl2">${verdict}</span></div>
+    </div>
+    ${dx?`<div class="safety-market">
+      <div class="sm-item"><span class="sm-l">Market Cap</span><span class="sm-v">${fmtBigUsd(dx.mcap)}</span></div>
+      <div class="sm-item"><span class="sm-l">24h Vol</span><span class="sm-v">${fmtBigUsd(dx.vol24)}</span></div>
+      <div class="sm-item"><span class="sm-l">DEX</span><span class="sm-v">${esc((dx.dexName||"").toUpperCase())}</span></div>
+    </div>`:""}
+    <div class="safety-checks">
+      <div class="safety-check ${mintOk?"ok":"bad"}"><span>${mintOk?"✓":"✕"}</span> Mint authority ${mintOk?"revoked":"active — can print more (risk)"}</div>
+      <div class="safety-check ${freezeOk?"ok":"bad"}"><span>${freezeOk?"✓":"✕"}</span> Freeze authority ${freezeOk?"revoked":"active — can freeze wallets (risk)"}</div>
+      ${top10>0?`<div class="safety-check ${top10<=30?"ok":(top10<=50?"warn":"bad")}"><span>${top10<=30?"✓":"⚠"}</span> Top 10 holders own ${top10.toFixed(1)}%${top10>50?" — high concentration (risk)":""}</div>`:""}
+      ${liq>0?`<div class="safety-check ${liq>=20000?"ok":"warn"}"><span>${liq>=20000?"✓":"⚠"}</span> Liquidity: $${fmtBigUsd(liq).replace("$","")}${liq<20000?" — low (risk)":""}</div>`:""}
+      ${lpLocked!=null?`<div class="safety-check ${lpLocked>=80?"ok":(lpLocked>=50?"warn":"bad")}"><span>${lpLocked>=80?"✓":"⚠"}</span> LP locked: ${lpLocked.toFixed(0)}%${lpLocked<50?" — low, liquidity can be pulled (risk)":""}</div>`:""}
+      ${holderCount>0?`<div class="safety-check ${holderCount>=100?"ok":"warn"}"><span>${holderCount>=100?"✓":"⚠"}</span> ${holderCount.toLocaleString()} holders${holderCount<100?" — very few (risk)":""}</div>`:""}
+      ${ageDays!=null?`<div class="safety-check ${ageDays>=7?"ok":"warn"}"><span>${ageDays>=7?"✓":"⚠"}</span> Age: ${ageDays===0?"today":ageDays+"d"}${ageDays<3?" — brand new (higher risk)":""}</div>`:""}
+      ${insiders>0?`<div class="safety-check bad"><span>⚠</span> ${insiders} insider/bundle wallet${insiders>1?"s":""} detected</div>`:""}
+      ${rugged?`<div class="safety-check bad"><span>✕</span> This token is flagged as RUGGED</div>`:""}
+    </div>
+    ${dx&&(dx.website||dx.socials.length)?`<div class="safety-social">
+      ${dx.website?`<a href="${esc(dx.website)}" target="_blank" rel="noopener" class="soc-link">🌐 Website</a>`:""}
+      ${dx.socials.map(function(sc){return `<a href="${esc(sc.url)}" target="_blank" rel="noopener" class="soc-link">${sc.type==="twitter"?"𝕏 Twitter":sc.type==="telegram"?"✈ Telegram":sc.type==="discord"?"Discord":esc(sc.type)}</a>`;}).join("")}
+    </div>`:(dx?`<div class="safety-nosocial">⚠ No website or socials found — be cautious.</div>`:"")}
+    ${risks?`<div class="safety-risks-title">Detected signals</div><div class="safety-risks">${risks}</div>`:""}
+    ${(warnCount+dangerCount)===0&&!risks?`<div class="safety-norisk">✓ No major risk flags detected.</div>`:((warnCount+dangerCount)>0?`<div class="safety-warnsum">⚠ ${dangerCount} high + ${warnCount} minor risk signal${(dangerCount+warnCount)>1?"s":""} found above — review carefully.</div>`:"")}
+    ${(creator||insiders>0)?`<div class="safety-devsec">
+      <div class="safety-devtitle">Dev & Early Buyers</div>
+      ${creator?`<div class="dev-row"><span class="dev-l">Creator</span><a class="dev-addr" href="https://solscan.io/account/${esc(creator)}" target="_blank" rel="noopener">${short6(creator)} ↗</a></div>`:""}
+      ${creatorTokens>1?`<div class="dev-row warn"><span class="dev-l">⚠ Dev history</span><span class="dev-v">Created ${creatorTokens} other tokens${creatorTokens>=5?" — serial creator (risk)":""}</span></div>`:(creator&&creatorTokens<=1?`<div class="dev-row ok"><span class="dev-l">✓ Dev history</span><span class="dev-v">First/only token from this creator</span></div>`:"")}
+      ${insiders>0?`<div class="dev-row ${insiders>50?"bad":"warn"}"><span class="dev-l">${insiders>50?"✕":"⚠"} Insiders/snipers</span><span class="dev-v">${insiders} linked wallet${insiders>1?"s":""} bought early${insiderNetworks>0?` in ${insiderNetworks} group${insiderNetworks>1?"s":""}`:""}</span></div>`:`<div class="dev-row ok"><span class="dev-l">✓ Insiders</span><span class="dev-v">No insider/bundle network detected</span></div>`}
+    </div>`:""}
+    <p class="safety-disclaimer">Not financial advice — always do your own research.</p>
+  </div>`;
 }
 function whaleSection(){
   const list=(S.whales||[]).slice().sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0));
@@ -2818,12 +3104,35 @@ document.addEventListener("click",e=>{
  else if(a==="pickFilter"){S.filter=el.dataset.token;S.filterAddr=null;S.feedDrop=false;S.feedSearch="";S.feedResults=[];render();}
  else if(a==="newsFilter"){S.newsFilter=el.dataset.src;S.newsOpen=null;render();}
  else if(a==="spikeTab"){S.spikeTab=el.dataset.tab;render();}
+ else if(a==="memeTab"){S.memeTab=el.dataset.tab;render();}
  else if(a==="chartPick"){S.chartSymbol=el.dataset.sym;render();}
  else if(a==="chartMainTab"){S.chartTab=el.dataset.tab;render();}
  else if(a==="dexPick"){S.dexAddr=el.dataset.addr;render();}
  else if(a==="dexPickSearch"){S.dexAddr=el.dataset.addr;S.dexSearch="";S.dexResults=[];render();}
  else if(a==="chartPickSym"){S.chartSymbol=el.dataset.sym;S.chartSearch="";S.chartResults=[];render();}
  else if(a==="ocMainTab"){S.ocTab=el.dataset.tab;render();}
+else if(a==="cmpGo"){
+   const ia=document.getElementById("cmpAin"), ib=document.getElementById("cmpBin");
+   const aa=(ia?ia.value:S.cmpA||"").trim(), bb=(ib?ib.value:S.cmpB||"").trim();
+   if(!aa||!bb)return;
+   S.cmpA=aa; S.cmpB=bb; S.cmpLoading=true; S.cmpDataA=null; S.cmpDataB=null; render();
+   Promise.all([window.__holdxRugCheck(aa), window.__holdxRugCheck(bb)]).then(function(res){
+     S.cmpDataA=(res[0]&&res[0].ok)?res[0].data:null;
+     S.cmpDataB=(res[1]&&res[1].ok)?res[1].data:null;
+     S.cmpLoading=false; render();
+   });
+ }
+ else if(a==="safetyCheck"){
+   const inp=document.getElementById("safetyInput");
+   const addr=(inp?inp.value:S.safetyQuery||"").trim();
+   if(!addr){return;}
+   S.safetyQuery=addr; S.safetyLoading=true; S.safetyError=""; S.safetyReport=null; render();
+   if(window.__holdxRugCheck){ window.__holdxRugCheck(addr).then(function(rep){
+     if(rep&&rep.ok){ S.safetyReport=rep.data; S.safetyError=""; }
+     else { S.safetyReport=null; S.safetyError=(rep&&rep.error)||"Token not found or not scannable."; }
+     S.safetyLoading=false; render();
+   }); }
+ }
  else if(a==="showNewPosts"){
    if(S.pendingPosts&&S.pendingPosts.length&&window.__holdxApplyPosts){ window.__holdxApplyPosts(S.pendingPosts.slice()); S.pendingPosts=[]; }
    var _sc=document.querySelector(".shell")||document.scrollingElement||document.documentElement; if(_sc)_sc.scrollTo({top:0,behavior:"smooth"});
@@ -3117,7 +3426,10 @@ document.addEventListener("input",e=>{
  if(e.target.id==="feedSearch"){S.feedSearch=e.target.value;scheduleFeedSearch(e.target.value);}
  if(e.target.id==="exploreSearch"){S.exploreSearch=e.target.value;scheduleExploreSearch(e.target.value);}
  if(e.target.id==="postSearch"){S.postSearch=e.target.value;schedulePostSearch(e.target.value);}
-if(e.target.id==="dexSearch"){ S.dexSearch=e.target.value; scheduleDexSearch(e.target.value); return; }
+if(e.target.id==="cmpAin"){ S.cmpA=e.target.value; return; }
+ if(e.target.id==="cmpBin"){ S.cmpB=e.target.value; return; }
+ if(e.target.id==="safetyInput"){ S.safetyQuery=e.target.value; return; }
+ if(e.target.id==="dexSearch"){ S.dexSearch=e.target.value; scheduleDexSearch(e.target.value); return; }
  if(e.target.id==="chartSearch"){ S.chartSearch=e.target.value; scheduleChartSearch(e.target.value); return; }
  if(e.target.id==="composerText"){
    S.composerText=e.target.value;
