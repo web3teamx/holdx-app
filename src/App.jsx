@@ -92,6 +92,89 @@ export default function App() {
         .or('display_name.ilike.%' + term + '%,wallet.ilike.%' + term + '%').limit(6)
       return data || []
     }
+    window.__holdxSearchDexToken = async (q) => {
+      try {
+        const res = await fetch(`https://api.dexscreener.com/latest/dex/search?q=${encodeURIComponent(q)}`)
+        const data = await res.json()
+        const pairs = (data && data.pairs) || []
+        const seen = new Set()
+        const out = []
+        for (const p of pairs) {
+          if (p.chainId !== 'solana') continue
+          const addr = p.baseToken && p.baseToken.address
+          if (!addr || seen.has(addr)) continue
+          seen.add(addr)
+          out.push({ address: addr, symbol: (p.baseToken.symbol || '').toUpperCase(), name: p.baseToken.name || '' })
+          if (out.length >= 12) break
+        }
+        return out
+      } catch (e) { return [] }
+    }
+    window.__holdxSearchTVSymbol = async (q) => {
+      try {
+        // DexScreener'dan ara (CORS dostu, çalışıyor), TradingView sembolüne çevir
+        const res = await fetch(`https://api.dexscreener.com/latest/dex/search?q=${encodeURIComponent(q)}`)
+        const data = await res.json()
+        const pairs = (data && data.pairs) || []
+        const seen = new Set()
+        const out = []
+        for (const p of pairs) {
+          const sym = (p.baseToken && p.baseToken.symbol || '').toUpperCase()
+          if (!sym || seen.has(sym)) continue
+          seen.add(sym)
+          // Binance'de olma ihtimali yüksek olanlar için BINANCE:, degilse CRYPTO: dene
+          out.push({
+            symbol: 'BINANCE:' + sym + 'USDT',
+            display: sym,
+            desc: (p.baseToken && p.baseToken.name) || '',
+            exchange: (p.chainId || '').toUpperCase()
+          })
+          if (out.length >= 12) break
+        }
+        return out
+      } catch (e) { return [] }
+    }
+    window.__holdxLoadGlobal = async () => {
+      // CoinLore (CORS açık, doğru btc dominance)
+      try {
+        const [gRes, sRes] = await Promise.all([
+          fetch('https://api.coinlore.net/api/global/'),
+          fetch('https://api.coinlore.net/api/ticker/?id=48543')
+        ])
+        const arr = await gRes.json()
+        const d = Array.isArray(arr) ? arr[0] : arr
+        let solPrice = null, solChg = null
+        try { const st = await sRes.json(); const so = Array.isArray(st) ? st[0] : st; if (so) { solPrice = parseFloat(so.price_usd); solChg = parseFloat(so.percent_change_24h) } } catch (e) {}
+        if (d && window.__holdxApplyGlobal) {
+          window.__holdxApplyGlobal({
+            btcDom: parseFloat(d.btc_d),
+            ethDom: parseFloat(d.eth_d),
+            totalMcap: d.total_mcap,
+            totalChg: parseFloat(d.mcap_change),
+            btcDomChg: null,
+            solPrice: solPrice,
+            solChg: solChg
+          })
+          return
+        }
+      } catch (e) {}
+      try {
+        const res = await fetch('https://api.coinpaprika.com/v1/global')
+        const d = await res.json()
+        if (d && window.__holdxApplyGlobal) window.__holdxApplyGlobal({
+          btcDom: d.bitcoin_dominance_percentage, ethDom: null,
+          totalMcap: d.market_cap_usd, totalChg: d.market_cap_change_24h, btcDomChg: null
+        })
+      } catch (e) {}
+    }
+    window.__holdxLoadFearGreed = async () => {
+      try {
+        const res = await fetch('https://api.alternative.me/fng/?limit=1')
+        const j = await res.json()
+        const d = j?.data?.[0]
+        if (d && window.__holdxApplyFearGreed) window.__holdxApplyFearGreed({ value: parseInt(d.value), label: d.value_classification })
+      } catch (e) {}
+    }
     window.__holdxLoadEcon = async () => {
       try {
         const _cut = new Date(Date.now() - 3*3600*1000).toISOString(); const { data } = await supabase.from('econ_calendar').select('*').gte('event_time', _cut).order('event_time', { ascending: true }).limit(300)

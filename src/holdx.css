@@ -147,8 +147,9 @@
 .act-time{color:var(--tx3);font-size:11px;}
 
 .shell{display:grid;grid-template-columns:220px minmax(0,1fr) 340px;max-width:1440px;margin:0 auto;}
-.rail{border-right:1px solid var(--border);padding:16px 12px;display:flex;flex-direction:column;gap:2px;position:sticky;top:57px;align-self:start;height:calc(100vh - 57px);}
-.navbtn{position:relative;display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:11px;color:var(--tx2);font-size:14px;font-weight:500;text-align:left;transition:background .12s,color .12s;}
+.rail{border-right:1px solid var(--border);padding:14px 12px;display:flex;flex-direction:column;gap:1px;position:sticky;top:57px;align-self:start;height:calc(100vh - 57px);overflow-y:auto;overflow-x:hidden;scrollbar-width:none;}
+.rail::-webkit-scrollbar{display:none;}
+.navbtn{position:relative;display:flex;align-items:center;gap:12px;padding:9px 14px;border-radius:11px;color:var(--tx2);font-size:14px;font-weight:500;text-align:left;transition:background .12s,color .12s;}
 .navbtn:hover{background:var(--surface);color:var(--tx);}
 .navbtn.on{background:var(--surface2);color:var(--tx);font-weight:600;}
 .navbtn.on::before{content:"";position:absolute;left:0;top:50%;transform:translateY(-50%);width:3px;height:20px;border-radius:0 3px 3px 0;background:var(--green);}
@@ -1163,7 +1164,9 @@ img.tokenmark{object-fit:cover;background:transparent;}
 .oc-card{position:relative;}
 
 /* On-Chain ana sekmeler (Volume Surges / Whale Alerts) */
-.oc-maintabs{display:flex;gap:8px;margin:14px 0 4px;}
+.oc-maintabs{display:flex;gap:8px;margin:14px 0 4px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
+.oc-maintabs::-webkit-scrollbar{display:none;}
+.oc-maintab{white-space:nowrap;flex:none;}
 .oc-maintab{display:inline-flex;align-items:center;gap:7px;padding:10px 20px;border-radius:12px;border:1px solid var(--border);background:var(--surface);color:var(--tx2);font-size:14px;font-weight:700;cursor:pointer;transition:all .15s;}
 .oc-maintab svg{width:16px;height:16px;}
 .oc-maintab:hover{border-color:var(--green);color:var(--tx);}
@@ -1225,3 +1228,97 @@ img.tokenmark{object-fit:cover;background:transparent;}
 .comment-del{color:var(--tx3)!important;}
 .comment-del:hover{color:#f6465d!important;}
 .comment-del svg{width:14px;height:14px;}
+
+/* VIP sekmesi - altın taç, özel görünüm */
+.navbtn.vip .icn svg{stroke:#f5c518;fill:rgba(245,197,24,.15);}
+.navbtn.vip span:not(.soon-tag){color:#f5c518;font-weight:700;}
+.navbtn.vip.soon{opacity:.7;}
+
+/* On-Chain soon alt sekmeler */
+.oc-maintab.soon{opacity:.45;cursor:default;pointer-events:none;position:relative;}
+.oc-soon{font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;background:var(--surface2);color:var(--tx3);padding:1px 5px;border-radius:5px;margin-left:6px;border:1px solid var(--border);}
+
+/* ============ FEAR & GREED BADGE ============ */
+.feed-top-row{display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.fg-badge{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:8px 14px 8px 10px;}
+.fg-ring{position:relative;width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:none;background:conic-gradient(var(--fgc) calc(var(--fgv)*3.6deg),var(--surface2) 0);}
+.fg-ring::before{content:"";position:absolute;width:34px;height:34px;border-radius:50%;background:var(--surface);}
+.fg-num{position:relative;font-size:15px;font-weight:900;color:var(--fgc);z-index:1;}
+.fg-txt{display:flex;flex-direction:column;line-height:1.2;}
+.fg-label{font-size:9px;color:var(--green);opacity:.9;font-weight:800;text-transform:uppercase;letter-spacing:.6px;}
+.fg-class{font-size:14px;font-weight:800;}
+@media(max-width:600px){.fg-label{display:none;}.fg-badge{padding:6px 10px 6px 8px;}}
+
+/* TradingView grafik */
+.tv-chart-wrap{width:100%;height:360px;border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:12px 0;background:var(--surface);}
+.tv-chart-wrap .tradingview-widget-container{height:100%;}
+
+/* ============ CHART SEKMESI ============ */
+.chart-head{padding:4px 0 0;}
+.chart-chips{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:14px 0 8px;}
+.chart-chip{padding:7px 14px;border-radius:999px;border:1px solid var(--border);background:var(--surface);color:var(--tx2);font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;}
+.chart-chip:hover{border-color:var(--green);color:var(--tx);}
+.chart-chip.on{background:var(--green);border-color:var(--green);color:#05140d;}
+.chart-search-wrap{position:relative;margin-left:auto;}
+.chart-search{background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:7px 14px;color:var(--tx);font-size:13px;outline:none;width:180px;}
+.chart-search:focus{border-color:var(--green);}
+.chart-search-btn{padding:7px 16px;border-radius:999px;background:var(--green);color:#05140d;border:none;font-weight:700;font-size:13px;cursor:pointer;}
+.tv-chart-wrap.tv-full{height:calc(100vh - 220px);min-height:420px;}
+@media(max-width:600px){.chart-search-wrap{margin-left:0;width:100%;}.chart-search{flex:1;}}
+
+/* Charts arama dropdown */
+.chart-drop{position:absolute;top:calc(100% + 4px);right:0;width:320px;max-height:340px;overflow-y:auto;background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.3);z-index:50;}
+.chart-drop:empty{display:none;}
+.cd-item{display:flex;align-items:center;gap:8px;width:100%;padding:10px 14px;text-align:left;border:none;background:none;cursor:pointer;border-bottom:1px solid var(--border);transition:background .1s;}
+.cd-item:last-child{border-bottom:none;}
+.cd-item:hover{background:var(--surface2);}
+.cd-tk{font-weight:800;color:var(--tx);font-size:13px;flex:none;}
+.cd-desc{font-size:12px;color:var(--tx3);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cd-ex{font-size:10px;color:var(--tx3);background:var(--surface2);padding:2px 6px;border-radius:5px;flex:none;font-weight:600;}
+.cd-hint{padding:14px;text-align:center;color:var(--tx3);font-size:13px;}
+.chart-hint{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--tx3);margin:6px 0 0;}
+.chart-hint svg{width:14px;height:14px;flex:none;}
+
+/* Charts CEX/DEX ana sekmeler */
+.chart-maintabs{display:flex;gap:10px;margin:14px 0 8px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:5px;}
+.chart-maintab{flex:1;padding:12px 22px;border-radius:10px;border:none;background:none;color:var(--tx2);font-size:16px;font-weight:800;letter-spacing:.5px;cursor:pointer;transition:all .15s;}
+.chart-maintab:hover{color:var(--tx);}
+.chart-maintab.on{background:var(--green);border-color:var(--green);color:#05140d;}
+/* DexScreener embed */
+.dex-embed-wrap{position:relative;width:100%;height:calc(100vh - 240px);min-height:420px;border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-top:8px;background:var(--surface);}
+.dex-embed{width:100%;height:calc(100% + 46px);border:none;display:block;}
+.dex-search-wrap{position:relative;margin-left:auto;}
+#dexSearch{width:200px;}
+
+/* ============ MARKET BAR (Fear&Greed + global stats) ============ */
+.market-bar{display:flex;align-items:stretch;gap:10px;margin:6px 0 14px;flex-wrap:wrap;}
+.market-bar .fg-badge{margin:0;}
+.mstat{display:flex;flex-direction:column;justify-content:center;gap:3px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:8px 16px;min-width:110px;}
+.mstat-l{font-size:10px;color:var(--tx3);font-weight:700;text-transform:uppercase;letter-spacing:.4px;}
+.mstat-v{font-size:15px;font-weight:800;color:var(--tx);white-space:nowrap;}
+.mstat-v .up{color:var(--green);font-size:12px;font-weight:700;}
+.mstat-v .down{color:#f6465d;font-size:12px;font-weight:700;}
+@media(max-width:600px){.market-bar{gap:8px;}.mstat{min-width:90px;padding:7px 12px;flex:1;}}
+.mstat-tv{width:150px;height:74px;background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;flex:none;}
+@media(max-width:600px){.mstat-tv{width:120px;height:64px;flex:1;min-width:100px;}}
+
+/* market bar canlı tasarım */
+.mstat{position:relative;gap:2px;background:linear-gradient(135deg,var(--surface),var(--surface2));}
+.mstat-l{font-size:9px;letter-spacing:.6px;color:var(--tx3);}
+.mstat-v{font-size:16px;font-weight:900;color:var(--tx);letter-spacing:-.3px;font-variant-numeric:tabular-nums;}
+.mstat-c{font-size:11px;font-weight:800;}
+.mstat-c.up{color:var(--green);}
+.mstat-c.down{color:#f6465d;}
+.mstat-sol .mstat-v{color:#14f195;}
+
+/* market bar - net renk, esit sira, canli */
+.market-bar{align-items:stretch;}
+.market-bar .mstat{flex:1;min-width:0;align-items:flex-start;justify-content:center;background:linear-gradient(135deg,color-mix(in srgb,var(--green) 6%,var(--surface)),var(--surface));border:1px solid var(--border);}
+.market-bar .mstat-l{color:var(--green);opacity:.9;font-weight:800;}
+.market-bar .mstat-v{color:var(--tx);font-weight:900;font-size:17px;}
+.market-bar .mstat-sol .mstat-v{color:#14f195;}
+.market-bar .fg-badge{flex:none;}
+
+/* Fear&Greed etiketi diğerleriyle tek tip */
+.market-bar .fg-badge{background:linear-gradient(135deg,color-mix(in srgb,var(--green) 6%,var(--surface)),var(--surface));border:1px solid var(--border);}
+.market-bar .fg-class{font-size:14px;font-weight:900;}

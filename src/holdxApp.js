@@ -25,6 +25,9 @@ function nextTiers(cap){return CAP_TIERS.filter(t=>t.cap>cap);} // yükseltme se
 const I={
  home:'<svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg>',
  trend:'<svg viewBox="0 0 24 24"><path d="M23 6l-9.5 9.5-5-5L1 18"/><path d="M17 6h6v6"/></svg>',
+ candle:'<svg viewBox="0 0 24 24"><rect x="5" y="7" width="4" height="9" rx="1"/><line x1="7" y1="3" x2="7" y2="7"/><line x1="7" y1="16" x2="7" y2="20"/><rect x="15" y="10" width="4" height="7" rx="1"/><line x1="17" y1="5" x2="17" y2="10"/><line x1="17" y1="17" x2="17" y2="21"/></svg>',
+ chartbar:'<svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>',
+ crown:'<svg viewBox="0 0 24 24"><path d="M2 18h20l-2-9-4 4-4-7-4 7-4-4z"/><line x1="2" y1="21" x2="22" y2="21"/></svg>',
  calendar:'<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
  arrowup:'<svg viewBox="0 0 24 24"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>',
  news:'<svg viewBox="0 0 24 24"><path d="M4 4h13a1 1 0 0 1 1 1v13a2 2 0 0 0 2 2H5a2 2 0 0 1-2-2V4z"/><path d="M18 8h2a1 1 0 0 1 1 1v9a2 2 0 0 1-2 2"/><line x1="7" y1="8" x2="14" y2="8"/><line x1="7" y1="12" x2="14" y2="12"/><line x1="7" y1="16" x2="11" y2="16"/></svg>',
@@ -113,6 +116,7 @@ const S={
  spikes:[], spikesLoading:false, spikesLoaded:false, spikeTab:"exchanges",
  whales:[], whalesLoading:false, whalesLoaded:false, ocTab:"surges",
  econEvents:[], econLoading:false, econLoaded:false,
+ fearGreed:null, global:null, chartSymbol:"BINANCE:BTCUSDT", chartSearch:"", chartResults:[], chartSearching:false, chartTab:"cex", dexAddr:"", dexSearch:"", dexResults:[], dexSearching:false,
  pendingPosts:[],
  exploreSearch:"", exploreResults:[], exploreSearching:false,
  postSearchOpen:false, postSearch:"", postResults:[], postSearching:false, postToken:null,
@@ -167,6 +171,8 @@ window.__holdxApplyNews=function(rows){ S.news=rows||[]; S.newsLoading=false; S.
 window.__holdxApplySpikes=function(rows){ S.spikes=rows||[]; S.spikesLoading=false; S.spikesLoaded=true; render(); };
 window.__holdxApplyWhales=function(rows){ S.whales=rows||[]; S.whalesLoading=false; S.whalesLoaded=true; render(); };
 window.__holdxApplyEcon=function(rows){ S.econEvents=rows||[]; S.econLoading=false; S.econLoaded=true; render(); };
+window.__holdxApplyFearGreed=function(d){ S.fearGreed=d; render(); };
+window.__holdxApplyGlobal=function(d){ S.global=d; render(); };
 window.__holdxNewPostArrived=function(row){
   if(!row||!row.id)return;
   // zaten feed'de varsa veya bekleyende varsa ekleme
@@ -748,7 +754,7 @@ async function refreshTokenPrices(){
  }
  if(["tokens","feed","rooms","portfolio"].includes(S.view.name))render();
 }
-const NAV=[["feed","Feed","home"],["profile","Profile","user"],["portfolio","Portfolio","wallet"],["rooms","Rooms","chat"],["myrooms","My Rooms","badge"],["messages","Messages","send"],["notifications","Notifications","bell"],["leaderboard","Leaderboard","trend"],["unlocks","Unlocks","lock",true],["news","News","news"],["onchain","On-Chain","waves"],["calendar","Calendar","calendar"],["settings","Settings","gear"]];
+const NAV=[["feed","Feed","home"],["profile","Profile","user"],["portfolio","Portfolio","wallet"],["rooms","Rooms","chat"],["myrooms","My Rooms","badge"],["messages","Messages","send"],["notifications","Notifications","bell"],["leaderboard","Leaderboard","trend"],["vip","VIP","crown",true],["unlocks","Unlocks","lock",true],["news","News","news"],["chart","Charts","candle"],["onchain","On-Chain","waves"],["calendar","Calendar","calendar"],["settings","Settings","gear"]];
 
 // --- emoji seti (X benzeri bol seçenek, kategorili) ---
 const EMOJI={
@@ -1001,6 +1007,44 @@ function feedDropdown(){
    <div class="ff-search">${I.search}<input id="feedSearch" placeholder="search all tokens — name or ticker (ansem, wif…)" value="${esc(S.feedSearch)}" autocomplete="off"></div>
    <div class="ff-list" id="feedDropList">${listHtml}</div></div>`;
 }
+function fearGreedBadge(){
+  const fg=S.fearGreed;
+  if(!fg||fg.value==null)return "";
+  const v=fg.value;
+  let color, emoji;
+  if(v<=25){ color="#f6465d"; emoji="😱"; }
+  else if(v<=45){ color="#f0a020"; emoji="😟"; }
+  else if(v<=55){ color="#c0c020"; emoji="😐"; }
+  else if(v<=75){ color="#7ac74f"; emoji="🙂"; }
+  else { color="#34e39a"; emoji="🤑"; }
+  return `<div class="fg-badge" title="Crypto Fear & Greed Index">
+    <div class="fg-ring" style="--fgc:${color};--fgv:${v}">
+      <span class="fg-num">${v}</span>
+    </div>
+    <div class="fg-txt"><span class="fg-label">Fear & Greed</span><span class="fg-class" style="color:${color}">${esc(fg.label||"")}</span></div>
+  </div>`;
+}
+function fmtBigUsd(n){
+  if(!n)return "—";
+  if(n>=1e12)return "$"+(n/1e12).toFixed(2)+"T";
+  if(n>=1e9)return "$"+(n/1e9).toFixed(1)+"B";
+  if(n>=1e6)return "$"+(n/1e6).toFixed(1)+"M";
+  return "$"+Math.round(n);
+}
+function marketBar(){
+  const fg=fearGreedBadge();
+  const g=S.global;
+  let stats="";
+  if(g){
+    stats=`
+      <div class="mstat"><span class="mstat-l">BTC Dom</span><span class="mstat-v">${g.btcDom!=null?g.btcDom.toFixed(1)+"%":"—"}</span></div>
+      <div class="mstat"><span class="mstat-l">ETH Dom</span><span class="mstat-v">${g.ethDom!=null?g.ethDom.toFixed(1)+"%":"—"}</span></div>
+      <div class="mstat"><span class="mstat-l">Total Cap</span><span class="mstat-v">${fmtBigUsd(g.totalMcap)}</span></div>
+      ${g.solPrice!=null?`<div class="mstat mstat-sol"><span class="mstat-l">SOL</span><span class="mstat-v">$${g.solPrice<10?g.solPrice.toFixed(2):g.solPrice.toFixed(1)}</span></div>`:""}`;
+  }
+  if(!fg && !stats)return "";
+  return `<div class="market-bar">${fg}${stats}</div>`;
+}
 function feedView(){
  const sel=S.filter==="ALL"?null:(tokenBy(S.filter)||{t:S.filter,name:"",color:tokColor(S.filter)});
  const filtered=(S.filter==="ALL"?S.posts:S.posts.filter(p=>p.token===S.filter&&(!S.filterAddr||(p.token_address||null)===S.filterAddr))).slice().sort(function(a,b){ return (new Date(b._repostAt||b.created_at||0))-(new Date(a._repostAt||a.created_at||0)); });
@@ -1043,8 +1087,10 @@ function feedView(){
   :`<div class="connectbanner"><div><strong>Connect your wallet, make your voice real.</strong>
     <p>On the token you hold <span class="vinline">${I.badge} verified holder</span> badge. No bots, no fake accounts.</p></div>
     <button class="connect" data-act="connect">Connect wallet</button></div>`;
+ if(!S.fearGreed && !window.__fgLoaded && window.__holdxLoadFearGreed){ window.__fgLoaded=true; window.__holdxLoadFearGreed(); }
+ if(!S.global && !window.__glLoaded && window.__holdxLoadGlobal){ window.__glLoaded=true; window.__holdxLoadGlobal(); }
  const newPill=(S.pendingPosts&&S.pendingPosts.length&&S.filter==="ALL")?`<button class="newposts-pill" data-act="showNewPosts">${I.arrowup||"↑"} ${S.pendingPosts.length} new post${S.pendingPosts.length>1?"s":""}</button>`:"";
- return `<h1 class="h1">Feed</h1>${filterBar}${composer}${newPill}
+ return `<h1 class="h1">Feed</h1>${marketBar()}${filterBar}${composer}${newPill}
   <div class="posts">${filtered.length?filtered.map(postCard).join(""):`<p class="empty">$${S.filter} no posts yet. Be the first to post.</p>`}</div>
   ${S.hasMorePosts&&S.filter==="ALL"?`<button class="loadmore" data-act="loadMore">${S.loadingMore?"Loading…":"Show more"}</button>`:""}
   ${S.sharePostId?postShareModal():""}`;
@@ -1078,6 +1124,159 @@ function tokensView(){
   ${chainChips()}
   <div id="exploreResults" class="searchresults">${exploreResultsHtml()}</div>`;
 }
+function tvSymbol(t){
+  // borsa coinleri: BINANCE:XUSDT, digerleri de dene
+  const sym=(t.t||"").toUpperCase();
+  // stablecoin/USD ise direkt
+  if(t.cgId||t.official) return "BINANCE:"+sym+"USDT";
+  // solana memecoin: TradingView'da genelde yok, yine de dene
+  return "BINANCE:"+sym+"USDT";
+}
+function loadTradingView(){
+  const el=document.getElementById("tvChart");
+  if(!el)return;
+  const symbol=el.dataset.symbol||"BINANCE:BTCUSDT";
+  if(el.dataset.loaded===symbol)return; // ayni sembol zaten yuklu
+  el.dataset.loaded=symbol;
+  const dark=!document.body.classList.contains("light");
+  // TradingView resmi embed formatı: container > widget div + script (config script içinde)
+  el.innerHTML='<div class="tradingview-widget-container" style="height:100%;width:100%"><div class="tradingview-widget-container__widget" style="height:100%;width:100%"></div></div>';
+  const cont=el.querySelector(".tradingview-widget-container");
+  const s=document.createElement("script");
+  s.type="text/javascript";
+  s.src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";
+  s.async=true;
+  s.text=JSON.stringify({
+    autosize:true,
+    symbol:symbol,
+    interval:"60",
+    timezone:"Etc/UTC",
+    theme:dark?"dark":"light",
+    style:"1",
+    locale:"en",
+    allow_symbol_change:true,
+    save_image:false,
+    support_host:"https://www.tradingview.com"
+  });
+  cont.appendChild(s);
+}
+function chartSearchResultsHtml(){
+  const q=(S.chartSearch||"").trim();
+  if(q.length<1)return "";
+  if(S.chartSearching)return `<div class="cd-hint">Searching…</div>`;
+  const res=S.chartResults||[];
+  if(!res.length)return `<div class="cd-hint">No results for "${esc(q)}"</div>`;
+  return res.map(function(r){
+    return `<button class="cd-item" data-act="chartPickSym" data-sym="${esc(r.symbol)}">
+      <span class="cd-tk">${esc(r.display||r.symbol)}</span>
+      <span class="cd-desc">${esc(r.desc||"")}</span>
+      <span class="cd-ex">${esc(r.exchange||"")}</span>
+    </button>`;
+  }).join("");
+}
+function renderChartDrop(){
+  const box=document.getElementById("chartDrop");
+  if(box)box.innerHTML=chartSearchResultsHtml();
+}
+// TradingView'de kesin olan populer Binance coinleri
+const TV_COINS=["BTC","ETH","SOL","BNB","XRP","DOGE","ADA","AVAX","TRX","LINK","DOT","MATIC","LTC","SHIB","UNI","ATOM","XLM","BCH","APT","ARB","OP","SUI","INJ","SEI","TIA","NEAR","FIL","HBAR","ICP","IMX","RNDR","GRT","AAVE","MKR","LDO","FTM","ALGO","SAND","MANA","AXS","PEPE","WIF","BONK","FLOKI","JUP","PYTH","JTO","WLD","ENA","ETHFI","STX","RUNE","KAS","TON","HYPE","ORDI","1000SATS","MEME","NOT","BOME","W","TNSR","DYM","STRK","PIXEL","PORTAL","MASK","GALA","CHZ","ENJ","CRV","SNX","COMP","DYDX","GMX","SUSHI","1INCH","EGLD","THETA","FLOW","XTZ","EOS","NEO","IOTA","ZEC","DASH","XMR","CAKE","ROSE","KAVA","ZIL","ONE","QTUM","WAVES","CELO","ANKR","SKL","BAT","ZRX","YFI"];
+let _chartTimer;
+function scheduleChartSearch(q){
+  clearTimeout(_chartTimer);
+  const query=(q||"").trim().toUpperCase();
+  if(!query){S.chartResults=[];S.chartSearching=false;renderChartDrop();return;}
+  // önce yerel popüler listeden anında filtrele (kesin çalışan Binance coinleri)
+  const local=TV_COINS.filter(function(c){return c.indexOf(query)===0;}).concat(TV_COINS.filter(function(c){return c.indexOf(query)>0;})).slice(0,10).map(function(c){
+    return {symbol:"BINANCE:"+c+"USDT", display:c, desc:"", exchange:"BINANCE"};
+  });
+  if(local.length){ S.chartResults=local; S.chartSearching=false; renderChartDrop(); return; }
+  // yerelde yoksa DexScreener'dan dene
+  S.chartSearching=true;renderChartDrop();
+  _chartTimer=setTimeout(function(){
+    const my=q;
+    if(window.__holdxSearchTVSymbol){
+      window.__holdxSearchTVSymbol(q).then(function(res){
+        if(S.chartSearch===my){ S.chartResults=res||[]; S.chartSearching=false; renderChartDrop(); }
+      });
+    }
+  },300);
+}
+function dexSearchResultsHtml(){
+  const q=(S.dexSearch||"").trim();
+  if(q.length<1)return "";
+  if(S.dexSearching)return `<div class="cd-hint">Searching…</div>`;
+  const res=S.dexResults||[];
+  if(!res.length)return `<div class="cd-hint">No Solana token for "${esc(q)}"</div>`;
+  return res.map(function(r){
+    return `<button class="cd-item" data-act="dexPickSearch" data-addr="${esc(r.address)}">
+      <span class="cd-tk">${esc(r.symbol||"")}</span>
+      <span class="cd-desc">${esc(r.name||"")}</span>
+      <span class="cd-ex">SOL</span>
+    </button>`;
+  }).join("");
+}
+function renderDexDrop(){ const box=document.getElementById("dexDrop"); if(box)box.innerHTML=dexSearchResultsHtml(); }
+let _dexTimer;
+function scheduleDexSearch(q){
+  clearTimeout(_dexTimer);
+  if(!q||q.trim().length<1){S.dexResults=[];S.dexSearching=false;renderDexDrop();return;}
+  S.dexSearching=true;renderDexDrop();
+  _dexTimer=setTimeout(function(){
+    const my=q;
+    if(window.__holdxSearchDexToken){
+      window.__holdxSearchDexToken(q).then(function(res){
+        if(S.dexSearch===my){ S.dexResults=res||[]; S.dexSearching=false; renderDexDrop(); }
+      });
+    }
+  },300);
+}
+function chartView(){
+  const tab=S.chartTab||"cex";
+  const head=`<div class="chart-head">
+    <h1 class="h1">Charts</h1>
+    <div class="chart-maintabs">
+      <button class="chart-maintab ${tab==="cex"?"on":""}" data-act="chartMainTab" data-tab="cex">CEX</button>
+      <button class="chart-maintab ${tab==="dex"?"on":""}" data-act="chartMainTab" data-tab="dex">DEX</button>
+    </div>
+  </div>`;
+
+  if(tab==="dex"){
+    // DEX: DexScreener embed + Solana memecoin chip'leri
+    const dexChips=[
+      ["SOL","So11111111111111111111111111111111111111112"],
+      ["BONK","DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263"],
+      ["WIF","EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm"],
+      ["JUP","JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN"],
+      ["POPCAT","7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr"]
+    ];
+    const activeAddr=S.dexAddr||dexChips[0][1];
+    const chips=dexChips.map(function(p){
+      return `<button class="chart-chip ${activeAddr===p[1]?"on":""}" data-act="dexPick" data-addr="${p[1]}">${p[0]}</button>`;
+    }).join("");
+    return head+`<div class="chart-chips">${chips}
+      <div class="dex-search-wrap">
+        <input class="chart-search" id="dexSearch" placeholder="Search Solana token..." value="${esc(S.dexSearch||"")}" autocomplete="off">
+        <div class="chart-drop" id="dexDrop">${dexSearchResultsHtml()}</div>
+      </div>
+    </div>
+      <div class="dex-embed-wrap"><iframe class="dex-embed" src="https://dexscreener.com/solana/${esc(activeAddr)}?embed=1&loadChartSettings=0&trades=0&tabs=0&info=0&chartLeftToolbar=0&chartTheme=dark&theme=dark&chartStyle=1&chartType=usd&interval=15" title="DexScreener"></iframe></div>`;
+  }
+
+  // CEX: TradingView
+  const pairs=[
+    ["BTC","BINANCE:BTCUSDT"],["ETH","BINANCE:ETHUSDT"],["SOL","BINANCE:SOLUSDT"],
+    ["BNB","BINANCE:BNBUSDT"],["XRP","BINANCE:XRPUSDT"],["DOGE","BINANCE:DOGEUSDT"],
+    ["SUI","BINANCE:SUIUSDT"],["ARB","BINANCE:ARBUSDT"],["HYPE","BINANCE:HYPEUSDT"],
+    ["TRX","BINANCE:TRXUSDT"]
+  ];
+  const active=S.chartSymbol||"BINANCE:BTCUSDT";
+  const chips=pairs.map(function(p){
+    return `<button class="chart-chip ${active===p[1]?"on":""}" data-act="chartPick" data-sym="${p[1]}">${p[0]}</button>`;
+  }).join("");
+  return head+`<div class="chart-chips">${chips}</div>
+    <p class="chart-hint">${I.search} Looking for another coin? Tap the symbol name on the chart to search.</p>
+    <div class="tv-chart-wrap tv-full" id="tvChart" data-symbol="${esc(active)}"></div>`;
+}
 function tokenPageView(ticker){
  const t=tokenBy(ticker)||{t:ticker,name:"",price:0,chg:0,mc:"—",color:tokColor(ticker)};
  const tp=S.posts.filter(p=>p.token===ticker), bars=chart(ticker);
@@ -1094,7 +1293,7 @@ function tokenPageView(ticker){
   <div class="token-stats">
     ${stat("fiyat",fprice(lp.price))}${stat("24s",(t.chg>=0?"+":"")+t.chg+"%",t.chg>=0?"up":"down")}
     ${stat("mcap",mcTxt)}${chain?stat("chain",chainMeta(chain).label):""}</div>
-  <div class="chart">${bars.map(h=>`<span style="height:${h}%;background:${t.color}"></span>`).join("")}</div>
+  <div class="tv-chart-wrap" id="tvChart" data-symbol="${esc(tvSymbol(t))}"></div>
   ${room
     ? `<button class="roomcta joined" data-act="openRoom" data-token="${t.t}">${I.chat} $${t.t} enter room<span class="rcta-meta">${(room.members||0).toLocaleString()}${(room.cap||100)===Infinity?"":"/"+capLabel(room.cap||100)} members</span></button>`
     : `<button class="roomcta" data-act="openRoom" data-token="${t.t}">${I.plus} $${t.t} create the first room</button>`}
@@ -1795,6 +1994,7 @@ function mainView(){
  if(v.name==="news")return newsView();
  if(v.name==="onchain")return onchainView();
  if(v.name==="calendar")return calendarView();
+ if(v.name==="chart")return chartView();
  if(v.name==="room")return roomView(v.token);
  return"";
 }
@@ -1853,6 +2053,9 @@ function onchainView(){
     <div class="oc-maintabs">
       <button class="oc-maintab ${ocTab==="surges"?"on":""}" data-act="ocMainTab" data-tab="surges">${I.trend} Volume Surges</button>
       <button class="oc-maintab ${ocTab==="whales"?"on":""}" data-act="ocMainTab" data-tab="whales">${I.waves} Whale Alerts</button>
+      <button class="oc-maintab soon" disabled>Soon</button>
+      <button class="oc-maintab soon" disabled>Soon</button>
+      <button class="oc-maintab soon" disabled>Soon</button>
     </div>
   </div>`;
 
@@ -2225,7 +2428,7 @@ function _renderNow(){
       :`<button class="connect" data-act="connect">Connect wallet</button>`}
    </div></header>
   <div class="shell">
-   <nav class="rail">${NAV.map(n=>n[3]?`<button class="navbtn soon" disabled><span class="icn">${I[n[2]]}</span><span>${n[1]}</span><span class="soon-tag">Soon</span></button>`:`<button class="navbtn ${navActive(n[0])?"on":""}" data-act="nav" data-view="${n[0]}"><span class="icn">${I[n[2]]}</span><span>${n[1]}</span>${n[0]==="messages"&&S.unreadDM>0?`<span class="nav-badge">${S.unreadDM}</span>`:""}${n[0]==="notifications"&&S.unreadNotif>0?`<span class="nav-badge">${S.unreadNotif}</span>`:""}</button>`).join("")}
+   <nav class="rail">${NAV.map(n=>n[3]?`<button class="navbtn soon${n[0]==="vip"?" vip":""}" disabled><span class="icn">${I[n[2]]}</span><span>${n[1]}</span><span class="soon-tag">Soon</span></button>`:`<button class="navbtn ${navActive(n[0])?"on":""}" data-act="nav" data-view="${n[0]}"><span class="icn">${I[n[2]]}</span><span>${n[1]}</span>${n[0]==="messages"&&S.unreadDM>0?`<span class="nav-badge">${S.unreadDM}</span>`:""}${n[0]==="notifications"&&S.unreadNotif>0?`<span class="nav-badge">${S.unreadNotif}</span>`:""}</button>`).join("")}
     <div class="rail-foot"><p class="tag">${TAGLINE}</p></div></nav>
    <main class="main">${mainView()}</main>
    ${activityPanel()}
@@ -2264,6 +2467,7 @@ function _renderNow(){
  else { // gif araması açık değilse, metin alanlarına odağı geri ver
    const cta=document.getElementById("composerText");
    if(cta){cta.style.height="auto";cta.style.height=Math.min(cta.scrollHeight,300)+"px";}
+   if(document.getElementById("tvChart")){ try{loadTradingView();}catch(e){} }
    if(cta&&S.composerText){cta.focus();cta.setSelectionRange(cta.value.length,cta.value.length);}
    const cin=document.getElementById("chatInput");
    if(cin&&S.chatText){cin.focus();cin.setSelectionRange(cin.value.length,cin.value.length);}
@@ -2614,6 +2818,11 @@ document.addEventListener("click",e=>{
  else if(a==="pickFilter"){S.filter=el.dataset.token;S.filterAddr=null;S.feedDrop=false;S.feedSearch="";S.feedResults=[];render();}
  else if(a==="newsFilter"){S.newsFilter=el.dataset.src;S.newsOpen=null;render();}
  else if(a==="spikeTab"){S.spikeTab=el.dataset.tab;render();}
+ else if(a==="chartPick"){S.chartSymbol=el.dataset.sym;render();}
+ else if(a==="chartMainTab"){S.chartTab=el.dataset.tab;render();}
+ else if(a==="dexPick"){S.dexAddr=el.dataset.addr;render();}
+ else if(a==="dexPickSearch"){S.dexAddr=el.dataset.addr;S.dexSearch="";S.dexResults=[];render();}
+ else if(a==="chartPickSym"){S.chartSymbol=el.dataset.sym;S.chartSearch="";S.chartResults=[];render();}
  else if(a==="ocMainTab"){S.ocTab=el.dataset.tab;render();}
  else if(a==="showNewPosts"){
    if(S.pendingPosts&&S.pendingPosts.length&&window.__holdxApplyPosts){ window.__holdxApplyPosts(S.pendingPosts.slice()); S.pendingPosts=[]; }
@@ -2908,6 +3117,8 @@ document.addEventListener("input",e=>{
  if(e.target.id==="feedSearch"){S.feedSearch=e.target.value;scheduleFeedSearch(e.target.value);}
  if(e.target.id==="exploreSearch"){S.exploreSearch=e.target.value;scheduleExploreSearch(e.target.value);}
  if(e.target.id==="postSearch"){S.postSearch=e.target.value;schedulePostSearch(e.target.value);}
+if(e.target.id==="dexSearch"){ S.dexSearch=e.target.value; scheduleDexSearch(e.target.value); return; }
+ if(e.target.id==="chartSearch"){ S.chartSearch=e.target.value; scheduleChartSearch(e.target.value); return; }
  if(e.target.id==="composerText"){
    S.composerText=e.target.value;
    e.target.style.height="auto"; e.target.style.height=Math.min(e.target.scrollHeight,300)+"px"; // X gibi yazdıkça büyüsün
