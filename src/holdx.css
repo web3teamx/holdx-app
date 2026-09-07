@@ -1432,3 +1432,15 @@ img.tokenmark{object-fit:cover;background:transparent;}
 .meme-tab.soon{opacity:.4;pointer-events:none;}
 .oc-tabs{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:5px;gap:5px;display:inline-flex;}
 .oc-tab{border:none;background:none;}
+
+/* ---- MOBİL DÜZELTMELER ---- */
+@media(max-width:600px){
+  .market-bar{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding-bottom:4px;}
+  .market-bar::-webkit-scrollbar{display:none;}
+  .market-bar .mstat,.market-bar .fg-badge{flex:0 0 auto;min-width:auto;}
+  .market-bar .mstat-v{font-size:14px;}
+  .market-bar .fg-label{display:block;font-size:8px;}
+  /* alt bar daha büyük dokunma alanı, aktif sekme ortada */
+  .bottom{padding:8px 8px 12px;gap:4px;}
+  .bottom button{padding:7px 14px;font-size:20px;}
+}
