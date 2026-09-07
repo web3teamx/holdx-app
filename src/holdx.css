@@ -1444,3 +1444,22 @@ img.tokenmark{object-fit:cover;background:transparent;}
   .bottom{padding:8px 8px 12px;gap:4px;}
   .bottom button{padding:7px 14px;font-size:20px;}
 }
+
+/* ---- MOBİL: sayfa taşmasını engelle ---- */
+@media(max-width:600px){
+  html,body{overflow-x:hidden;max-width:100vw;}
+  .shell,#root{max-width:100vw;overflow-x:hidden;}
+  main,.main,.content{max-width:100%;overflow-x:hidden;}
+  /* geniş grid'ler mobilde daralt */
+  .whalerow{grid-template-columns:1fr auto;gap:8px;font-size:12px;}
+  .holding{grid-template-columns:auto 1fr auto;gap:8px;}
+  .tt-head,.tt-row{grid-template-columns:1.6fr 1fr .9fr;gap:6px;padding:10px;font-size:12px;}
+  .cmp-row{grid-template-columns:1fr 1.2fr 1fr;}
+  .cmp-cell{font-size:12px;padding:9px 4px;}
+  .cmp-lbl{font-size:9px;}
+  /* kartlar tam genişlik, taşma yok */
+  .oc-card,.fresh-card,.wa-card,.news-card,.cal-card{max-width:100%;box-sizing:border-box;}
+  .oc-name,.fresh-name{max-width:70px;}
+  /* sekme satırları kaydırılabilir zaten, taşırma */
+  .meme-tabs,.oc-maintabs,.oc-tabs,.chart-maintabs,.news-tabs{max-width:100%;}
+}
