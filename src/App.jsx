@@ -165,6 +165,39 @@ export default function App() {
         return { ok: false, error: 'Could not reach RugCheck. Try again.' }
       }
     }
+    window.__holdxLoadTrending = async () => {
+      try {
+        const addrs = new Set()
+        // boosted + trending Solana tokenleri
+        for (const url of ['https://api.dexscreener.com/token-boosts/top/v1','https://api.dexscreener.com/token-boosts/latest/v1']) {
+          try {
+            const d = await fetch(url).then(r => r.json())
+            ;(Array.isArray(d) ? d : []).filter(b => b.chainId === 'solana' && b.tokenAddress).forEach(b => addrs.add(b.tokenAddress))
+          } catch (e) {}
+        }
+        const arr = [...addrs].slice(0, 30)
+        if (!arr.length) { if (window.__holdxApplyTrending) window.__holdxApplyTrending([]); return }
+        const res = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${arr.join(',')}`)
+        const dx = await res.json()
+        const pairs = (dx.pairs || []).filter(p => p.chainId === 'solana')
+        const seen = new Set()
+        const out = []
+        for (const p of pairs) {
+          const addr = p.baseToken?.address
+          if (!addr || seen.has(addr)) continue
+          seen.add(addr)
+          if (!p.volume?.h1 || p.volume.h1 < 3000) continue
+          out.push({
+            address: addr, symbol: (p.baseToken.symbol||'').toUpperCase(), name: p.baseToken.name||'',
+            price: parseFloat(p.priceUsd)||0, mcap: p.marketCap||p.fdv||0,
+            vol24: p.volume.h1||0, chg24: p.priceChange?.h1||0,
+            logo: p.info?.imageUrl||null, url: p.url||`https://dexscreener.com/solana/${addr}`
+          })
+        }
+        out.sort((a,b) => b.vol24 - a.vol24)  // 1h hacim
+        if (window.__holdxApplyTrending) window.__holdxApplyTrending(out.slice(0, 25))
+      } catch (e) { if (window.__holdxApplyTrending) window.__holdxApplyTrending([]) }
+    }
     window.__holdxLoadFresh = async () => {
       try {
         const { data } = await supabase.from('safe_launches').select('*').order('detected_at', { ascending: false }).limit(50)
@@ -185,6 +218,22 @@ export default function App() {
         try { const st = await sRes.json(); const so = Array.isArray(st) ? st[0] : st; if (so) { solPrice = parseFloat(so.price_usd); solChg = parseFloat(so.percent_change_24h) } } catch (e) {}
         let solDexVol = null
         try { if (solVolRes && solVolRes.ok) { const sv = await solVolRes.json(); solDexVol = sv.total24h || null } } catch (e) {}
+        let altSeason = null
+        try {
+          // CoinLore top 100 (CORS açık) — kaç coin BTC'yi 7g geçmiş
+          const tRes = await fetch('https://api.coinlore.net/api/tickers/?start=0&limit=100')
+          if (tRes.ok) {
+            const tj = await tRes.json()
+            const coins = (tj && tj.data) || []
+            const btc = coins.find(c => c.symbol === 'BTC')
+            const btc7 = btc ? parseFloat(btc.percent_change_7d) : 0
+            const alts = coins.filter(c => c.symbol !== 'BTC' && !['USDT','USDC','DAI','BUSD','WBTC','STETH','TUSD','WETH'].includes(c.symbol)).slice(0, 50)
+            if (alts.length) {
+              const beat = alts.filter(c => parseFloat(c.percent_change_7d) > btc7).length
+              altSeason = Math.round((beat / alts.length) * 100)
+            }
+          }
+        } catch (e) {}
         if (d && window.__holdxApplyGlobal) {
           window.__holdxApplyGlobal({
             btcDom: parseFloat(d.btc_d),
@@ -194,7 +243,8 @@ export default function App() {
             btcDomChg: null,
             solPrice: solPrice,
             solChg: solChg,
-            solDexVol: solDexVol
+            solDexVol: solDexVol,
+            altSeason: altSeason
           })
           return
         }

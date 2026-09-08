@@ -121,7 +121,7 @@ const S={
  whales:[], whalesLoading:false, whalesLoaded:false, ocTab:"surges",
  safetyQuery:"", safetyReport:null, safetyLoading:false, safetyError:"",
  cmpA:"", cmpB:"", cmpDataA:null, cmpDataB:null, cmpLoading:false,
- fresh:[], freshLoading:false, freshLoaded:false, memeTab:"new",
+ fresh:[], freshLoading:false, freshLoaded:false, memeTab:"new", trending:[], trendingLoading:false, trendingLoaded:false,
  econEvents:[], econLoading:false, econLoaded:false,
  fearGreed:null, global:null, chartSymbol:"BINANCE:BTCUSDT", chartSearch:"", chartResults:[], chartSearching:false, chartTab:"cex", dexAddr:"", dexSearch:"", dexResults:[], dexSearching:false,
  pendingPosts:[],
@@ -181,6 +181,7 @@ window.__holdxApplyEcon=function(rows){ S.econEvents=rows||[]; S.econLoading=fal
 window.__holdxApplyFearGreed=function(d){ S.fearGreed=d; render(); };
 window.__holdxApplyGlobal=function(d){ S.global=d; render(); };
 window.__holdxApplyFresh=function(rows){ S.fresh=rows||[]; S.freshLoading=false; S.freshLoaded=true; render(); };
+window.__holdxApplyTrending=function(rows){ S.trending=rows||[]; S.trendingLoading=false; S.trendingLoaded=true; render(); };
 window.__holdxNewPostArrived=function(row){
   if(!row||!row.id)return;
   // zaten feed'de varsa veya bekleyende varsa ekleme
@@ -1049,10 +1050,30 @@ function marketBar(){
       <div class="mstat"><span class="mstat-l">ETH Dom</span><span class="mstat-v">${g.ethDom!=null?g.ethDom.toFixed(1)+"%":"—"}</span></div>
       <div class="mstat"><span class="mstat-l">Total Cap</span><span class="mstat-v">${fmtBigUsd(g.totalMcap)}</span></div>
       ${g.solPrice!=null?`<div class="mstat mstat-sol"><span class="mstat-l">SOL</span><span class="mstat-v">$${g.solPrice<10?g.solPrice.toFixed(2):g.solPrice.toFixed(1)}</span></div>`:""}
-      ${g.solDexVol!=null?`<div class="mstat mstat-sol"><span class="mstat-l">SOL DEX Vol 24h</span><span class="mstat-v">${fmtBigUsd(g.solDexVol)}</span></div>`:""}`;
+      ${g.solDexVol!=null?`<div class="mstat mstat-sol"><span class="mstat-l">SOL DEX Vol 24h</span><span class="mstat-v">${fmtBigUsd(g.solDexVol)}</span></div>`:""}
+`;
   }
   if(!fg && !stats)return "";
-  return `<div class="market-bar">${fg}${stats}</div>`;
+  return `<div class="market-bar">${fg}${stats}</div>${altSeasonBar()}`;
+}
+function altSeasonBar(){
+  const g=S.global;
+  if(!g||g.altSeason==null)return "";
+  const v=g.altSeason;
+  let label, color;
+  if(v>=75){ label="Altcoin Season"; color="#34e39a"; }
+  else if(v<=25){ label="Bitcoin Season"; color="#f7931a"; }
+  else { label="Mixed Market"; color="#f0a020"; }
+  return `<div class="alt-bar">
+    <div class="alt-bar-info">
+      <span class="alt-bar-title">${label}</span>
+      <span class="alt-bar-sub">${v}/100 · ${v}% of top alts beat BTC (7d)</span>
+    </div>
+    <div class="alt-bar-track">
+      <div class="alt-bar-fill" style="width:${v}%;background:${color}"></div>
+      <div class="alt-bar-marks"><span>BTC</span><span>Mixed</span><span>Alt</span></div>
+    </div>
+  </div>`;
 }
 function feedView(){
  const sel=S.filter==="ALL"?null:(tokenBy(S.filter)||{t:S.filter,name:"",color:tokColor(S.filter)});
@@ -2065,8 +2086,6 @@ function onchainView(){
       <button class="oc-maintab ${ocTab==="surges"?"on":""}" data-act="ocMainTab" data-tab="surges">${I.trend} Volume Surges</button>
       <button class="oc-maintab ${ocTab==="whales"?"on":""}" data-act="ocMainTab" data-tab="whales">${I.waves} Whale Alerts</button>
       <button class="oc-maintab soon" disabled>Soon</button>
-      <button class="oc-maintab soon" disabled>Soon</button>
-      <button class="oc-maintab soon" disabled>Soon</button>
     </div>
   </div>`;
 
@@ -2207,12 +2226,8 @@ function memecoinView(){
       <button class="meme-tab ${tab==="new"?"on":""}" data-act="memeTab" data-tab="new">New + Safe</button>
       <button class="meme-tab ${tab==="surges"?"on":""}" data-act="memeTab" data-tab="surges">Volume Surges</button>
       <button class="meme-tab ${tab==="rug"?"on":""}" data-act="memeTab" data-tab="rug">Rug Check</button>
+      <button class="meme-tab ${tab==="trending"?"on":""}" data-act="memeTab" data-tab="trending">Trending</button>
       <button class="meme-tab ${tab==="compare"?"on":""}" data-act="memeTab" data-tab="compare">Compare</button>
-      <button class="meme-tab soon" disabled>Soon</button>
-      <button class="meme-tab soon" disabled>Soon</button>
-      <button class="meme-tab soon" disabled>Soon</button>
-      <button class="meme-tab soon" disabled>Soon</button>
-      <button class="meme-tab soon" disabled>Soon</button>
       <button class="meme-tab soon" disabled>Soon</button>
     </div>
   </div>`;
@@ -2220,6 +2235,7 @@ function memecoinView(){
   if(tab==="rug") return head+safetySection();
   if(tab==="compare") return head+compareSection();
   if(tab==="surges") return head+memeSurges();
+  if(tab==="trending") return head+trendingSection();
   return head+freshSection();
 }
 function memeSurges(){
@@ -2244,6 +2260,30 @@ function memeSurges(){
     </article>`;
   }).join("");
   return `<div class="oc-list">${cards}</div>`;
+}
+function trendingSection(){
+  if(!S.trendingLoaded && !S.trendingLoading && window.__holdxLoadTrending){ S.trendingLoading=true; window.__holdxLoadTrending(); }
+  if(!window.__trendTimer){
+    window.__trendTimer=setInterval(function(){ if(S.view&&S.view.name==="memecoin"&&S.memeTab==="trending"){ if(window.__holdxLoadTrending)window.__holdxLoadTrending(); } else { clearInterval(window.__trendTimer); window.__trendTimer=null; } },45000);
+  }
+  const list=S.trending||[];
+  if(S.trendingLoading && !list.length)return `<div class="oc-loading">${I.search} Loading trending Solana tokens…</div>`;
+  if(!list.length)return `<div class="oc-empty"><div class="oc-empty-ic">${I.rocket}</div><p>No trending tokens right now.</p></div>`;
+  const cards=list.map(function(t,i){
+    const up=(t.chg24||0)>=0;
+    return `<article class="trend-card">
+      <div class="trend-rank">#${i+1}</div>
+      <div class="trend-left">${tokenMarkHtml(t.symbol,"sm",t.logo)}
+        <div class="trend-info"><div class="trend-sym">$${esc(t.symbol||"")}${t.name&&t.name!==t.symbol?`<span class="trend-name">${esc(t.name)}</span>`:""}</div>
+        <div class="trend-sub">MC ${fmtBigUsd(t.mcap||0)} · 1h Vol ${fmtBigUsd(t.vol24||0)}</div></div></div>
+      <div class="trend-right">
+        <div class="trend-price">$${t.price<0.01?t.price.toFixed(6):t.price.toFixed(4)}</div>
+        <div class="trend-chg ${up?"up":"down"}">${up?"▲":"▼"}${Math.abs(t.chg24||0).toFixed(1)}%</div>
+        ${t.url?`<a class="trend-link" href="${esc(t.url)}" target="_blank" rel="noopener">View ↗</a>`:""}
+      </div>
+    </article>`;
+  }).join("");
+  return `<div class="trend-list">${cards}</div>`;
 }
 function freshSection(){
   if(!S.freshLoaded && !S.freshLoading && window.__holdxLoadFresh){ S.freshLoading=true; window.__holdxLoadFresh(); }
@@ -2454,10 +2494,11 @@ function calendarView(){
     const d=new Date(key+"T12:00:00Z"), today=new Date().toISOString().slice(0,10);
     const tmr=new Date(Date.now()+86400000).toISOString().slice(0,10);
     const yst=new Date(Date.now()-86400000).toISOString().slice(0,10);
-    if(key===today)return "Today";
-    if(key===tmr)return "Tomorrow";
-    if(key===yst)return "Yesterday";
-    return d.toLocaleDateString("en-US",{weekday:"long",month:"short",day:"numeric"});
+    const dateStr=d.toLocaleDateString("en-US",{weekday:"long",month:"short",day:"numeric"});
+    if(key===today)return "Today · "+dateStr;
+    if(key===tmr)return "Tomorrow · "+dateStr;
+    if(key===yst)return "Yesterday · "+dateStr;
+    return dateStr;
   };
 
   let html="";

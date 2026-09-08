@@ -1463,3 +1463,31 @@ img.tokenmark{object-fit:cover;background:transparent;}
   /* sekme satırları kaydırılabilir zaten, taşırma */
   .meme-tabs,.oc-maintabs,.oc-tabs,.chart-maintabs,.news-tabs{max-width:100%;}
 }
+.alt-lbl{font-size:10px;font-weight:700;margin-left:4px;opacity:.8;}
+
+/* Altcoin Season bar - market bar altında, estetik */
+.alt-bar{background:linear-gradient(135deg,color-mix(in srgb,var(--green) 5%,var(--surface)),var(--surface));border:1px solid var(--border);border-radius:14px;padding:12px 16px;margin:0 0 14px;}
+.alt-bar-info{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px;flex-wrap:wrap;}
+.alt-bar-title{font-size:14px;font-weight:800;color:var(--tx);}
+.alt-bar-sub{font-size:11.5px;color:var(--tx3);font-weight:600;}
+.alt-bar-track{position:relative;height:8px;background:var(--surface2);border-radius:999px;overflow:hidden;}
+.alt-bar-fill{height:100%;border-radius:999px;transition:width .4s ease;}
+.alt-bar-marks{display:flex;justify-content:space-between;margin-top:5px;}
+.alt-bar-marks span{font-size:9px;color:var(--tx3);font-weight:700;text-transform:uppercase;letter-spacing:.3px;}
+
+/* ============ TRENDING ============ */
+.trend-list{display:flex;flex-direction:column;gap:8px;margin-top:8px;}
+.trend-card{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:11px 14px;transition:border-color .15s;}
+.trend-card:hover{border-color:var(--green);}
+.trend-rank{font-size:14px;font-weight:900;color:var(--tx3);min-width:28px;flex:none;}
+.trend-left{display:flex;align-items:center;gap:10px;min-width:0;flex:1;}
+.trend-info{min-width:0;}
+.trend-sym{font-size:14px;font-weight:800;color:var(--tx);display:flex;align-items:center;gap:8px;}
+.trend-name{font-size:11px;font-weight:500;color:var(--tx3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:90px;}
+.trend-sub{font-size:11.5px;color:var(--tx3);margin-top:2px;}
+.trend-right{display:flex;flex-direction:column;align-items:flex-end;gap:1px;flex:none;margin-left:8px;}
+.trend-price{font-size:13px;font-weight:800;color:var(--tx);}
+.trend-chg{font-size:12px;font-weight:800;}
+.trend-chg.up{color:var(--green);}
+.trend-chg.down{color:#f6465d;}
+.trend-link{font-size:11px;font-weight:700;color:var(--green);text-decoration:none;margin-top:2px;}
