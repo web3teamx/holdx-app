@@ -25,6 +25,8 @@ function nextTiers(cap){return CAP_TIERS.filter(t=>t.cap>cap);} // yükseltme se
 const I={
  home:'<svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg>',
  trend:'<svg viewBox="0 0 24 24"><path d="M23 6l-9.5 9.5-5-5L1 18"/><path d="M17 6h6v6"/></svg>',
+ brain:'<svg viewBox="0 0 24 24"><path d="M9 3a3 3 0 0 0-3 3v1a3 3 0 0 0-2 3 3 3 0 0 0 1 2 3 3 0 0 0 2 4h1M15 3a3 3 0 0 1 3 3v1a3 3 0 0 1 2 3 3 3 0 0 1-1 2 3 3 0 0 1-2 4h-1M12 3v18"/></svg>',
+ star:'<svg viewBox="0 0 24 24"><path d="M12 2l3 6.5 7 .8-5 4.8 1.3 7L12 17.8 5.4 21l1.3-7-5-4.8 7-.8z"/></svg>',
  candle:'<svg viewBox="0 0 24 24"><rect x="5" y="7" width="4" height="9" rx="1"/><line x1="7" y1="3" x2="7" y2="7"/><line x1="7" y1="16" x2="7" y2="20"/><rect x="15" y="10" width="4" height="7" rx="1"/><line x1="17" y1="5" x2="17" y2="10"/><line x1="17" y1="17" x2="17" y2="21"/></svg>',
  chartbar:'<svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>',
  rocket:'<svg viewBox="0 0 24 24"><path d="M12 2c3 1 6 4 6 9 0 3-1 5-2 6l-1 4h-6l-1-4c-1-1-2-3-2-6 0-5 3-8 6-9z"/><circle cx="12" cy="9" r="1.5"/></svg>',
@@ -121,7 +123,7 @@ const S={
  whales:[], whalesLoading:false, whalesLoaded:false, ocTab:"surges",
  safetyQuery:"", safetyReport:null, safetyLoading:false, safetyError:"",
  cmpA:"", cmpB:"", cmpDataA:null, cmpDataB:null, cmpLoading:false,
- fresh:[], freshLoading:false, freshLoaded:false, memeTab:"new", trending:[], trendingLoading:false, trendingLoaded:false,
+ fresh:[], freshLoading:false, freshLoaded:false, memeTab:"new", trending:[], trendingLoading:false, trendingLoaded:false, watchlist:[], watchPrices:{}, watchLoaded:false, wlSearch:"", wlResults:[], wlSearching:false, wlTab:"watch", aiImage:null, aiResult:null, aiLoading:false, aiError:"", portfolio:[], pfLoaded:false, pfSearch:"", pfResults:[], pfSearching:false, pfAdding:null,
  econEvents:[], econLoading:false, econLoaded:false,
  fearGreed:null, global:null, chartSymbol:"BINANCE:BTCUSDT", chartSearch:"", chartResults:[], chartSearching:false, chartTab:"cex", dexAddr:"", dexSearch:"", dexResults:[], dexSearching:false,
  pendingPosts:[],
@@ -182,6 +184,9 @@ window.__holdxApplyFearGreed=function(d){ S.fearGreed=d; render(); };
 window.__holdxApplyGlobal=function(d){ S.global=d; render(); };
 window.__holdxApplyFresh=function(rows){ S.fresh=rows||[]; S.freshLoading=false; S.freshLoaded=true; render(); };
 window.__holdxApplyTrending=function(rows){ S.trending=rows||[]; S.trendingLoading=false; S.trendingLoaded=true; render(); };
+window.__holdxApplyWatchlist=function(rows){ S.watchlist=rows||[]; S.watchLoaded=true; render(); loadWatchPrices(); };
+window.__holdxSetWatchPrice=function(key,price,chg){ S.watchPrices[key]={price:price,chg:chg}; render(); };
+window.__holdxApplyPortfolio=function(rows){ S.portfolio=rows||[]; S.pfLoaded=true; render(); loadPortfolioPrices(); };
 window.__holdxNewPostArrived=function(row){
   if(!row||!row.id)return;
   // zaten feed'de varsa veya bekleyende varsa ekleme
@@ -331,8 +336,6 @@ const CG_BASE="https://api.coingecko.com/api/v3";
 // Kendi domaininde doğrudan çağrı çalışır; proxy'ler sadece bu önizleme içindir.
 const PROXIES=[
   u=>u,
-  u=>"https://corsproxy.io/?url="+encodeURIComponent(u),
-  u=>"https://api.allorigins.win/raw?url="+encodeURIComponent(u),
 ];
 let _proxyIdx=0;
 async function apiFetch(url){
@@ -763,7 +766,7 @@ async function refreshTokenPrices(){
  }
  if(["tokens","feed","rooms","portfolio"].includes(S.view.name))render();
 }
-const NAV=[["feed","Feed","home"],["profile","Profile","user"],["portfolio","Portfolio","wallet"],["rooms","Rooms","chat"],["myrooms","My Rooms","badge"],["messages","Messages","send"],["notifications","Notifications","bell"],["leaderboard","Leaderboard","trend"],["vip","VIP","crown",true],["unlocks","Unlocks","lock",true],["news","News","news"],["chart","Charts","candle"],["onchain","On-Chain","waves"],["memecoin","Memecoin","rocket"],["calendar","Calendar","calendar"],["settings","Settings","gear"]];
+const NAV=[["feed","Feed","home"],["profile","Profile","user"],["portfolio","Portfolio","wallet"],["rooms","Rooms","chat"],["myrooms","My Rooms","badge"],["messages","Messages","send"],["notifications","Notifications","bell"],["leaderboard","Leaderboard","trend"],["vip","VIP","crown",true],["unlocks","Unlocks","lock",true],["news","News","news"],["chart","Charts","candle"],["watchlist","Watchlist","star"],["aichart","AI Analyst","brain"],["onchain","On-Chain","waves"],["memecoin","Memecoin","rocket"],["calendar","Calendar","calendar"],["settings","Settings","gear"]];
 
 // --- emoji seti (X benzeri bol seçenek, kategorili) ---
 const EMOJI={
@@ -1259,6 +1262,225 @@ function scheduleDexSearch(q){
       });
     }
   },300);
+}
+function wlSearchResultsHtml(){
+  const q=(S.wlSearch||"").trim();
+  if(q.length<1)return "";
+  if(S.wlSearching)return `<div class="cd-hint">Searching…</div>`;
+  const res=S.wlResults||[];
+  if(!res.length)return `<div class="cd-hint">No coin for "${esc(q)}"</div>`;
+  return res.map(function(r){
+    const watched=isWatched(r.symbol,r.address);
+    const pr=r.price?("$"+(r.price<0.01?r.price.toFixed(6):r.price.toFixed(4))):"";
+    const mc=r.mcap?fmtBigUsd(r.mcap):"";
+    return `<button class="cd-item wl-item" data-act="toggleWatch" data-sym="${esc(r.symbol)}" data-addr="${esc(r.address||"")}" data-name="${esc(r.name||"")}" data-logo="${esc(r.logo||"")}" data-chain="${esc(r.chain||"")}" data-price="${r.price||0}" data-chg="${r.chg24||0}">
+      ${tokenMarkHtml(r.symbol,"xs",r.logo)}
+      <div class="wl-item-info"><span class="cd-tk">$${esc(r.symbol)}</span><span class="cd-desc">${esc(r.name||"")}</span></div>
+      <div class="wl-item-mkt">${pr?`<span class="wl-item-pr">${pr}</span>`:""}${mc?`<span class="wl-item-mc">MC ${mc}</span>`:""}</div>
+      <span class="cd-star">${watched?"★":"☆"}</span>
+    </button>`;
+  }).join("");
+}
+function renderWlDrop(){ const box=document.getElementById("wlDrop"); if(box)box.innerHTML=wlSearchResultsHtml(); }
+let _wlTimer;
+function scheduleWlSearch(q){
+  clearTimeout(_wlTimer);
+  if(!q||q.trim().length<1){S.wlResults=[];S.wlSearching=false;renderWlDrop();return;}
+  S.wlSearching=true;renderWlDrop();
+  _wlTimer=setTimeout(function(){
+    const my=q;
+    if(window.__holdxSearchAnyCoin){
+      window.__holdxSearchAnyCoin(q).then(function(res){
+        if(S.wlSearch===my){ S.wlResults=res||[]; S.wlSearching=false; renderWlDrop(); }
+      });
+    }
+  },300);
+}
+function isWatched(symbol,address){
+  return (S.watchlist||[]).some(function(w){return w.symbol===symbol&&(address?w.address===address:true);});
+}
+function loadWatchPrices(){
+  const wl=S.watchlist||[];
+  wl.forEach(function(w){
+    if(w.address){ if(window.__holdxDexPriceFor)window.__holdxDexPriceFor(w.address); }
+    else { if(window.__holdxCexPrice)window.__holdxCexPrice(w.symbol); }
+  });
+}
+
+function loadPortfolioPrices(){
+  const pf=S.portfolio||[];
+  pf.forEach(function(w){
+    if(w.address){ if(window.__holdxDexPriceFor)window.__holdxDexPriceFor(w.address); }
+    else { if(window.__holdxCexPrice)window.__holdxCexPrice(w.symbol); }
+  });
+}
+function pfSearchResultsHtml(){
+  const q=(S.pfSearch||"").trim();
+  if(q.length<1)return "";
+  if(S.pfSearching)return `<div class="cd-hint">Searching…</div>`;
+  const res=S.pfResults||[];
+  if(!res.length)return `<div class="cd-hint">No coin for "${esc(q)}"</div>`;
+  return res.map(function(r){
+    return `<button class="cd-item pf-item" data-act="pfAddCoin" data-sym="${esc(r.symbol)}" data-addr="${esc(r.address||"")}" data-name="${esc(r.name||"")}" data-logo="${esc(r.logo||"")}" data-chain="${esc(r.chain||"")}" data-price="${r.price||0}">
+      ${tokenMarkHtml(r.symbol,"xs",r.logo)}
+      <div class="wl-item-info"><span class="cd-tk">$${esc(r.symbol)}</span><span class="cd-desc">${esc(r.name||"")}</span></div>
+      ${r.price?`<span class="wl-item-pr">$${r.price<0.01?r.price.toFixed(6):r.price.toFixed(4)}</span>`:""}
+    </button>`;
+  }).join("");
+}
+function renderPfDrop(){ const box=document.getElementById("pfDrop"); if(box)box.innerHTML=pfSearchResultsHtml(); }
+let _pfTimer;
+function schedulePfSearch(q){
+  clearTimeout(_pfTimer);
+  if(!q||q.trim().length<1){S.pfResults=[];S.pfSearching=false;renderPfDrop();return;}
+  S.pfSearching=true;renderPfDrop();
+  _pfTimer=setTimeout(function(){
+    const my=q;
+    if(window.__holdxSearchAnyCoin){ window.__holdxSearchAnyCoin(q).then(function(res){ if(S.pfSearch===my){ S.pfResults=res||[]; S.pfSearching=false; renderPfDrop(); } }); }
+  },300);
+}
+function portfolioSection(){
+  if(!S.pfLoaded && window.__holdxLoadPortfolio){ window.__holdxLoadPortfolio(S.wallet.address); }
+  if(!window.__pfTimer){
+    loadPortfolioPrices();
+    window.__pfTimer=setInterval(function(){ if(S.view&&S.view.name==="watchlist"&&S.wlTab==="portfolio"&&(S.portfolio||[]).length){ loadPortfolioPrices(); } else { clearInterval(window.__pfTimer); window.__pfTimer=null; } },15000);
+  }
+  const pf=S.portfolio||[];
+
+  // ekleme formu: coin secildiyse form goster, yoksa arama
+  let addBox="";
+  if(S.pfAdding){
+    const a=S.pfAdding;
+    addBox=`<div class="pf-addform">
+      <div class="pf-addtop">${tokenMarkHtml(a.symbol,"sm",a.logo)}<span class="pf-addsym">$${esc(a.symbol)}</span><span class="pf-addname">${esc(a.name||"")}</span><button class="pf-addcancel" data-act="pfCancelAdd">✕</button></div>
+      <div class="pf-addfields">
+        <div class="pf-field"><label>Amount held</label><input class="pf-in" id="pfAmount" type="number" step="any" placeholder="e.g. 2000" value="${S.pfAmountVal||""}"></div>
+        <div class="pf-field"><label>Avg buy price ($)</label><input class="pf-in" id="pfBuy" type="number" step="any" placeholder="e.g. 1.05" value="${S.pfBuyVal||""}"></div>
+      </div>
+      <button class="pf-addbtn" data-act="pfConfirmAdd">Add to portfolio</button>
+    </div>`;
+  } else {
+    addBox=`<div class="wl-search-wrap">
+      <input class="wl-search" id="pfSearch" placeholder="Search a coin to add (BTC, EIGEN, PEPE...)" value="${esc(S.pfSearch||"")}" autocomplete="off">
+      <div class="wl-drop" id="pfDrop">${pfSearchResultsHtml()}</div>
+    </div>`;
+  }
+  const search=`<p class="sub wl-sub">Add your holdings with amount and buy price to track profit / loss.</p>${addBox}`;
+
+  if(!pf.length)return search+`<div class="wl-empty"><div class="wl-empty-ic">${I.wallet}</div><p>Your portfolio is empty.</p><span>Search a coin, enter your amount and buy price, then add it.</span></div>`;
+
+  let totalValue=0, totalCost=0;
+  const rows=pf.map(function(h){
+    const p=S.watchPrices[h.address||h.symbol]||{};
+    const price=p.price!=null?p.price:0;
+    const amount=h.amount||0, buy=h.buy_price||0;
+    const value=price*amount, cost=buy*amount, pnl=value-cost;
+    const pnlPct=cost>0?((pnl/cost)*100):0;
+    totalValue+=value; totalCost+=cost;
+    const up=pnl>=0;
+    return `<article class="pf-card">
+      <div class="pf-left">${tokenMarkHtml(h.symbol,"sm",h.logo)}
+        <div class="pf-info"><div class="pf-sym">$${esc(h.symbol||"")}</div>
+        <div class="pf-meta">${amount.toLocaleString("en-US")} tokens · avg $${buy<0.01&&buy>0?buy.toFixed(6):buy.toFixed(buy<10?4:2)}</div></div>
+      </div>
+      <div class="pf-mid"><div class="pf-nowprice">$${price<0.01&&price>0?price.toFixed(6):price.toFixed(price<10?4:2)}</div>
+        <div class="pf-pnl ${up?"up":"down"}">${up?"+":""}${pnlPct.toFixed(1)}%</div></div>
+      <div class="pf-value">
+        <div class="pf-val-usd">$${value.toLocaleString(undefined,{maximumFractionDigits:2})}</div>
+        <div class="pf-pnl-usd ${up?"up":"down"}">${up?"+":"−"}$${Math.abs(pnl).toLocaleString(undefined,{maximumFractionDigits:2})}</div>
+      </div>
+      <button class="pf-del" data-act="pfRemove" data-id="${h.id}" title="Remove">✕</button>
+    </article>`;
+  }).join("");
+
+  const totalPnl=totalValue-totalCost, tUp=totalPnl>=0;
+  const totalPct=totalCost>0?((totalPnl/totalCost)*100):0;
+  const summary=`<div class="pf-summary">
+    <div class="pf-sum-main"><span class="pf-sum-lbl">Total Value</span><span class="pf-sum-val">$${totalValue.toLocaleString(undefined,{maximumFractionDigits:2})}</span></div>
+    <div class="pf-sum-row"><span>Total Cost</span><span>$${totalCost.toLocaleString(undefined,{maximumFractionDigits:2})}</span></div>
+    <div class="pf-sum-row pf-sum-pnl ${tUp?"up":"down"}"><span>Unrealized P/L</span><span>${tUp?"+":"−"}$${Math.abs(totalPnl).toLocaleString(undefined,{maximumFractionDigits:2})} (${tUp?"+":""}${totalPct.toFixed(1)}%)</span></div>
+  </div>`;
+
+  return search+`<div class="pf-list">${rows}</div>`+summary;
+}
+function watchlistView(){
+  if(!S.connected)return gate("build your watchlist");
+  const wlTab=S.wlTab||"watch";
+  const tabsHead=`<div class="wl-maintabs">
+    <button class="wl-maintab ${wlTab==="watch"?"on":""}" data-act="wlMainTab" data-tab="watch">${I.star} Watchlist</button>
+    <button class="wl-maintab ${wlTab==="portfolio"?"on":""}" data-act="wlMainTab" data-tab="portfolio">${I.wallet} Portfolio</button>
+  </div>`;
+  const head=`<div class="wl-head"><h1 class="h1">My Space</h1></div>`+tabsHead;
+  if(wlTab==="portfolio") return head+portfolioSection();
+  return head+watchSection();
+}
+function watchSection(){
+  if(!S.watchLoaded && window.__holdxLoadWatchlist){ window.__holdxLoadWatchlist(S.wallet.address); }
+  if(!window.__wlTimer){
+    loadWatchPrices();
+    window.__wlTimer=setInterval(function(){ if(S.view&&S.view.name==="watchlist"&&S.wlTab==="watch"&&(S.watchlist||[]).length){ loadWatchPrices(); } else { clearInterval(window.__wlTimer); window.__wlTimer=null; } },20000);
+  }
+  const wl=S.watchlist||[];
+  const search=`<p class="sub wl-sub">Track any coin you want to keep an eye on.</p>
+    <div class="wl-search-wrap">
+      <input class="wl-search" id="wlSearch" placeholder="Search a coin to add (BTC, EIGEN, PEPE...)" value="${esc(S.wlSearch||"")}" autocomplete="off">
+      <div class="wl-drop" id="wlDrop">${wlSearchResultsHtml()}</div>
+    </div>`;
+  if(!wl.length)return search+`<div class="wl-empty"><div class="wl-empty-ic">${I.star}</div><p>Your watchlist is empty.</p><span>Search a coin above to start tracking it.</span></div>`;
+
+  const cards=wl.map(function(w){
+    const p=S.watchPrices[w.address||w.symbol]||{};
+    const price=p.price!=null?p.price:0;
+    const chg=p.chg!=null?p.chg:null;
+    const up=(chg||0)>=0;
+    return `<article class="pf-card">
+      <div class="pf-left">${tokenMarkHtml(w.symbol,"sm",w.logo)}
+        <div class="pf-info"><div class="pf-sym">$${esc(w.symbol||"")}</div>
+        <div class="pf-meta">${esc((w.chain||"").toUpperCase())}${w.name&&w.name!==w.symbol?" · "+esc(w.name):""}</div></div>
+      </div>
+      <div class="pf-value">
+        <div class="pf-val-usd">${price?"$"+(price<0.01?price.toFixed(6):price.toFixed(price<10?4:2)):"—"}</div>
+        ${chg!=null?`<div class="pf-pnl-usd ${up?"up":"down"}">${up?"▲":"▼"}${Math.abs(chg).toFixed(1)}%</div>`:""}
+      </div>
+      <button class="pf-del" data-act="unwatch" data-sym="${esc(w.symbol)}" data-addr="${esc(w.address||"")}" title="Remove">✕</button>
+    </article>`;
+  }).join("");
+  return search+`<div class="pf-list">${cards}</div>`;
+}
+function aiChartView(){
+  const r=S.aiResult;
+  const upload=`<div class="ai-head"><h1 class="h1">${I.brain} AI Chart Analyst</h1><p class="sub">Upload any price chart screenshot — get instant support/resistance, trend and a full breakdown.</p></div>
+    <div class="ai-upload">
+      ${S.aiImage?`<div class="ai-preview"><img src="${S.aiImage}" alt="chart"><button class="ai-clear" data-act="aiClear">✕</button></div>`:`
+        <label class="ai-drop">
+          <input type="file" id="aiFile" accept="image/*" style="display:none">
+          <div class="ai-drop-in">${I.brain}<span>Tap to upload a chart screenshot</span><small>PNG or JPG</small></div>
+        </label>`}
+      ${S.aiImage&&!S.aiLoading?`<button class="ai-analyze" data-act="aiAnalyze">Analyze chart</button>`:""}
+      ${S.aiLoading?`<div class="ai-loading">${I.brain} Analyzing chart… this takes a few seconds</div>`:""}
+      ${S.aiError?`<div class="ai-err">${esc(S.aiError)}</div>`:""}
+    </div>`;
+
+  if(!r)return upload;
+
+  const sig=r.signal||"Neutral";
+  const sigColor=sig==="Bullish"?"#34e39a":(sig==="Bearish"?"#f6465d":"#f0a020");
+  const list=function(arr,cls){ return (arr||[]).map(function(x){return `<span class="ai-lvl ${cls}">${esc(x)}</span>`;}).join(""); };
+
+  return upload+`<div class="ai-result">
+    <div class="ai-r-top">
+      <div class="ai-asset">${esc(r.asset||"Chart")}</div>
+      <div class="ai-signal" style="--sc:${sigColor}">${esc(sig)}</div>
+    </div>
+    ${r.trend?`<div class="ai-trend">${I.trend||""} ${esc(r.trend)}</div>`:""}
+    <div class="ai-levels">
+      <div class="ai-lvl-group"><div class="ai-lvl-t res">Resistance</div><div class="ai-lvl-list">${list(r.resistance,"res")||'<span class="ai-none">—</span>'}</div></div>
+      <div class="ai-lvl-group"><div class="ai-lvl-t sup">Support</div><div class="ai-lvl-list">${list(r.support,"sup")||'<span class="ai-none">—</span>'}</div></div>
+    </div>
+    ${(r.patterns&&r.patterns.length)?`<div class="ai-patterns"><div class="ai-sec-t">Patterns</div>${(r.patterns||[]).map(function(p){return `<span class="ai-pat">${esc(p)}</span>`;}).join("")}</div>`:""}
+    ${r.summary?`<div class="ai-summary"><div class="ai-sec-t">Analysis</div><p>${esc(r.summary)}</p></div>`:""}
+    ${r.note?`<p class="ai-note">${esc(r.note)}</p>`:""}
+  </div>`;
 }
 function chartView(){
   const tab=S.chartTab||"cex";
@@ -2027,6 +2249,8 @@ function mainView(){
  if(v.name==="compare")return compareView();
  if(v.name==="calendar")return calendarView();
  if(v.name==="chart")return chartView();
+ if(v.name==="aichart")return aiChartView();
+ if(v.name==="watchlist")return watchlistView();
  if(v.name==="room")return roomView(v.token);
  return"";
 }
@@ -2281,6 +2505,7 @@ function trendingSection(){
         <div class="trend-chg ${up?"up":"down"}">${up?"▲":"▼"}${Math.abs(t.chg24||0).toFixed(1)}%</div>
         ${t.url?`<a class="trend-link" href="${esc(t.url)}" target="_blank" rel="noopener">View ↗</a>`:""}
       </div>
+      <button class="wl-star ${isWatched(t.symbol,t.address)?"on":""}" data-act="toggleWatch" data-sym="${esc(t.symbol)}" data-addr="${esc(t.address||"")}" data-name="${esc(t.name||"")}" data-logo="${esc(t.logo||"")}" data-chain="solana" title="Watchlist">${isWatched(t.symbol,t.address)?"★":"☆"}</button>
     </article>`;
   }).join("");
   return `<div class="trend-list">${cards}</div>`;
@@ -3016,6 +3241,8 @@ document.addEventListener("click",e=>{
  // Açık menüleri kapat — tek render, aksiyonu bloklamasın
  let _closed=false;
  if(S.topSearchOpen&&!e.target.closest(".search")){S.topSearchOpen=false;_closed=true;}
+ if(S.wlSearch&&!e.target.closest(".wl-search-wrap")){S.wlSearch="";S.wlResults=[];_closed=true;}
+ if(S.pfSearch&&!e.target.closest(".wl-search-wrap")){S.pfSearch="";S.pfResults=[];_closed=true;}
  if(S.postMenu&&!e.target.closest(".pa-more-wrap")){S.postMenu=null;_closed=true;}
  if(S.rtMenu&&!e.target.closest(".rt-wrap")){S.rtMenu=null;_closed=true;}
  if(S.walletMenu&&!e.target.closest(".idwrap")){S.walletMenu=false;_closed=true;}
@@ -3146,6 +3373,66 @@ document.addEventListener("click",e=>{
  else if(a==="newsFilter"){S.newsFilter=el.dataset.src;S.newsOpen=null;render();}
  else if(a==="spikeTab"){S.spikeTab=el.dataset.tab;render();}
  else if(a==="memeTab"){S.memeTab=el.dataset.tab;render();}
+else if(a==="wlMainTab"){S.wlTab=el.dataset.tab;render();}
+ else if(a==="aiClear"){S.aiImage=null;S.aiResult=null;S.aiError="";render();}
+ else if(a==="aiAnalyze"){
+   if(!S.aiImage)return;
+   S.aiLoading=true;S.aiError="";S.aiResult=null;render();
+   const b64=S.aiImage.split(",")[1]||"";
+   const mt=(S.aiImage.match(/data:(.*?);/)||[])[1]||"image/png";
+   if(window.__holdxAnalyzeChart){ window.__holdxAnalyzeChart(b64,mt).then(function(res){
+     if(res&&res.ok){ S.aiResult=res.analysis; S.aiError=""; } else { S.aiError=(res&&res.error)||"Could not analyze. Try another screenshot."; }
+     S.aiLoading=false;render();
+   }); }
+ }
+ else if(a==="pfAddCoin"){
+   S.pfAdding={symbol:el.dataset.sym,address:el.dataset.addr||null,name:el.dataset.name||null,logo:el.dataset.logo||null,chain:el.dataset.chain||null};
+   S.pfAmountVal=""; S.pfBuyVal=""; S.pfSearch=""; S.pfResults=[]; render();
+   // secilen coinin fiyatini cek
+   if(S.pfAdding.address&&window.__holdxDexPriceFor)window.__holdxDexPriceFor(S.pfAdding.address);
+   else if(window.__holdxCexPrice)window.__holdxCexPrice(S.pfAdding.symbol);
+ }
+ else if(a==="pfCancelAdd"){ S.pfAdding=null; render(); }
+ else if(a==="pfConfirmAdd"){
+   const amI=document.getElementById("pfAmount"), buI=document.getElementById("pfBuy");
+   const amount=parseFloat(amI?amI.value:0)||0, buy=parseFloat(buI?buI.value:0)||0;
+   if(!amount){ if(amI)amI.focus(); return; }
+   const a=S.pfAdding; if(!a)return;
+   const item={wallet:S.wallet.address,symbol:a.symbol,address:a.address,chain:a.chain,name:a.name,logo:a.logo,amount:amount,buy_price:buy};
+   if(window.__holdxAddPortfolio){ window.__holdxAddPortfolio(item).then(function(saved){ if(saved){ S.portfolio=[saved].concat(S.portfolio); if(a.address&&window.__holdxDexPriceFor)window.__holdxDexPriceFor(a.address); else if(window.__holdxCexPrice)window.__holdxCexPrice(a.symbol); render(); } }); }
+   S.pfAdding=null; S.pfAmountVal=""; S.pfBuyVal=""; render();
+ }
+ else if(a==="pfRemove"){
+   const id=el.dataset.id;
+   S.portfolio=S.portfolio.filter(function(h){return h.id!==id;});
+   if(window.__holdxRemovePortfolio)window.__holdxRemovePortfolio(id);
+   render();
+ }
+ else if(a==="toggleWatch"){
+   if(!S.connected||!S.wallet){ S.entered=true; connect(); return; }
+   const sym=el.dataset.sym, addr=el.dataset.addr||null, nm=el.dataset.name||"", lg=el.dataset.logo||null, ch=el.dataset.chain||"";
+   if(isWatched(sym,addr)){
+     S.watchlist=S.watchlist.filter(function(w){return !(w.symbol===sym&&(addr?w.address===addr:true));});
+     if(window.__holdxRemoveWatch)window.__holdxRemoveWatch(S.wallet.address,sym,addr);
+   } else {
+     const item={wallet:S.wallet.address,symbol:sym,address:addr||null,chain:ch||null,name:nm||null,logo:lg||null};
+     S.watchlist=[item].concat(S.watchlist);
+     if(window.__holdxAddWatch)window.__holdxAddWatch(item);
+     // fiyati hemen goster (aramadan geldiyse) + canli cek
+     const pr=parseFloat(el.dataset.price||"0"), cg=parseFloat(el.dataset.chg||"0");
+     if(!pr){ if(addr&&window.__holdxDexPriceFor)window.__holdxDexPriceFor(addr); else if(window.__holdxCexPrice)window.__holdxCexPrice(sym); }
+     if(pr)S.watchPrices[addr||sym]={price:pr,chg:cg};
+     if(addr&&window.__holdxDexPriceFor)window.__holdxDexPriceFor(addr);
+   }
+   if(el.classList&&el.classList.contains("wl-item")){ S.wlSearch=""; S.wlResults=[]; }
+   render();
+ }
+ else if(a==="unwatch"){
+   const sym=el.dataset.sym, addr=el.dataset.addr||null;
+   S.watchlist=S.watchlist.filter(function(w){return !(w.symbol===sym&&(addr?w.address===addr:true));});
+   if(window.__holdxRemoveWatch&&S.wallet)window.__holdxRemoveWatch(S.wallet.address,sym,addr);
+   render();
+ }
  else if(a==="chartPick"){S.chartSymbol=el.dataset.sym;render();}
  else if(a==="chartMainTab"){S.chartTab=el.dataset.tab;render();}
  else if(a==="dexPick"){S.dexAddr=el.dataset.addr;render();}
@@ -3461,6 +3748,15 @@ else if(a==="deleteComment"){const cid=el.dataset.cid, pid=el.dataset.post; if(!
  }
  else if(a==="goNewRoom"){const t=el.dataset.token;S.createDone=null;S.view={name:"room",token:t};render();}
 });
+document.addEventListener("change",function(e){
+  if(e.target.id==="aiFile"){
+    const file=e.target.files&&e.target.files[0];
+    if(!file)return;
+    const reader=new FileReader();
+    reader.onload=function(ev){ S.aiImage=ev.target.result; S.aiResult=null; S.aiError=""; render(); };
+    reader.readAsDataURL(file);
+  }
+});
 document.addEventListener("input",e=>{
  if(e.target.id==="createTicker"){S.createTicker=e.target.value;S.searchErr=false;scheduleSearch(e.target.value);}
  if(e.target.id==="roomSearch"){S.roomSearch=e.target.value;render();}
@@ -3469,6 +3765,10 @@ document.addEventListener("input",e=>{
  if(e.target.id==="postSearch"){S.postSearch=e.target.value;schedulePostSearch(e.target.value);}
 if(e.target.id==="cmpAin"){ S.cmpA=e.target.value; return; }
  if(e.target.id==="cmpBin"){ S.cmpB=e.target.value; return; }
+ if(e.target.id==="pfAmount"){ S.pfAmountVal=e.target.value; return; }
+ if(e.target.id==="pfBuy"){ S.pfBuyVal=e.target.value; return; }
+ if(e.target.id==="pfSearch"){ S.pfSearch=e.target.value; schedulePfSearch(e.target.value); return; }
+ if(e.target.id==="wlSearch"){ S.wlSearch=e.target.value; scheduleWlSearch(e.target.value); return; }
  if(e.target.id==="safetyInput"){ S.safetyQuery=e.target.value; return; }
  if(e.target.id==="dexSearch"){ S.dexSearch=e.target.value; scheduleDexSearch(e.target.value); return; }
  if(e.target.id==="chartSearch"){ S.chartSearch=e.target.value; scheduleChartSearch(e.target.value); return; }

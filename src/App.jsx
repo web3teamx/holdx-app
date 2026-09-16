@@ -165,6 +165,80 @@ export default function App() {
         return { ok: false, error: 'Could not reach RugCheck. Try again.' }
       }
     }
+    window.__holdxAnalyzeChart = async (b64, mediaType) => {
+      try {
+        const res = await fetch('https://nxlleblykoxcxzjwzsbq.supabase.co/functions/v1/chart-vision', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer sb_publishable_HF5YL6QVQgRWeGPKqfTp6Q_C8g9lpFW' },
+          body: JSON.stringify({ image: b64, mediaType })
+        })
+        return await res.json()
+      } catch (e) { return { ok: false, error: 'Request failed. Try again.' } }
+    }
+    window.__holdxSearchAnyCoin = async (q) => {
+      try {
+        const res = await fetch(`https://nxlleblykoxcxzjwzsbq.supabase.co/functions/v1/coin-search?q=${encodeURIComponent(q)}`, {
+          headers: { 'Authorization': 'Bearer sb_publishable_HF5YL6QVQgRWeGPKqfTp6Q_C8g9lpFW' }
+        })
+        const data = await res.json()
+        return (data.coins || []).map(c => ({
+          symbol: c.symbol, address: c.address, chain: c.chain || '', name: c.name || '',
+          logo: c.logo || null, price: c.price || 0, mcap: c.mcap || 0, cgId: c.cgId || null
+        }))
+      } catch (e) { return [] }
+    }
+    window.__holdxCexPrice = async (symbol) => {
+      try {
+        const res = await fetch(`https://nxlleblykoxcxzjwzsbq.supabase.co/functions/v1/coin-search?q=${encodeURIComponent(symbol)}`, {
+          headers: { 'Authorization': 'Bearer sb_publishable_HF5YL6QVQgRWeGPKqfTp6Q_C8g9lpFW' }
+        })
+        const data = await res.json()
+        // tam eşleşen CEX coini bul (address null, en yüksek mcap)
+        const match = (data.coins || []).filter(c => c.symbol === symbol.toUpperCase() && !c.address).sort((a,b)=>(b.mcap||0)-(a.mcap||0))[0]
+        if (match && window.__holdxSetWatchPrice) window.__holdxSetWatchPrice(symbol, match.price || 0, match.chg24 || 0)
+      } catch (e) {}
+    }
+    window.__holdxDexPriceFor = async (address) => {
+      try {
+        const res = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${address}`)
+        const dx = await res.json()
+        const p = (dx.pairs || []).sort((a,b)=>(b.liquidity?.usd||0)-(a.liquidity?.usd||0))[0]
+        if (p && window.__holdxSetWatchPrice) window.__holdxSetWatchPrice(address, parseFloat(p.priceUsd)||0, p.priceChange?.h24||0)
+      } catch (e) {}
+    }
+    window.__holdxLoadPortfolio = async (wallet) => {
+      if (!wallet) return
+      try {
+        const { data } = await supabase.from('portfolio').select('*').eq('wallet', wallet).order('created_at', { ascending: false })
+        if (window.__holdxApplyPortfolio) window.__holdxApplyPortfolio(data || [])
+      } catch (e) { if (window.__holdxApplyPortfolio) window.__holdxApplyPortfolio([]) }
+    }
+    window.__holdxAddPortfolio = async (item) => {
+      try { const { data } = await supabase.from('portfolio').insert(item).select().single(); return data } catch (e) { return null }
+    }
+    window.__holdxUpdatePortfolio = async (id, fields) => {
+      try { await supabase.from('portfolio').update(fields).eq('id', id) } catch (e) {}
+    }
+    window.__holdxRemovePortfolio = async (id) => {
+      try { await supabase.from('portfolio').delete().eq('id', id) } catch (e) {}
+    }
+    window.__holdxLoadWatchlist = async (wallet) => {
+      if (!wallet) return
+      try {
+        const { data } = await supabase.from('watchlist').select('*').eq('wallet', wallet).order('created_at', { ascending: false })
+        if (window.__holdxApplyWatchlist) window.__holdxApplyWatchlist(data || [])
+      } catch (e) { if (window.__holdxApplyWatchlist) window.__holdxApplyWatchlist([]) }
+    }
+    window.__holdxAddWatch = async (item) => {
+      try { await supabase.from('watchlist').upsert(item, { onConflict: 'wallet,symbol,address' }) } catch (e) {}
+    }
+    window.__holdxRemoveWatch = async (wallet, symbol, address) => {
+      try {
+        let q = supabase.from('watchlist').delete().eq('wallet', wallet).eq('symbol', symbol)
+        if (address) q = q.eq('address', address)
+        await q
+      } catch (e) {}
+    }
     window.__holdxLoadTrending = async () => {
       try {
         const addrs = new Set()
