@@ -1,10 +1,10 @@
-// PODCTO uygulaması — React icin sarmalanmis surum
+// SZNFI uygulaması — React icin sarmalanmis surum
 // Bu dosya, calisir prototipin tam JavaScript kodunu icerir.
 export function initHoldx(){
   if (window.__holdx_inited) return;
   window.__holdx_inited = true;
 
-const BRAND="PODCTO", TAGLINE="The social layer for crypto intelligence";
+const BRAND="SZNFI", TAGLINE="The social layer for crypto intelligence";
 const FEEDBACK_EMAIL="feedback@holdx.app"; // ← gerçek e-posta adresinle değiştir
 // Oda kapasite kademeleri: [kapasite, toplam fiyat $]. 100 bedava.
 const CAP_TIERS=[
@@ -133,7 +133,7 @@ const S={
 
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const OFFICIAL_WALLET="8KcP9QU7Kxb7BoGWGRPxpt5HwhjP8YVbwG1FG7AeS8Qy";
-const short=a=>a===OFFICIAL_WALLET?"PODCTO":(a?a.slice(0,4)+"…"+a.slice(-4):"");
+const short=a=>a===OFFICIAL_WALLET?"SZNFI":(a?a.slice(0,4)+"…"+a.slice(-4):"");
 function genAddr(){const c="ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz123456789";let s="";for(let i=0;i<44;i++)s+=c[Math.floor(Math.random()*c.length)];return s;}
 function fprice(p){if(p>=1000)return"$"+p.toLocaleString(undefined,{maximumFractionDigits:0});if(p<0.000001)return"$"+p.toFixed(9);if(p<0.001)return"$"+p.toFixed(7);if(p<1)return"$"+p.toFixed(4);return"$"+p.toFixed(2);}
 function avatar(seed){let h=0;for(let i=0;i<seed.length;i++)h=(h*31+seed.charCodeAt(i))%360;return`background:conic-gradient(from ${h}deg,hsl(${h} 70% 55%),hsl(${(h+90)%360} 70% 50%),hsl(${(h+200)%360} 70% 55%))`;}
@@ -162,7 +162,7 @@ function timeAgo(iso){
 }
 function displayName(w,mine){
  if(!w)return "";
- if(w===OFFICIAL_WALLET)return "PODCTO";
+ if(w===OFFICIAL_WALLET)return "SZNFI";
  if(isMyWallet(w,mine)&&S.profile&&S.profile.name&&S.profile.name.trim())return S.profile.name.trim();
  if(S.names&&S.names[w]&&S.names[w].trim())return S.names[w].trim();
  return short(w);
@@ -308,7 +308,7 @@ function activityPanel(){
      <div class="act-body">
        <div class="act-line"><span class="mono act-w">${esc(a.wallet)}</span> ${isCreate?"created a room":"joined"}</div>
        <div class="act-sub"><span class="act-verb ${isCreate?"create":"join"}">${isCreate?I.plus:I.check}${isCreate?"created":"joined"}</span>
-         <span class="mono act-tk">$${esc(a.token)}</span>${chainBadge(a.chain)}
+         <span class="mono act-tk">$${esc(a.token)}</span>
          <span class="act-time">· ${ago(a.t)}</span></div>
      </div></button>`;
  }).join("");
@@ -395,6 +395,7 @@ const CHAINS={
  pulsechain:{label:"PLS",color:"#00CFB4"}, blast:{label:"BLAST",color:"#FCFC03"},
  // Robinhood Chain — Arbitrum tabanlı L2, 1 Tem 2026'da açıldı (memecoin trendi)
  robinhood:{label:"RH",color:"#00C805"},
+ arc:{label:"ARC",color:"#0052FF"},
  // DexScreener'da aktif diğer ağlar (eksik kalmasın)
  hyperliquid:{label:"HYPE",color:"#97FCE4"}, hyperevm:{label:"HYPE",color:"#97FCE4"},
  monad:{label:"MONAD",color:"#836EF9"}, megaeth:{label:"MEGA",color:"#3B82F6"},
@@ -458,7 +459,7 @@ async function tokenSearch(q){
  // KONTRAT ADRESİ ile arama → doğrudan o token
  if(looksLikeAddress(q)){
    const addr=q.trim(); const addrL=addr.toLowerCase();
-   const chains=/^0x/.test(addr)?["ethereum","base","bsc","arbitrum","polygon","robinhood"]:["solana"];
+   const chains=/^0x/.test(addr)?["arc","ethereum","base","bsc","arbitrum","polygon","robinhood"]:["solana"];
    for(const ch of chains){
      try{
        const arr=await dexFetch(`/tokens/v1/${ch}/${addr}`);
@@ -593,7 +594,7 @@ async function dexPrice(address,chain){
  const isEvm=/^0x[a-fA-F0-9]{40}$/.test(address||"");
  let ch=chain;
  if(isEvm && (!ch||ch==="solana")) ch="ethereum";
- if(!isEvm && (!ch||/^(ethereum|base|bsc|arbitrum|polygon|optimism|robinhood)$/.test(ch))) ch="solana";
+ if(!isEvm && (!ch||/^(arc|ethereum|base|bsc|arbitrum|polygon|optimism|robinhood)$/.test(ch))) ch="solana";
  const arr=await dexFetch(`/tokens/v1/${ch||"solana"}/${address}`);
  if(!arr||!arr.length)return null;
  const addrL=(address||"").toLowerCase();
@@ -766,7 +767,7 @@ async function refreshTokenPrices(){
  }
  if(["tokens","feed","rooms","portfolio"].includes(S.view.name))render();
 }
-const NAV=[["feed","Feed","home"],["profile","Profile","user"],["portfolio","Portfolio","wallet"],["rooms","Rooms","chat"],["myrooms","My Rooms","badge"],["messages","Messages","send"],["notifications","Notifications","bell"],["leaderboard","Leaderboard","trend"],["vip","VIP","crown",true],["unlocks","Unlocks","lock",true],["news","News","news"],["chart","Charts","candle"],["watchlist","Watchlist","star"],["aichart","AI Analyst","brain"],["onchain","On-Chain","waves"],["memecoin","Memecoin","rocket"],["calendar","Calendar","calendar"],["settings","Settings","gear"]];
+const NAV=[["feed","Feed","home"],["profile","Profile","user"],["portfolio","Portfolio","wallet"],["rooms","Rooms","chat"],["myrooms","My Rooms","badge"],["messages","Messages","send"],["notifications","Notifications","bell"],["vip","VIP","crown",true],["unlocks","Unlocks","lock",true],["news","News","news"],["chart","Charts","candle"],["watchlist","Watchlist","star"],["aichart","AI Analyst","brain"],["onchain","On-Chain","waves"],["memecoin","MemeTrenches","rocket",true],["calendar","Calendar","calendar"],["settings","Settings","gear"]];
 
 // --- emoji seti (X benzeri bol seçenek, kategorili) ---
 const EMOJI={
@@ -867,11 +868,11 @@ function fmtText(t){
  // önce güvenli kaçış
  let h=esc(t||"");
  // podcto oda linkleri: iç yönlendirme (odaya git)
- h=h.replace(/https?:\/\/(?:www\.)?podcto\.com\/room\/([A-Za-z0-9]+)/g,function(m,tk){
+ h=h.replace(/https?:\/\/(?:www\.)?sznfi\.com\/room\/([A-Za-z0-9]+)/g,function(m,tk){
    return '<a class="link-in" data-act="gotoRoomLink" data-token="'+tk.toUpperCase()+'" href="#">'+m+'</a>';
  });
  // podcto post linkleri: iç yönlendirme
- h=h.replace(/https?:\/\/(?:www\.)?podcto\.com\/post\/([A-Za-z0-9\-]+)/g,function(m,pid){
+ h=h.replace(/https?:\/\/(?:www\.)?sznfi\.com\/post\/([A-Za-z0-9\-]+)/g,function(m,pid){
    return '<a class="link-in" data-act="gotoPostLink" data-id="'+pid+'" href="#">'+m+'</a>';
  });
  // diğer düz URL'ler: yeni sekmede aç (zaten işaretlenmiş linkleri atla)
@@ -1128,7 +1129,7 @@ function feedView(){
   ${S.hasMorePosts&&S.filter==="ALL"?`<button class="loadmore" data-act="loadMore">${S.loadingMore?"Loading…":"Show more"}</button>`:""}
   ${S.sharePostId?postShareModal():""}`;
 }
-const CHAIN_CHIPS=[["all","All"],["ethereum","ETH"],["solana","SOL"],["bsc","BSC"],["robinhood","RH"]];
+const CHAIN_CHIPS=[["all","All"],["arc","ARC"],["ethereum","ETH"],["solana","SOL"],["bsc","BSC"],["robinhood","RH"]];
 function chainChips(){
  return `<div class="chainchips">${CHAIN_CHIPS.map(c=>`<button class="chip ${S.chainFilter===c[0]?"on":""}" data-act="setChain" data-chain="${c[0]}">${c[1]}</button>`).join("")}</div>`;
 }
@@ -1847,7 +1848,7 @@ function otherProfileView(wallet){
      <div class="pf-nameline"><h1 class="pf-name">${esc(displayName(wallet))}</h1>${anyTier?tierBadge(anyTier):""}</div>
      <div class="pf-addr mono">${short(wallet)} <button class="pf-copy" data-act="copyAddr" data-wallet="${esc(wallet)}">${S.copiedAddr===wallet?I.check:I.copy}</button></div>
      ${bio?`<p class="pf-bio">${esc(bio)}</p>`:`<p class="pf-bio muted">This user hasn't added a bio yet.</p>`}
-     <div class="pf-meta">${I.badge}<span>PODCTO member</span></div>
+     <div class="pf-meta">${I.badge}<span>SZNFI member</span></div>
      <div class="pf-follows">
        <button class="pf-follow-stat"><b class="mono">${following}</b> Following</button>
        <button class="pf-follow-stat"><b class="mono">${followers+(isFollowing?1:0)}</b> Followers</button>
@@ -1908,7 +1909,7 @@ function leaderboardView(){
    <div class="lb-hero">
      <div class="lb-badge">${I.trend}</div>
      <h1 class="lb-title">Leaderboard soon</h1>
-     <p class="lb-sub">Be active on PODCTO — post, join rooms, create rooms, chat. Your activity is evaluated in the background.</p>
+     <p class="lb-sub">Be active on SZNFI — post, join rooms, create rooms, chat. Your activity is evaluated in the background.</p>
      <div class="lb-teaser">
        <div class="lb-lock">${I.lock}</div>
        <div class="lb-teaser-txt"><strong>Leaderboard is not open yet</strong><p>Early and genuinely active users will stand out. When the leaderboard opens, you'll see your place here.</p></div>
@@ -1929,19 +1930,19 @@ function toggleRow(title,desc,on,act){
 // TASLAK hukuki metinler — yayından önce bir avukata kontrol ettirilmeli.
 const DOCS={
  terms:{title:"Terms of Use",updated:"Last updated: July 2026",body:[
-  ["1. Acceptance","By using PODCTO (the \"Platform\") you accept these Terms of Use. If you do not accept the Terms, do not use the Platform."],
-  ["2. Nature of the Platform","PODCTO is a decentralized social platform that brings crypto asset holders together. The Platform is NOT an exchange, wallet provider, or investment advisor. Price and market data shown on the Platform come from third-party sources and accuracy is not guaranteed."],
+  ["1. Acceptance","By using SZNFI (the \"Platform\") you accept these Terms of Use. If you do not accept the Terms, do not use the Platform."],
+  ["2. Nature of the Platform","SZNFI is a decentralized social platform that brings crypto asset holders together. The Platform is NOT an exchange, wallet provider, or investment advisor. Price and market data shown on the Platform come from third-party sources and accuracy is not guaranteed."],
   ["3. Not investment advice","No content, post, room chat, or data on the Platform constitutes investment advice. Crypto assets are high-risk and can lose value. You are solely responsible for all your decisions. Do your own research before making investment decisions."],
-  ["4. Wallet and account","You connect to the Platform with your wallet. You are solely responsible for the security of your wallet, private keys, and transactions. PODCTO can never access or store your private keys."],
-  ["5. User content","You are fully responsible for the content you share (text, image, message). Sharing illegal, fraudulent, hate-speech, harassing, or rights-violating content is prohibited. PODCTO reserves the right to remove such content."],
+  ["4. Wallet and account","You connect to the Platform with your wallet. You are solely responsible for the security of your wallet, private keys, and transactions. SZNFI can never access or store your private keys."],
+  ["5. User content","You are fully responsible for the content you share (text, image, message). Sharing illegal, fraudulent, hate-speech, harassing, or rights-violating content is prohibited. SZNFI reserves the right to remove such content."],
   ["6. Room creation and fees","Creating a room is free and open to everyone."],
   ["7. Points and rewards","Points/reward systems tied to Platform activity are promotional; they carry no guarantee of monetary value. Reward criteria may change without prior notice. Points of accounts found abusing the system can be revoked."],
-  ["8. Disclaimer","Platform is provided \"as is\". PODCTO does not guarantee uninterrupted or error-free operation. PODCTO cannot be held liable for any direct or indirect damages arising from use of the Platform."],
+  ["8. Disclaimer","Platform is provided \"as is\". SZNFI does not guarantee uninterrupted or error-free operation. SZNFI cannot be held liable for any direct or indirect damages arising from use of the Platform."],
   ["9. Changes","These terms may be updated from time to time. Significant changes are announced through the Platform. Continuing to use the Platform after an update means you accept the new terms."],
  ]},
  privacy:{title:"Privacy Policy",updated:"Last updated: July 2026",body:[
-  ["1. General","This Privacy Policy explains what data PODCTO processes."],
-  ["2. Data we collect","PODCTO works primarily wallet-based. Data that may be processed: your public wallet address, your on-chain transaction/holding data (from the public blockchain), content you create on the Platform (posts, rooms, messages), and your profile info (name, bio, image). We do not require personal information like email, phone, or ID."],
+  ["1. General","This Privacy Policy explains what data SZNFI processes."],
+  ["2. Data we collect","SZNFI works primarily wallet-based. Data that may be processed: your public wallet address, your on-chain transaction/holding data (from the public blockchain), content you create on the Platform (posts, rooms, messages), and your profile info (name, bio, image). We do not require personal information like email, phone, or ID."],
   ["3. Use of data","Your data is used to operate the Platform, verify holders, display badges/tiers, and provide community features. We do not sell your data to third parties without your consent."],
   ["4. On-chain data is public","Your wallet address and blockchain transactions are public by nature. The Platform may display this data. Using the settings we provide (e.g. hide whale badge, hide portfolio value) you can limit the visibility of some information."],
   ["5. Third-party services","We use third-party services for price and market data. Those services have their own privacy policies."],
@@ -2123,7 +2124,7 @@ function createRoomView(){
      <input class="searchinput" id="createTicker" placeholder="paste contract address (CA)" value="${esc(S.createTicker||"")}" maxlength="64" autocomplete="off" ${picked?"disabled":""}>
    </div>
    <p class="ca-note">Search by contract address (CA) only.</p>
-   ${S.officialRoomError?`<p class="official-room-note">${I.globe} BTC, ETH, SOL, BNB and XRP have official PODCTO rooms — you can't create these. Just open them from the Rooms list.</p>`:""}
+   ${S.officialRoomError?`<p class="official-room-note">${I.globe} BTC, ETH, SOL, BNB and XRP have official SZNFI rooms — you can't create these. Just open them from the Rooms list.</p>`:""}
    <div id="searchResults" class="searchresults">${createResultsHtml()}</div>
   </div>
   ${picked&&!exists?`
@@ -2154,7 +2155,7 @@ function roomView(ticker){
        <div><span class="js-v mono ${t.chg>=0?"up":"down"}">${t.chg>=0?"+":""}${t.chg}%</span><span class="js-l">24s</span></div>
        <div><span class="js-v mono">${(room?room.members:0).toLocaleString()}${cap===Infinity?"":"/"+capLabel(cap)}</span><span class="js-l">members</span></div>
      </div>
-     <div class="join-lockinfo">${I.globe} ${room.official||room.creator==="__official__"?"Official PODCTO room":"Public room · creator "+esc(room.creator)}</div>
+     <div class="join-lockinfo">${I.globe} ${room.official||room.creator==="__official__"?"Official SZNFI room":"Public room · creator "+esc(room.creator)}</div>
      ${(function(){
        if(full) return `<div class="room-fullbox">${I.lock} This room is full (${capLabel(cap)}/${capLabel(cap)}).</div>`;
        return `<button class="joinbig" data-act="joinRoom" data-token="${ticker}">Join room</button>
@@ -2766,10 +2767,10 @@ function myRoomsPage(){
 // postı paylaşma penceresi
 function postShareModal(){
  const p=S.posts.find(x=>x.id===S.sharePostId); if(!p)return "";
- const link=`https://podcto.com/post/${p.id}`;
+ const link=`https://sznfi.com/post/${p.id}`;
  const who=displayName(p.wallet,p.mine);
  const snippet=(p.text||"").slice(0,80)+((p.text||"").length>80?"…":"");
- const tweet=`${snippet ? '"'+snippet+'" ':""}See it on PODCTO 👉 ${link}`;
+ const tweet=`${snippet ? '"'+snippet+'" ':""}See it on SZNFI 👉 ${link}`;
  const xUrl=`https://twitter.com/intent/tweet?text=${encodeURIComponent(tweet)}`;
  return `<div class="overlay" data-act="closePostShare">
    <div class="editcard">
@@ -2784,7 +2785,7 @@ function postShareModal(){
  </div>`;
 }
 // oda paylaşma penceresi: link copy + Share on X + akışta paylaş
-function roomLink(ticker){return `https://podcto.com/room/${encodeURIComponent(ticker)}`;}
+function roomLink(ticker){return `https://sznfi.com/room/${encodeURIComponent(ticker)}`;}
 function leaveConfirmModal(ticker){
  return `<div class="overlay" data-act="closeLeave">
    <div class="editcard confirm">
@@ -2829,7 +2830,7 @@ function upgradeModal(ticker){
 function shareModal(ticker){
  const t=tokenBy(ticker)||{name:""};
  const link=roomLink(ticker);
- const tweet=`Join the $${ticker} room on PODCTO 👉 ${link}`;
+ const tweet=`Join the $${ticker} room on SZNFI 👉 ${link}`;
  const xUrl=`https://twitter.com/intent/tweet?text=${encodeURIComponent(tweet)}`;
  return `<div class="overlay" data-act="closeShare">
    <div class="editcard">
@@ -2915,7 +2916,7 @@ function welcomeScreen(){
    ${window.__LOGO_URL?`<div class="wc-bg-logo" style="background-image:url('${window.__LOGO_URL}')"></div>`:""}
    <button class="wc-theme" data-act="toggleTheme">${S.theme==="dark"?I.sun:I.moon}</button>
    <div class="wc-inner">
-     <div class="wc-logo">${window.__LOGO_URL?`<img class="wc-logo-img" src="${window.__LOGO_URL}" alt="PODCTO">`:`<span class="logo lg"></span>`}</div>
+     <div class="wc-logo">${window.__LOGO_URL?`<img class="wc-logo-img" src="${window.__LOGO_URL}" alt="SZNFI">`:`<span class="logo lg"></span>`}</div>
      <h1 class="wc-brand">${BRAND}</h1>
      <p class="wc-tag">${TAGLINE}</p>
      <p class="wc-desc">Where holders meet. Connect your wallet, enter rooms for the coins you hold, talk with real holders. No bots, no fake accounts — the social layer for crypto intelligence.</p>
@@ -2926,7 +2927,7 @@ function welcomeScreen(){
      <div class="wc-feats">
        <div class="wc-feat">${I.badge}<span>Verified holder badges</span></div>
        <div class="wc-feat">${I.chat}<span>Token-based chat rooms</span></div>
-       <div class="wc-feat">${I.globe}<span>All chains — SOL, ETH, Robinhood & more</span></div>
+       <div class="wc-feat">${I.globe}<span>All chains — ARC, SOL, ETH, Robinhood & more</span></div>
      </div>
      <div class="wc-soon">📱 Mobile app coming soon</div>
    </div>
@@ -2946,7 +2947,7 @@ function _renderNow(){
    let want="/";
    if(v.name==="room"&&v.token)want="/room/"+encodeURIComponent(v.token);
    else if(v.name==="post"&&v.id)want="/post/"+encodeURIComponent(v.id);
-   else if(v.name==="profile"){ const pw=v.wallet||(S.wallet&&S.wallet.address); if(pw)want="/u/"+(pw===OFFICIAL_WALLET?"PODCTO":encodeURIComponent(pw)); }
+   else if(v.name==="profile"){ const pw=v.wallet||(S.wallet&&S.wallet.address); if(pw)want="/u/"+(pw===OFFICIAL_WALLET?"SZNFI":encodeURIComponent(pw)); }
    else if(v.name==="token"&&v.token)want="/token/"+encodeURIComponent(v.token);
    else if(v.name==="dm"&&v.peer)want="/dm/"+encodeURIComponent(v.peer);
    else if(v.name==="feed")want="/";
@@ -2962,7 +2963,7 @@ function _renderNow(){
  // ilk açılış: karşılama ekranı (bir kez, "keşfet" ya da "connect wallet" seçilene kadar)
  if(!S.entered&&!S.connected){app.innerHTML=welcomeScreen();return;}
  app.innerHTML=`
-  <header class="top"><button class="brand" data-act="nav" data-view="feed">${window.__LOGO_URL?`<img class="logo-img" src="${window.__LOGO_URL}" alt="PODCTO">`:`<span class="logo"></span><span class="word">${BRAND}</span>`}</button>
+  <header class="top"><button class="brand" data-act="nav" data-view="feed">${window.__LOGO_URL?`<img class="logo-img" src="${window.__LOGO_URL}" alt="SZNFI">`:`<span class="logo"></span><span class="word">${BRAND}</span>`}</button>
    <div class="search"><span class="search-ic">${I.search}</span><input id="topSearch" placeholder="search room or wallet" value="${esc(S.topSearch)}" autocomplete="off">${S.topSearch?`<button class="search-clear" data-act="clearTopSearch">${I.x}</button>`:""}
      ${S.topSearchOpen?`<div class="search-dropdown" id="topSearchDrop">${topSearchResultsHtml()}</div>`:""}
    </div>
@@ -3032,7 +3033,7 @@ function connect(){
   if(window.__privyLogin){ window.__privyLogin(); }
   else { console.log("Privy is not ready yet"); }
 }
-// Privy giriş yapınca React bunu çağırır; gerçek cüzdan adresini PODCTO'e verir
+// Privy giriş yapınca React bunu çağırır; gerçek cüzdan adresini SZNFI'e verir
 // Supabase'den paylasimlari yukle ve akisa ekle
 window.__holdxApplyMemberships=function(tickers){
   if(!tickers) return;
@@ -3276,7 +3277,7 @@ document.addEventListener("click",e=>{
    rows.forEach(function(r,i){ const nm=(S.names&&S.names[r.wallet]?S.names[r.wallet]:"").replace(/,/g," "); csv+=(i+1)+","+r.wallet+","+nm+","+r.total+"\n"; });
    const blob=new Blob([csv],{type:"text/csv;charset=utf-8"});
    const url=URL.createObjectURL(blob);
-   const a2=document.createElement("a"); a2.href=url; a2.download="podcto-leaderboard.csv";
+   const a2=document.createElement("a"); a2.href=url; a2.download="sznfi-leaderboard.csv";
    document.body.appendChild(a2); a2.click(); document.body.removeChild(a2);
    setTimeout(function(){URL.revokeObjectURL(url);},1000);
  }
@@ -3539,7 +3540,7 @@ else if(a==="deleteComment"){const cid=el.dataset.cid, pid=el.dataset.post; if(!
    }
  }
  else if(a==="expandPost"){S.expandedPosts=S.expandedPosts||{};S.expandedPosts[el.dataset.id]=true;render();}
- else if(a==="shareProfile"){const w=el.dataset.wallet;const link="https://podcto.com/u/"+(w===OFFICIAL_WALLET?"PODCTO":w);(navigator.clipboard?navigator.clipboard.writeText(link):Promise.reject()).then(function(){S.profileShared=true;render();setTimeout(function(){S.profileShared=false;render();},1600);}).catch(function(){S.profileShared=true;render();setTimeout(function(){S.profileShared=false;render();},1600);});}
+ else if(a==="shareProfile"){const w=el.dataset.wallet;const link="https://sznfi.com/u/"+(w===OFFICIAL_WALLET?"SZNFI":w);(navigator.clipboard?navigator.clipboard.writeText(link):Promise.reject()).then(function(){S.profileShared=true;render();setTimeout(function(){S.profileShared=false;render();},1600);}).catch(function(){S.profileShared=true;render();setTimeout(function(){S.profileShared=false;render();},1600);});}
  else if(a==="gotoRoomLink"){const tk=el.dataset.token;S.view={name:"room",token:tk};if(isJoined(tk)){S.chatScrollBottom=true;if(window.__holdxSubscribeRoom)window.__holdxSubscribeRoom(tk);}render();}
  else if(a==="gotoPostLink"){const pid=el.dataset.id;S.view={name:"post",id:pid,token:null};render();}
  else if(a==="sharePost"){S.sharePostId=el.dataset.id;render();}
@@ -3559,7 +3560,7 @@ else if(a==="deleteComment"){const cid=el.dataset.cid, pid=el.dataset.post; if(!
  else if(a==="copyAddr"){const addr=el.dataset.addr;
    (navigator.clipboard?navigator.clipboard.writeText(addr):Promise.reject()).then(()=>{S.copied=true;render();setTimeout(()=>{S.copied=false;render();},1400);}).catch(()=>{S.copied=true;render();setTimeout(()=>{S.copied=false;render();},1400);});}
  else if(a==="closePostShare"){if((el.classList.contains("overlay")&&e.target===el)||e.target.closest(".edit-x")){S.sharePostId=null;render();}}
- else if(a==="copyPostLink"){const link="https://podcto.com/post/"+el.dataset.id;
+ else if(a==="copyPostLink"){const link="https://sznfi.com/post/"+el.dataset.id;
    (navigator.clipboard?navigator.clipboard.writeText(link):Promise.reject()).then(()=>{S.copied=true;render();setTimeout(()=>{S.copied=false;render();},1400);}).catch(()=>{S.copied=true;render();setTimeout(()=>{S.copied=false;render();},1400);});}
  else if(a==="repost"){const id=el.dataset.id;
    let on2=false;
@@ -3654,8 +3655,8 @@ else if(a==="deleteComment"){const cid=el.dataset.cid, pid=el.dataset.post; if(!
      headers:{"Content-Type":"application/json","Accept":"application/json"},
      body:JSON.stringify({
        access_key:"839e8f0f-f26f-403c-8494-71b5e0c13dd5",
-       subject:"[PODCTO] "+(sub||"No subject"),
-       from_name:"PODCTO Feedback",
+       subject:"[SZNFI] "+(sub||"No subject"),
+       from_name:"SZNFI Feedback",
        message:"Subject: "+(sub||"(none)")+"\n\n"+body+"\n\n———\nWallet: "+wallet
      })
    }).then(function(r){return r.json();}).then(function(res){
@@ -4049,7 +4050,7 @@ render();
       setTimeout(function(){ S.view={name:"post",id:pid,token:null}; render(); },300);
     } else if(um&&um[1]){
       let uw=decodeURIComponent(um[1]);
-      if(uw.toUpperCase()==="PODCTO")uw=OFFICIAL_WALLET; // /u/PODCTO -> proje cüzdanı
+      if(uw.toUpperCase()==="SZNFI")uw=OFFICIAL_WALLET; // /u/SZNFI -> proje cüzdanı
       setTimeout(function(){ S.view={name:"profile",token:null,wallet:uw}; if(window.__holdxLoadUserPosts)window.__holdxLoadUserPosts(uw); if(window.__holdxLoadPeerInfo)window.__holdxLoadPeerInfo(uw); render(); },300);
     } else {
       // basit nav sekmeleri: /portfolio, /rooms, /messages, /notifications, /leaderboard, /settings, /profile
