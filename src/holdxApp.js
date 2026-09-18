@@ -33,6 +33,10 @@ const I={
  sparkle:'<svg viewBox="0 0 24 24"><path d="M12 3l1.9 5.6L19.5 10l-5.6 1.9L12 17.5l-1.9-5.6L4.5 10l5.6-1.4z"/></svg>',
  compare:'<svg viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>',
  shield:'<svg viewBox="0 0 24 24"><path d="M12 2l8 4v6c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6z"/></svg>',
+ flows:'<svg viewBox="0 0 24 24"><path d="M4 7h11l-3-3M20 17H9l3 3"/></svg>',
+ rocket2:'<svg viewBox="0 0 24 24"><path d="M12 2c3 3 4 7 4 10l-4 3-4-3c0-3 1-7 4-10z"/><path d="M8 14l-2 6 4-2M16 14l2 6-4-2"/></svg>',
+ gift:'<svg viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="4"/><path d="M12 8v13M5 12v9h14v-9M12 8C12 5 10 3 8 4s0 4 4 4zM12 8c0-3 2-5 4-4s0 4-4 4z"/></svg>',
+ bell2:'<svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/></svg>',
  crown:'<svg viewBox="0 0 24 24"><path d="M2 18h20l-2-9-4 4-4-7-4 7-4-4z"/><line x1="2" y1="21" x2="22" y2="21"/></svg>',
  calendar:'<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
  arrowup:'<svg viewBox="0 0 24 24"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>',
@@ -767,7 +771,7 @@ async function refreshTokenPrices(){
  }
  if(["tokens","feed","rooms","portfolio"].includes(S.view.name))render();
 }
-const NAV=[["feed","Feed","home"],["profile","Profile","user"],["portfolio","Portfolio","wallet"],["rooms","Rooms","chat"],["myrooms","My Rooms","badge"],["messages","Messages","send"],["notifications","Notifications","bell"],["vip","VIP","crown",true],["unlocks","Unlocks","lock",true],["news","News","news"],["chart","Charts","candle"],["watchlist","Watchlist","star"],["aichart","AI Analyst","brain"],["onchain","On-Chain","waves"],["memecoin","MemeTrenches","rocket",true],["calendar","Calendar","calendar"],["settings","Settings","gear"]];
+const NAV=[["feed","Feed","home"],["profile","Profile","user"],["portfolio","Portfolio","wallet"],["rooms","Rooms","chat"],["myrooms","My Rooms","badge"],["messages","Messages","send"],["notifications","Notifications","bell"],["vip","VIP","crown",true],["unlocks","Unlocks","lock",true],["spotflows","Spot Flows","flows",true],["launchpad","Launchpad","rocket2",true],["airdrops","Airdrops","gift",true],["alerts","Alerts","bell2",true],["news","News","news"],["chart","Charts","candle"],["watchlist","Watchlist","star"],["aichart","AI Analyst","brain"],["onchain","On-Chain","waves"],["memecoin","MemeTrenches","rocket",true],["calendar","Calendar","calendar"],["settings","Settings","gear"]];
 
 // --- emoji seti (X benzeri bol seçenek, kategorili) ---
 const EMOJI={
