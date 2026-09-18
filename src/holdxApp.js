@@ -1053,9 +1053,7 @@ function marketBar(){
       <div class="mstat"><span class="mstat-l">BTC Dom</span><span class="mstat-v">${g.btcDom!=null?g.btcDom.toFixed(1)+"%":"—"}</span></div>
       <div class="mstat"><span class="mstat-l">ETH Dom</span><span class="mstat-v">${g.ethDom!=null?g.ethDom.toFixed(1)+"%":"—"}</span></div>
       <div class="mstat"><span class="mstat-l">Total Cap</span><span class="mstat-v">${fmtBigUsd(g.totalMcap)}</span></div>
-      ${g.solPrice!=null?`<div class="mstat mstat-sol"><span class="mstat-l">SOL</span><span class="mstat-v">$${g.solPrice<10?g.solPrice.toFixed(2):g.solPrice.toFixed(1)}</span></div>`:""}
-      ${g.solDexVol!=null?`<div class="mstat mstat-sol"><span class="mstat-l">SOL DEX Vol 24h</span><span class="mstat-v">${fmtBigUsd(g.solDexVol)}</span></div>`:""}
-`;
+      ${g.arcVol!=null?`<div class="mstat mstat-sol"><span class="mstat-l">ARC Vol 24h</span><span class="mstat-v">${fmtBigUsd(g.arcVol)}</span></div>`:""}`;
   }
   if(!fg && !stats)return "";
   return `<div class="market-bar">${fg}${stats}</div>${altSeasonBar()}`;
