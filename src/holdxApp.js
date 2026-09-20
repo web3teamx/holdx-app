@@ -1053,11 +1053,18 @@ function marketBar(){
   const g=S.global;
   let stats="";
   if(g){
+    let volCards="";
+    if(g.chainVols){
+      const order=[["solana","SOL"],["robinhood","Robinhood"],["arc","ARC"],["bsc","BSC"],["ethereum","ETH"]];
+      volCards=order.filter(function(o){return g.chainVols[o[0]]!=null;}).map(function(o){
+        return `<div class="mstat mstat-sol"><span class="mstat-l">${o[1]} Vol 24h</span><span class="mstat-v">${fmtBigUsd(g.chainVols[o[0]])}</span></div>`;
+      }).join("");
+    }
     stats=`
       <div class="mstat"><span class="mstat-l">BTC Dom</span><span class="mstat-v">${g.btcDom!=null?g.btcDom.toFixed(1)+"%":"—"}</span></div>
       <div class="mstat"><span class="mstat-l">ETH Dom</span><span class="mstat-v">${g.ethDom!=null?g.ethDom.toFixed(1)+"%":"—"}</span></div>
       <div class="mstat"><span class="mstat-l">Total Cap</span><span class="mstat-v">${fmtBigUsd(g.totalMcap)}</span></div>
-      ${g.arcVol!=null?`<div class="mstat mstat-sol"><span class="mstat-l">Robinhood Vol 24h</span><span class="mstat-v">${fmtBigUsd(g.arcVol)}</span></div>`:""}`;
+      ${volCards}`;
   }
   if(!fg && !stats)return "";
   return `<div class="market-bar">${fg}${stats}</div>${altSeasonBar()}`;
@@ -2480,7 +2487,7 @@ function memeSurges(){
 function trendingSection(){
   if(!S.trendingLoaded && !S.trendingLoading && window.__holdxLoadTrending){ S.trendingLoading=true; window.__holdxLoadTrending(); }
   if(!window.__trendTimer){
-    window.__trendTimer=setInterval(function(){ if(S.view&&S.view.name==="memecoin"&&S.memeTab==="trending"){ if(window.__holdxLoadTrending)window.__holdxLoadTrending(); } else { clearInterval(window.__trendTimer); window.__trendTimer=null; } },45000);
+    window.__trendTimer=setInterval(function(){ if(S.view&&S.view.name==="memecoin"&&S.memeTab==="trending"){ if(window.__holdxLoadTrending)window.__holdxLoadTrending(); } else { clearInterval(window.__trendTimer); window.__trendTimer=null; } },30000);
   }
   const list=S.trending||[];
   if(S.trendingLoading && !list.length)return `<div class="oc-loading">${I.search} Loading trending tokens…</div>`;

@@ -276,17 +276,22 @@ export default function App() {
     window.__holdxLoadGlobal = async () => {
       // CoinLore (CORS açık, doğru btc dominance)
       try {
-        const [gRes, sRes, solVolRes] = await Promise.all([
+        const [gRes, sRes] = await Promise.all([
           fetch('https://api.coinlore.net/api/global/'),
-          fetch('https://api.coinlore.net/api/ticker/?id=48543'),
-          fetch('https://api.llama.fi/overview/dexs/robinhood?excludeTotalDataChart=true&excludeTotalDataChartBreakdown=true').catch(() => null)
+          fetch('https://api.coinlore.net/api/ticker/?id=48543')
         ])
         const arr = await gRes.json()
         const d = Array.isArray(arr) ? arr[0] : arr
         let solPrice = null, solChg = null
         try { const st = await sRes.json(); const so = Array.isArray(st) ? st[0] : st; if (so) { solPrice = parseFloat(so.price_usd); solChg = parseFloat(so.percent_change_24h) } } catch (e) {}
-        let arcVolV = null
-        try { if (solVolRes && solVolRes.ok) { const sv = await solVolRes.json(); arcVolV = sv.total24h || null } } catch (e) {}
+        // çoklu ağ 24h DEX hacmi (DefiLlama)
+        const chainVols = {}
+        await Promise.all([['solana'],['robinhood'],['arc'],['bsc'],['ethereum']].map(async ([slug]) => {
+          try {
+            const r = await fetch(`https://api.llama.fi/overview/dexs/${slug}?excludeTotalDataChart=true&excludeTotalDataChartBreakdown=true`)
+            if (r.ok) { const j = await r.json(); if (j && j.total24h) chainVols[slug] = j.total24h }
+          } catch (e) {}
+        }))
         let altSeason = null
         try {
           // CoinLore top 100 (CORS açık) — kaç coin BTC'yi 7g geçmiş
@@ -312,7 +317,7 @@ export default function App() {
             btcDomChg: null,
             solPrice: solPrice,
             solChg: solChg,
-            arcVol: arcVolV,
+            chainVols: chainVols,
             altSeason: altSeason
           })
           return
