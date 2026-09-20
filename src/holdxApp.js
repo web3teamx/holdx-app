@@ -771,7 +771,7 @@ async function refreshTokenPrices(){
  }
  if(["tokens","feed","rooms","portfolio"].includes(S.view.name))render();
 }
-const NAV=[["feed","Feed","home"],["profile","Profile","user"],["portfolio","Portfolio","wallet"],["rooms","Rooms","chat"],["myrooms","My Rooms","badge"],["messages","Messages","send"],["notifications","Notifications","bell"],["vip","VIP","crown",true],["unlocks","Unlocks","lock",true],["spotflows","Spot Flows","flows",true],["launchpad","Launchpad","rocket2",true],["airdrops","Airdrops","gift",true],["alerts","Alerts","bell2",true],["news","News","news"],["chart","Charts","candle"],["watchlist","Watchlist","star"],["aichart","AI Analyst","brain"],["onchain","On-Chain","waves"],["memecoin","MemeTrenches","rocket",true],["calendar","Calendar","calendar"],["settings","Settings","gear"]];
+const NAV=[["feed","Feed","home"],["profile","Profile","user"],["portfolio","Portfolio","wallet"],["rooms","Rooms","chat"],["myrooms","My Rooms","badge"],["messages","Messages","send"],["notifications","Notifications","bell"],["vip","VIP","crown",true],["unlocks","Unlocks","lock",true],["spotflows","Spot Flows","flows",true],["launchpad","Launchpad","rocket2",true],["airdrops","Airdrops","gift",true],["alerts","Alerts","bell2",true],["news","News","news"],["chart","Charts","candle"],["watchlist","Watchlist","star"],["aichart","AI Analyst","brain"],["onchain","On-Chain","waves"],["memecoin","MemeTrenches","rocket"],["calendar","Calendar","calendar"],["settings","Settings","gear"]];
 
 // --- emoji seti (X benzeri bol seçenek, kategorili) ---
 const EMOJI={
@@ -1057,7 +1057,7 @@ function marketBar(){
       <div class="mstat"><span class="mstat-l">BTC Dom</span><span class="mstat-v">${g.btcDom!=null?g.btcDom.toFixed(1)+"%":"—"}</span></div>
       <div class="mstat"><span class="mstat-l">ETH Dom</span><span class="mstat-v">${g.ethDom!=null?g.ethDom.toFixed(1)+"%":"—"}</span></div>
       <div class="mstat"><span class="mstat-l">Total Cap</span><span class="mstat-v">${fmtBigUsd(g.totalMcap)}</span></div>
-      ${g.arcVol!=null?`<div class="mstat mstat-sol"><span class="mstat-l">ARC Vol 24h</span><span class="mstat-v">${fmtBigUsd(g.arcVol)}</span></div>`:""}`;
+      ${g.arcVol!=null?`<div class="mstat mstat-sol"><span class="mstat-l">Robinhood Vol 24h</span><span class="mstat-v">${fmtBigUsd(g.arcVol)}</span></div>`:""}`;
   }
   if(!fg && !stats)return "";
   return `<div class="market-bar">${fg}${stats}</div>${altSeasonBar()}`;
@@ -2393,7 +2393,8 @@ function compareSection(){
     </div>
   </div>`;
   if(S.cmpLoading)return head+`<div class="oc-loading">${I.search} Loading both tokens…</div>`;
-  const a=extractMetrics(S.cmpDataA), b=extractMetrics(S.cmpDataB);
+  const a=S.cmpDataA, b=S.cmpDataB;
+  if((S.cmpA||S.cmpB)&&!S.cmpLoading&&(!a||!b))return head+`<div class="cmp-empty">One or both tokens not found. Paste valid token addresses (any chain).</div>`;
   if(!a||!b)return head+`<div class="cmp-empty">Enter two token addresses above to compare.</div>`;
 
   // satir: label, a deger, b deger, hangisi iyi (1=a,2=b,0=esit), format
@@ -2413,25 +2414,16 @@ function compareSection(){
   const yn=function(v){return v?"✓ Yes":"✕ No";};
 
   const rows=[
-    fmtRow("Price", a.price, b.price, 0, function(v){return "$"+(v<0.01?v.toFixed(6):v.toFixed(4));}),
+    fmtRow("Price", a.price, b.price, 0, function(v){return "$"+(v<0.01?(v||0).toFixed(6):(v||0).toFixed(4));}),
     fmtRow("Market Cap", a.mcap, b.mcap, hi(a.mcap,b.mcap), usd),
-    fmtRow("24h Change", a.chg24, b.chg24, hi(a.chg24,b.chg24), function(v){return (v>=0?"+":"")+v.toFixed(1)+"%";}),
+    fmtRow("24h Change", a.chg24, b.chg24, hi(a.chg24,b.chg24), function(v){return ((v||0)>=0?"+":"")+(v||0).toFixed(1)+"%";}),
     fmtRow("24h Volume", a.vol24, b.vol24, hi(a.vol24,b.vol24), usd),
     fmtRow("Liquidity", a.liq, b.liq, hi(a.liq,b.liq), usd),
-    fmtRow("Holders", a.holders, b.holders, hi(a.holders,b.holders), function(v){return v.toLocaleString();}),
-    fmtRow("Top 10 hold", a.top10, b.top10, lo(a.top10,b.top10), pct),
-    fmtRow("LP Locked", a.lpLocked, b.lpLocked, hi(a.lpLocked||0,b.lpLocked||0), pct),
+    fmtRow("24h Buys", a.buys, b.buys, hi(a.buys,b.buys), function(v){return (v||0).toLocaleString();}),
+    fmtRow("24h Sells", a.sells, b.sells, lo(a.sells,b.sells), function(v){return (v||0).toLocaleString();}),
+    fmtRow("24h Txns", a.txns, b.txns, hi(a.txns,b.txns), function(v){return (v||0).toLocaleString();}),
     fmtRow("Age", a.age, b.age, hi(a.age||0,b.age||0), function(v){return v!=null?v+"d":"—";}),
-    fmtRow("Mint revoked", a.mintOk, b.mintOk, bool(a.mintOk,b.mintOk), yn),
-    fmtRow("Freeze revoked", a.freezeOk, b.freezeOk, bool(a.freezeOk,b.freezeOk), yn),
-    fmtRow("Insiders", a.insiders, b.insiders, lo(a.insiders,b.insiders), function(v){return v+"";}),
-    fmtRow("Risk score", a.score, b.score, lo(a.score,b.score), function(v){return Math.round(v)+"";}),
-    fmtRow("Socials", a.hasSocial, b.hasSocial, bool(a.hasSocial,b.hasSocial), yn),
-    fmtRow("Top holder", a.top1, b.top1, lo(a.top1,b.top1), pct),
-    fmtRow("LP providers", a.lpProviders, b.lpProviders, hi(a.lpProviders,b.lpProviders), function(v){return v+"";}),
-    fmtRow("Dev other tokens", a.devTokens, b.devTokens, lo(a.devTokens,b.devTokens), function(v){return v+"";}),
-    fmtRow("Jupiter verified", a.verified, b.verified, bool(a.verified,b.verified), yn),
-    fmtRow("Rugged", a.rugged, b.rugged, bool(!a.rugged,!b.rugged), function(v){return v?"✕ Yes":"✓ No";})
+    fmtRow("Socials", a.hasSocial, b.hasSocial, bool(a.hasSocial,b.hasSocial), yn)
   ].join("");
 
   return head+`<div class="cmp-table">
@@ -2445,34 +2437,31 @@ function compareSection(){
   <p class="safety-disclaimer">Green highlights the stronger side. Not financial advice — always do your own research.</p>`;
 }
 function memecoinView(){
-  const tab=S.memeTab||"new";
+  let tab=S.memeTab||"trending";
+  if(tab==="new"||tab==="rug")tab="trending";
   const head=`<div class="meme-head">
-    <h1 class="h1">${I.rocket} Memecoin</h1>
-    <p class="sub">Everything a Solana memecoin trader needs — new launches, momentum, safety.</p>
+    <h1 class="h1">${I.rocket} MemeTrenches</h1>
+    <p class="sub">Everything a memecoin trader needs — trending across all chains, volume surges, side-by-side comparison.</p>
     <div class="meme-tabs">
-      <button class="meme-tab ${tab==="new"?"on":""}" data-act="memeTab" data-tab="new">New + Safe</button>
-      <button class="meme-tab ${tab==="surges"?"on":""}" data-act="memeTab" data-tab="surges">Volume Surges</button>
-      <button class="meme-tab ${tab==="rug"?"on":""}" data-act="memeTab" data-tab="rug">Rug Check</button>
       <button class="meme-tab ${tab==="trending"?"on":""}" data-act="memeTab" data-tab="trending">Trending</button>
+      <button class="meme-tab ${tab==="surges"?"on":""}" data-act="memeTab" data-tab="surges">Volume Surges</button>
       <button class="meme-tab ${tab==="compare"?"on":""}" data-act="memeTab" data-tab="compare">Compare</button>
       <button class="meme-tab soon" disabled>Soon</button>
     </div>
   </div>`;
 
-  if(tab==="rug") return head+safetySection();
   if(tab==="compare") return head+compareSection();
   if(tab==="surges") return head+memeSurges();
-  if(tab==="trending") return head+trendingSection();
-  return head+freshSection();
+  return head+trendingSection();
 }
 function memeSurges(){
   if(!S.spikesLoaded && !S.spikesLoading && window.__holdxLoadSpikes){ S.spikesLoading=true; window.__holdxLoadSpikes(); }
   if(!window.__spikeTimer){
-    window.__spikeTimer=setInterval(function(){ if(S.view&&S.view.name==="memecoin"){ if(window.__holdxLoadSpikes)window.__holdxLoadSpikes(); } else { clearInterval(window.__spikeTimer); window.__spikeTimer=null; } },30000);
+    window.__spikeTimer=setInterval(function(){ if(S.view&&S.view.name==="memecoin"&&S.memeTab==="surges"){ if(window.__holdxLoadSpikes)window.__holdxLoadSpikes(); } else { clearInterval(window.__spikeTimer); window.__spikeTimer=null; } },30000);
   }
   const list=(S.spikes||[]).filter(function(x){return x.category==="solana";}).sort(function(a,b){return new Date(b.detected_at||0)-new Date(a.detected_at||0);});
-  if(S.spikesLoading && !list.length) return `<div class="oc-loading">${I.search} Scanning Solana volume…</div>`;
-  if(!list.length) return `<div class="oc-empty"><div class="oc-empty-ic">${I.trend}</div><p>No volume surges right now.</p><span>Solana is calm — check back soon.</span></div>`;
+  if(S.spikesLoading && !list.length) return `<div class="oc-loading">${I.search} Scanning 15m volume…</div>`;
+  if(!list.length) return `<div class="oc-empty"><div class="oc-empty-ic">${I.trend}</div><p>No volume surges right now.</p><span>Market is calm — check back soon.</span></div>`;
   const nowT=Date.now();
   const cards=list.map(function(x){
     const fresh=x.detected_at&&(nowT-new Date(x.detected_at).getTime())<90000;
@@ -2482,7 +2471,7 @@ function memeSurges(){
       <div class="oc-left">${tokenMarkHtml(x.symbol,"sm",x.logo)}
         <div class="oc-info"><div class="oc-sym">$${esc(x.symbol||"")}${x.name&&x.name!==x.symbol?`<span class="oc-name">${esc(x.name)}</span>`:""}</div>
         <div class="oc-sub">Vol $${fmtMc(x.volume_now||0)}${chg?` · <span class="${up?"up":"down"}">${chg}</span>`:""}</div></div></div>
-      <div class="oc-right"><div class="oc-mult">${(+x.multiple).toFixed(1)}x</div><div class="oc-mult-lbl">volume</div>
+      <div class="oc-right"><div class="oc-mult">${(+x.multiple).toFixed(1)}x</div><div class="oc-mult-lbl">15m vol</div>
         ${x.url?`<a class="oc-link" href="${esc(x.url)}" target="_blank" rel="noopener">View ↗</a>`:""}</div>
     </article>`;
   }).join("");
@@ -2494,21 +2483,23 @@ function trendingSection(){
     window.__trendTimer=setInterval(function(){ if(S.view&&S.view.name==="memecoin"&&S.memeTab==="trending"){ if(window.__holdxLoadTrending)window.__holdxLoadTrending(); } else { clearInterval(window.__trendTimer); window.__trendTimer=null; } },45000);
   }
   const list=S.trending||[];
-  if(S.trendingLoading && !list.length)return `<div class="oc-loading">${I.search} Loading trending Solana tokens…</div>`;
+  if(S.trendingLoading && !list.length)return `<div class="oc-loading">${I.search} Loading trending tokens…</div>`;
   if(!list.length)return `<div class="oc-empty"><div class="oc-empty-ic">${I.rocket}</div><p>No trending tokens right now.</p></div>`;
+  const nowT=Date.now();
   const cards=list.map(function(t,i){
     const up=(t.chg24||0)>=0;
-    return `<article class="trend-card">
+    const fresh=t.detected_at&&(nowT-new Date(t.detected_at).getTime())<120000;
+    return `<article class="trend-card${fresh?" fresh":""}">
       <div class="trend-rank">#${i+1}</div>
       <div class="trend-left">${tokenMarkHtml(t.symbol,"sm",t.logo)}
         <div class="trend-info"><div class="trend-sym">$${esc(t.symbol||"")}${t.name&&t.name!==t.symbol?`<span class="trend-name">${esc(t.name)}</span>`:""}</div>
-        <div class="trend-sub">MC ${fmtBigUsd(t.mcap||0)} · 1h Vol ${fmtBigUsd(t.vol24||0)}</div></div></div>
+        <div class="trend-sub">MC ${fmtBigUsd(t.mcap||0)} · 24h Vol ${fmtBigUsd(t.vol24||0)}${t.chain?` · ${esc((t.chain||"").toUpperCase())}`:""}</div></div></div>
       <div class="trend-right">
         <div class="trend-price">$${t.price<0.01?t.price.toFixed(6):t.price.toFixed(4)}</div>
         <div class="trend-chg ${up?"up":"down"}">${up?"▲":"▼"}${Math.abs(t.chg24||0).toFixed(1)}%</div>
         ${t.url?`<a class="trend-link" href="${esc(t.url)}" target="_blank" rel="noopener">View ↗</a>`:""}
       </div>
-      <button class="wl-star ${isWatched(t.symbol,t.address)?"on":""}" data-act="toggleWatch" data-sym="${esc(t.symbol)}" data-addr="${esc(t.address||"")}" data-name="${esc(t.name||"")}" data-logo="${esc(t.logo||"")}" data-chain="solana" title="Watchlist">${isWatched(t.symbol,t.address)?"★":"☆"}</button>
+      <button class="wl-star ${isWatched(t.symbol,t.address)?"on":""}" data-act="toggleWatch" data-sym="${esc(t.symbol)}" data-addr="${esc(t.address||"")}" data-name="${esc(t.name||"")}" data-logo="${esc(t.logo||"")}" data-chain="${esc(t.chain||"")}" title="Watchlist">${isWatched(t.symbol,t.address)?"★":"☆"}</button>
     </article>`;
   }).join("");
   return `<div class="trend-list">${cards}</div>`;
@@ -3447,9 +3438,9 @@ else if(a==="cmpGo"){
    const aa=(ia?ia.value:S.cmpA||"").trim(), bb=(ib?ib.value:S.cmpB||"").trim();
    if(!aa||!bb)return;
    S.cmpA=aa; S.cmpB=bb; S.cmpLoading=true; S.cmpDataA=null; S.cmpDataB=null; render();
-   Promise.all([window.__holdxRugCheck(aa), window.__holdxRugCheck(bb)]).then(function(res){
-     S.cmpDataA=(res[0]&&res[0].ok)?res[0].data:null;
-     S.cmpDataB=(res[1]&&res[1].ok)?res[1].data:null;
+   Promise.all([window.__holdxCmpToken(aa), window.__holdxCmpToken(bb)]).then(function(res){
+     S.cmpDataA=res[0]||null;
+     S.cmpDataB=res[1]||null;
      S.cmpLoading=false; render();
    });
  }

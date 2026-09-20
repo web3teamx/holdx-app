@@ -165,6 +165,27 @@ export default function App() {
         return { ok: false, error: 'Could not reach RugCheck. Try again.' }
       }
     }
+    window.__holdxCmpToken = async (addr) => {
+      try {
+        const res = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${addr}`)
+        if (!res.ok) return null
+        const dx = await res.json()
+        const p = (dx.pairs || []).sort((a,b) => (b.liquidity?.usd||0)-(a.liquidity?.usd||0))[0]
+        if (!p) return null
+        const buys = (p.txns?.h24?.buys)||0, sells = (p.txns?.h24?.sells)||0
+        let age = null
+        if (p.pairCreatedAt) age = Math.floor((Date.now() - p.pairCreatedAt)/86400000)
+        return {
+          symbol: (p.baseToken?.symbol||'').toUpperCase(), name: p.baseToken?.name||'',
+          price: parseFloat(p.priceUsd)||0, mcap: p.marketCap||p.fdv||0,
+          chg24: p.priceChange?.h24||0, vol24: p.volume?.h24||0,
+          liq: p.liquidity?.usd||0, age: age, buys: buys, sells: sells, txns: buys+sells,
+          chain: p.chainId||'', dexName: p.dexId||'',
+          hasSocial: !!((p.info?.websites?.[0]) || (p.info?.socials && p.info.socials.length)),
+          url: p.url||`https://dexscreener.com/${p.chainId}/${addr}`
+        }
+      } catch (e) { return null }
+    }
     window.__holdxAnalyzeChart = async (b64, mediaType) => {
       try {
         const res = await fetch('https://nxlleblykoxcxzjwzsbq.supabase.co/functions/v1/chart-vision', {
@@ -240,36 +261,10 @@ export default function App() {
       } catch (e) {}
     }
     window.__holdxLoadTrending = async () => {
+      // trending-scan Edge Function'ın yazdığı temiz listeyi oku (rug'lar elenmiş)
       try {
-        const addrs = new Set()
-        // boosted + trending Solana tokenleri
-        for (const url of ['https://api.dexscreener.com/token-boosts/top/v1','https://api.dexscreener.com/token-boosts/latest/v1']) {
-          try {
-            const d = await fetch(url).then(r => r.json())
-            ;(Array.isArray(d) ? d : []).filter(b => b.chainId === 'solana' && b.tokenAddress).forEach(b => addrs.add(b.tokenAddress))
-          } catch (e) {}
-        }
-        const arr = [...addrs].slice(0, 30)
-        if (!arr.length) { if (window.__holdxApplyTrending) window.__holdxApplyTrending([]); return }
-        const res = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${arr.join(',')}`)
-        const dx = await res.json()
-        const pairs = (dx.pairs || []).filter(p => p.chainId === 'solana')
-        const seen = new Set()
-        const out = []
-        for (const p of pairs) {
-          const addr = p.baseToken?.address
-          if (!addr || seen.has(addr)) continue
-          seen.add(addr)
-          if (!p.volume?.h1 || p.volume.h1 < 3000) continue
-          out.push({
-            address: addr, symbol: (p.baseToken.symbol||'').toUpperCase(), name: p.baseToken.name||'',
-            price: parseFloat(p.priceUsd)||0, mcap: p.marketCap||p.fdv||0,
-            vol24: p.volume.h1||0, chg24: p.priceChange?.h1||0,
-            logo: p.info?.imageUrl||null, url: p.url||`https://dexscreener.com/solana/${addr}`
-          })
-        }
-        out.sort((a,b) => b.vol24 - a.vol24)  // 1h hacim
-        if (window.__holdxApplyTrending) window.__holdxApplyTrending(out.slice(0, 25))
+        const { data } = await supabase.from('trending').select('*').order('detected_at', { ascending: false }).order('rank', { ascending: true }).limit(30)
+        if (window.__holdxApplyTrending) window.__holdxApplyTrending(data || [])
       } catch (e) { if (window.__holdxApplyTrending) window.__holdxApplyTrending([]) }
     }
     window.__holdxLoadFresh = async () => {
@@ -284,7 +279,7 @@ export default function App() {
         const [gRes, sRes, solVolRes] = await Promise.all([
           fetch('https://api.coinlore.net/api/global/'),
           fetch('https://api.coinlore.net/api/ticker/?id=48543'),
-          fetch('https://api.llama.fi/overview/dexs/arc?excludeTotalDataChart=true&excludeTotalDataChartBreakdown=true').catch(() => null)
+          fetch('https://api.llama.fi/overview/dexs/robinhood?excludeTotalDataChart=true&excludeTotalDataChartBreakdown=true').catch(() => null)
         ])
         const arr = await gRes.json()
         const d = Array.isArray(arr) ? arr[0] : arr

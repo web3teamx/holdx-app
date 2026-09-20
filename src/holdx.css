@@ -1521,6 +1521,8 @@ img.tokenmark{object-fit:cover;background:transparent;}
 .wl-star{background:none;border:none;font-size:18px;color:#f5c518;cursor:pointer;padding:4px;flex:none;line-height:1;}
 .wl-star:hover{transform:scale(1.15);}
 .trend-card{position:relative;}
+.trend-card.fresh{animation:ocPulse 1.2s ease-in-out 0s 4;border-color:var(--green);}
+.trend-card.fresh::before{content:"NEW";position:absolute;top:-8px;left:14px;background:var(--green);color:#05140d;font-size:9px;font-weight:800;letter-spacing:.5px;padding:2px 7px;border-radius:5px;z-index:2;}
 
 /* watchlist arama */
 .wl-search-wrap{position:relative;margin-top:14px;}
